@@ -6,17 +6,29 @@ import { auth0 } from "./lib/auth0";
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // For Auth0 SDK routes, let the SDK handle them
+  // Auth0 SDK routes - let the SDK handle authentication flow
   if (pathname.startsWith("/auth/")) {
     return auth0.middleware(req);
   }
 
-  // For protected app routes, check authentication
-  const res = await auth0.middleware(req);
+  // Protected app routes - check if user has a session
+  try {
+    const session = await auth0.getSession(req);
 
-  // If not authenticated, Auth0 will redirect to /auth/login
-  // If authenticated, continue to the requested page
-  return res;
+    if (!session || !session.user) {
+      // No session - redirect to login
+      const loginUrl = new URL("/auth/login", req.url);
+      loginUrl.searchParams.set("returnTo", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+
+    // Has session - allow access
+    return NextResponse.next();
+  } catch (error) {
+    console.error("Middleware auth check failed:", error);
+    // On error, redirect to login
+    return NextResponse.redirect(new URL("/auth/login", req.url));
+  }
 }
 
 export const config = {
