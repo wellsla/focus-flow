@@ -1,11 +1,12 @@
-import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { auth0 } from "./lib/auth0";
 
-// Temporarily pass-through middleware to avoid auth-related redirect loops during setup
-export default function middleware() {
-  return NextResponse.next();
+export async function middleware(req: NextRequest) {
+  return auth0.middleware(req);
 }
 
 export const config = {
-  // Only protect selected app sections. Do NOT match /api/auth/* or assets.
-  matcher: ["/profile/:path*"],
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)",
+  ],
 };
