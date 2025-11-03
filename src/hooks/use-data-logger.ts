@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import useLocalStorage from "./use-local-storage";
 import { DailyLog, JobApplication, Goal, Task } from "@/lib/types";
 import { format, isBefore, parseISO } from "date-fns";
@@ -31,9 +31,15 @@ const useDataLogger = () => {
   );
   const [goals] = useLocalStorage<Goal[]>("goals", []);
   const [tasks] = useLocalStorage<Task[]>("tasks", []);
+  // Guard to ensure we never create more than one log per day even if this
+  // effect re-runs due to unrelated state changes.
+  const lastLoggedForDayRef = useRef<string | null>(null);
 
   useEffect(() => {
     const todayStr = format(new Date(), "yyyy-MM-dd");
+    if (lastLoggedForDayRef.current === todayStr) {
+      return;
+    }
     const lastLogDate =
       logs.length > 0 ? parseISO(logs[logs.length - 1].date) : null;
 
@@ -49,6 +55,7 @@ const useDataLogger = () => {
       };
 
       setLogs((prevLogs) => [...prevLogs, newLog]);
+      lastLoggedForDayRef.current = todayStr;
     }
   }, [jobApplications, goals, tasks, logs, setLogs]);
 };
