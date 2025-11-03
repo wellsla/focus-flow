@@ -20,7 +20,6 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)",
-  ],
+  // Only protect selected app sections. Do NOT match /api/auth/* or assets.
+  matcher: ["/profile/:path*"],
 };

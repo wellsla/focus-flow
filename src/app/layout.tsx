@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
-import { Auth0Provider } from "@auth0/nextjs-auth0/client";
 import { Inter, Space_Grotesk } from "next/font/google";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
@@ -26,7 +25,7 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${spaceGrotesk.variable} font-sans antialiased`}
       >
-        <Auth0Provider>{children}</Auth0Provider>
+        {children}
         <Toaster />
       </body>
     </html>

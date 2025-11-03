@@ -29,7 +29,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Logo from "@/components/logo";
 import { cn } from "@/lib/utils";
-import { useUser } from "@auth0/nextjs-auth0/client";
 import { MotivationalHeader } from "./components/motivational-header";
 import useDataLogger from "@/hooks/use-data-logger";
 import useLocalStorage from "@/hooks/use-local-storage";
@@ -75,7 +74,9 @@ export default function FeaturesLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const { user, error, isLoading } = useUser();
+  // Auth: Show placeholder avatar by default; integrate provider when ready
+  // Placeholder user data (auth not wired in production yet)
+  const user = null as null;
   const [isCollapsed, setIsCollapsed] = useLocalStorage(
     "sidebarCollapsed",
     false
@@ -207,12 +208,10 @@ export default function FeaturesLayout({
               <Button variant="secondary" size="icon" className="rounded-full">
                 <Avatar>
                   <AvatarImage
-                    src={
-                      user?.picture ?? "https://picsum.photos/seed/user/100/100"
-                    }
-                    alt={user?.name ?? "User"}
+                    src="https://picsum.photos/seed/user/100/100"
+                    alt="User"
                   />
-                  <AvatarFallback>{user?.name?.[0]}</AvatarFallback>
+                  <AvatarFallback>U</AvatarFallback>
                 </Avatar>
                 <span className="sr-only">Toggle user menu</span>
               </Button>
@@ -225,7 +224,7 @@ export default function FeaturesLayout({
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <a href="/auth/logout">Logout</a>
+                <a href="/api/auth/logout">Logout</a>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
