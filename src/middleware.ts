@@ -9,6 +9,6 @@ export async function middleware(req: NextRequest) {
 // This allows Auth0 SDK to handle /auth/login, /auth/callback, /auth/profile, etc.
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|auth/).*)",
+    "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|auth/.*).*)",
   ],
 };
