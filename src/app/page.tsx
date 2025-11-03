@@ -27,10 +27,10 @@ const HomePageContent = () => {
         <Logo />
         <nav className="ml-auto flex gap-4 sm:gap-6">
           <Button asChild variant="ghost">
-            <a href="/auth/login">Login</a>
+            <a href="/auth/login?returnTo=/home">Login</a>
           </Button>
           <Button asChild>
-            <a href="/auth/login">
+            <a href="/auth/login?screen_hint=signup&returnTo=/home">
               Get Started <ArrowRight className="ml-2 h-4 w-4" />
             </a>
           </Button>
@@ -53,7 +53,9 @@ const HomePageContent = () => {
               </div>
               <div className="flex flex-col gap-2 min-[400px]:flex-row">
                 <Button asChild size="lg">
-                  <a href="/auth/login">Find your proposite</a>
+                  <a href="/auth/login?screen_hint=signup&returnTo=/home">
+                    Find your proposite
+                  </a>
                 </Button>
               </div>
             </div>
