@@ -1,15 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, Loader2 } from "lucide-react";
+import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { placeHolderImages } from "@/lib/placeholder-images";
 import Logo from "@/components/logo";
-import { useUser } from "@auth0/nextjs-auth0/client";
-import { useRouter } from "next/navigation";
 
 const HomePageContent = () => {
   const heroImage = placeHolderImages.find(
@@ -136,34 +133,8 @@ const HomePageContent = () => {
 };
 
 export default function Home() {
-  const { user, isLoading } = useUser();
-  const router = useRouter();
-
-  useEffect(() => {
-    // Only redirect after auth completes and user is logged in
-    if (isLoading) return;
-    if (user) {
-      router.replace("/home");
-    }
-  }, [user, isLoading, router]);
-
-  if (isLoading) {
-    return (
-      <div className="flex flex-col min-h-screen items-center justify-center bg-background">
-        <Loader2 className="h-16 w-16 animate-spin text-primary" />
-        <p className="text-muted-foreground mt-4">Loading your dashboard...</p>
-      </div>
-    );
-  }
-
-  if (user) {
-    return (
-      <div className="flex flex-col min-h-screen items-center justify-center bg-background">
-        <Loader2 className="h-16 w-16 animate-spin text-primary" />
-        <p className="text-muted-foreground mt-4">Redirecting...</p>
-      </div>
-    );
-  }
-
+  // DO NOT call useUser() on the public landing page!
+  // It will trigger /auth/profile fetch and cause redirect loops
+  // Auth check happens via middleware on protected routes only
   return <HomePageContent />;
 }
