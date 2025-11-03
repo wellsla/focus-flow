@@ -5,8 +5,20 @@ export async function middleware(req: NextRequest) {
   return auth0.middleware(req);
 }
 
+// Only protect app sections, not /auth/* or assets
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)",
+    "/dashboard/:path*",
+    "/account/:path*",
+    "/settings/:path*",
+    "/profile/:path*",
+    "/applications/:path*",
+    "/finances/:path*",
+    "/goals/:path*",
+    "/routine/:path*",
+    "/roadmap/:path*",
+    "/performance/:path*",
+    "/time-management/:path*",
+    "/home/:path*",
   ],
 };

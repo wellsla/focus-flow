@@ -140,16 +140,27 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!isLoading && user) {
-      router.push("/home");
+    // Only redirect after auth completes and user is logged in
+    if (isLoading) return;
+    if (user) {
+      router.replace("/home");
     }
   }, [user, isLoading, router]);
 
-  if (isLoading || (!isLoading && user)) {
+  if (isLoading) {
     return (
       <div className="flex flex-col min-h-screen items-center justify-center bg-background">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
         <p className="text-muted-foreground mt-4">Loading your dashboard...</p>
+      </div>
+    );
+  }
+
+  if (user) {
+    return (
+      <div className="flex flex-col min-h-screen items-center justify-center bg-background">
+        <Loader2 className="h-16 w-16 animate-spin text-primary" />
+        <p className="text-muted-foreground mt-4">Redirecting...</p>
       </div>
     );
   }
