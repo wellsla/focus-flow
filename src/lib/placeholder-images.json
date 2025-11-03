@@ -1,0 +1,10 @@
+{
+  "placeholderImages": [
+    {
+      "id": "hero-image",
+      "description": "A focused workspace with a laptop, notebook, and a cup of coffee, representing productivity.",
+      "imageUrl": "https://images.unsplash.com/photo-1510519138101-570d1dca3d66?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxkZXNrJTIwc2V0dXB8ZW58MHx8fHwxNzYxODMzODcyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "desk setup"
+    }
+  ]
+}
