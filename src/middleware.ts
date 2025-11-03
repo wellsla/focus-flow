@@ -27,20 +27,21 @@ export async function middleware(req: NextRequest) {
   }
 }
 
-// Only match protected routes under /(features) + exclude static assets and auth routes
+// CRITICAL: Only match feature routes, explicitly exclude everything else
+// This prevents middleware from running on Auth0 SDK routes
 export const config = {
   matcher: [
-    /*
-     * Match all authenticated app routes:
-     * - /home, /dashboard, /profile, /settings, etc.
-     *
-     * Exclude:
-     * - / (landing page - public)
-     * - _next/static (static files)
-     * - _next/image (image optimization)
-     * - favicon.ico, public assets
-     * - auth/* (Auth0 SDK routes)
-     */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$|auth/|$).*)",
+    // Only protect these specific feature routes
+    "/home/:path*",
+    "/dashboard/:path*",
+    "/profile/:path*",
+    "/settings/:path*",
+    "/applications/:path*",
+    "/finances/:path*",
+    "/goals/:path*",
+    "/routine/:path*",
+    "/roadmap/:path*",
+    "/performance/:path*",
+    "/time-management/:path*",
   ],
 };
