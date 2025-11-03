@@ -5,4 +5,6 @@ export const auth0 = new Auth0Client({
   routes: {
     callback: "/auth/callback",
   },
+  // Default destination after successful sign-in when no returnTo is provided
+  signInReturnToPath: "/home",
 });
