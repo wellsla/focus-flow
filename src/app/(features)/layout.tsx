@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import {
   Briefcase,
   LayoutDashboard,
@@ -73,6 +74,16 @@ export default function FeaturesLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // Defer rendering until mounted to avoid React hydration errors between
+  // server (no localStorage) and client (localStorage-driven UI state).
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    // Schedule setting mounted asynchronously to avoid calling setState
+    // synchronously within the effect body which can trigger cascading renders.
+    const id = setTimeout(() => setMounted(true), 0);
+    return () => clearTimeout(id);
+  }, []);
+
   const pathname = usePathname();
   // Auth: Show placeholder avatar by default; integrate provider when ready
   // Placeholder user data (auth not wired in production yet)
@@ -138,6 +149,21 @@ export default function FeaturesLayout({
       </div>
     </nav>
   );
+
+  if (!mounted) {
+    // Render a minimal, markup-stable shell during SSR to prevent hydration
+    // mismatches caused by client-only state (localStorage, media queries, etc).
+    return (
+      <div className="grid min-h-screen w-full md:grid-cols-[280px_1fr]">
+        <div className="hidden border-r bg-card md:block" />
+        <div className="flex flex-col">
+          <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-background-alt">
+            {children}
+          </main>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div

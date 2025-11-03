@@ -36,10 +36,21 @@ export default function Error({
           Go home
         </Link>
       </div>
+      {/* Lightweight diagnostics to help in production without exposing too much */}
       {error?.digest ? (
         <p className="text-xs text-muted-foreground">
           Error ID: {error.digest}
         </p>
+      ) : null}
+      {error?.message ? (
+        <details className="mt-2 max-w-3xl text-left">
+          <summary className="cursor-pointer text-xs text-muted-foreground">
+            Show details
+          </summary>
+          <pre className="mt-2 whitespace-pre-wrap break-words text-xs bg-muted p-3 rounded-md">
+            {error.message}
+          </pre>
+        </details>
       ) : null}
     </div>
   );

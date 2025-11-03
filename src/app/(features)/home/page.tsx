@@ -42,12 +42,19 @@ const QuickLinkCard = ({
 
 export default function HomePage() {
   const { user } = useUser();
-  const [quote] = useState(
-    () =>
-      motivationalPhrases[
-        Math.floor(Math.random() * motivationalPhrases.length)
-      ]
-  );
+  // Avoid hydration mismatch: pick a deterministic quote on the server, then
+  // randomize on the client after mount.
+  const [quote, setQuote] = useState(() => motivationalPhrases[0]);
+  useEffect(() => {
+    const id = setTimeout(() => {
+      setQuote(
+        motivationalPhrases[
+          Math.floor(Math.random() * motivationalPhrases.length)
+        ]
+      );
+    }, 0);
+    return () => clearTimeout(id);
+  }, []);
 
   const name = user?.name || "User";
 
