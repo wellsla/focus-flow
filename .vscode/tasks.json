@@ -1,0 +1,11 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Build app (prod)",
+			"type": "shell",
+			"command": "npx next build",
+			"problemMatcher": []
+		}
+	]
+}

@@ -1,8 +1,13 @@
 /** @type {import('next').NextConfig} */
+const enableReactCompiler =
+  process.env.NEXT_PUBLIC_REACT_COMPILER !== "off" &&
+  process.env.NODE_ENV !== "production";
+
 const nextConfig = {
   /* config options here */
   experimental: {
-    reactCompiler: true,
+    // Disable React Compiler in production to avoid potential runtime issues; can be re-enabled with env flag
+    reactCompiler: enableReactCompiler,
   },
   typescript: {
     ignoreBuildErrors: true,
