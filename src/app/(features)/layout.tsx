@@ -224,7 +224,7 @@ export default function FeaturesLayout({
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <a href="/api/auth/logout">Logout</a>
+                <a href="/auth/logout">Logout</a>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
