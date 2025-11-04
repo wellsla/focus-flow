@@ -31,7 +31,6 @@ import {
 import Logo from "@/components/logo";
 import { cn } from "@/lib/utils";
 import { MotivationalHeader } from "./components/motivational-header";
-import useDataLogger from "@/hooks/use-data-logger";
 import useLocalStorage from "@/hooks/use-local-storage";
 import {
   Tooltip,
@@ -92,7 +91,6 @@ export default function FeaturesLayout({
     "sidebarCollapsed",
     false
   );
-  useDataLogger();
 
   const NavLink = ({ href, icon: Icon, label }: NavItem) => (
     <Tooltip>
