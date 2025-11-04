@@ -9,6 +9,8 @@ const nextConfig = {
     // Disable React Compiler in production to avoid potential runtime issues; can be re-enabled with env flag
     reactCompiler: enableReactCompiler,
   },
+  // Note: These are temporarily enabled for development speed
+  // TODO: Remove these and fix all TypeScript/ESLint errors before production
   typescript: {
     ignoreBuildErrors: true,
   },

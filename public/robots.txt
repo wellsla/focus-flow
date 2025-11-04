@@ -1,0 +1,21 @@
+# Allow all crawlers
+User-agent: *
+Allow: /
+
+# Block authenticated pages
+Disallow: /home
+Disallow: /dashboard
+Disallow: /applications
+Disallow: /goals
+Disallow: /routine
+Disallow: /roadmap
+Disallow: /finances
+Disallow: /time-management
+Disallow: /performance
+Disallow: /profile
+Disallow: /settings
+Disallow: /api/
+Disallow: /auth/
+
+# Sitemap location
+Sitemap: https://focus-flow-theta-flax.vercel.app/sitemap.xml

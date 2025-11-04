@@ -37,7 +37,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-.env*
-
-#useless documentation files
-/docs
+# Environment files (but keep .env.example)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local

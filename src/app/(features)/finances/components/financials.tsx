@@ -62,10 +62,20 @@ import { format, startOfMonth, isSameMonth } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 
-const MarkdownContent = ({ content }: { content: string }) => {
-  const formatLine = (line: string) => {
-    // Simple markdown for bold and lists
-    let formattedLine = line
+const MarkdownRenderer = ({ content }: { content: string }) => {
+  // Simple HTML sanitization to prevent XSS
+  const sanitize = (str: string): string => {
+    return str
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#x27;");
+  };
+
+  const formatLine = (line: string): string => {
+    // Sanitize input first, then apply formatting
+    const sanitized = sanitize(line);
+    const formattedLine = sanitized
       .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>") // Bold
       .replace(/\*(.*?)\*/g, "<em>$1</em>"); // Italics
 
@@ -984,7 +994,7 @@ export function Financials({
                 <Sparkles className="h-4 w-4" />
                 <AlertTitle>Hard Truths</AlertTitle>
                 <AlertDescription>
-                  <MarkdownContent content={suggestions} />
+                  <MarkdownRenderer content={suggestions} />
                 </AlertDescription>
                 <CopyButton text={suggestions} />
               </Alert>
@@ -1039,7 +1049,7 @@ export function Financials({
                 <Sparkles className="h-4 w-4" />
                 <AlertTitle>Investment Reality</AlertTitle>
                 <AlertDescription>
-                  <MarkdownContent content={tips} />
+                  <MarkdownRenderer content={tips} />
                 </AlertDescription>
                 <CopyButton text={tips} />
               </Alert>

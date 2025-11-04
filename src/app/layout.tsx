@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Inter, Space_Grotesk } from "next/font/google";
 import Providers from "./providers";
@@ -11,9 +11,55 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "FocusFlow",
+  title: {
+    default: "FocusFlow - Your Personal Job Search Command Center",
+    template: "%s | FocusFlow",
+  },
   description:
-    "Organize your life, finances, and job search to achieve your goals.",
+    "Track job applications, organize tasks, manage finances, and stay motivated. Your private dashboard for job hunting success—all data stored locally in your browser.",
+  keywords: [
+    "job search",
+    "application tracker",
+    "task management",
+    "financial planning",
+    "productivity dashboard",
+    "career development",
+  ],
+  authors: [{ name: "FocusFlow Team" }],
+  creator: "FocusFlow",
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://focus-flow-theta-flax.vercel.app",
+    title: "FocusFlow - Your Personal Job Search Command Center",
+    description:
+      "Track job applications, organize tasks, manage finances, and stay motivated. Your private dashboard for job hunting success.",
+    siteName: "FocusFlow",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "FocusFlow - Your Personal Job Search Command Center",
+    description:
+      "Track job applications, organize tasks, and manage finances in one place.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+    },
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#D8E2DC" },
+    { media: "(prefers-color-scheme: dark)", color: "#293462" },
+  ],
 };
 
 export default function RootLayout({
