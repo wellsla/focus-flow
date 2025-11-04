@@ -156,7 +156,14 @@ export default function FeaturesLayout({
         <div className="hidden border-r bg-card md:block" />
         <div className="flex flex-col">
           <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-background-alt">
-            {children}
+            {/* Defer rendering feature children until after mount to avoid client-only state loops */}
+            <div className="space-y-4">
+              <div className="h-8 w-48 bg-muted rounded" />
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="h-40 bg-muted rounded" />
+                <div className="h-40 bg-muted rounded" />
+              </div>
+            </div>
           </main>
         </div>
       </div>
