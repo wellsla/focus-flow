@@ -80,8 +80,19 @@ function useLocalStorage<T>(
     const current = getSnapshot();
     const valueToStore =
       value instanceof Function ? (value as (val: T) => T)(current) : value;
-    window.localStorage.setItem(key, JSON.stringify(valueToStore));
-    // Notify subscribers in this tab
+
+    // CRITICAL FIX: Only update and dispatch if value actually changed
+    // This prevents infinite loops when multiple components share the same key
+    const newValueJSON = JSON.stringify(valueToStore);
+    const currentJSON = window.localStorage.getItem(key);
+
+    if (newValueJSON === currentJSON) {
+      // Value is identical, no need to update or notify
+      return;
+    }
+
+    window.localStorage.setItem(key, newValueJSON);
+    // Notify subscribers in this tab only when value actually changed
     window.dispatchEvent(new Event("local-storage"));
   };
 

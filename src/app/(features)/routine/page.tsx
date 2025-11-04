@@ -315,6 +315,7 @@ const AddTaskForm = ({
 
   const isGeneral = form.watch("isGeneral");
 
+  // CRITICAL FIX: Only reset form when task ID or roadmap flag changes, not on every form change
   useEffect(() => {
     form.reset({
       title: task?.title || "",
@@ -330,7 +331,8 @@ const AddTaskForm = ({
       startTime: task?.startTime || "",
       endTime: task?.endTime || "",
     });
-  }, [task, form, isRoadmapTask]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [task?.id, isRoadmapTask]); // Only depend on task ID and roadmap flag to prevent loops
 
   function onSubmit(values: TaskFormValues) {
     const newTask: Task = {
@@ -639,24 +641,39 @@ function RoutinePageContent() {
   const isRoadmapTask = searchParams.get("isRoadmapTask") === "true";
   const loading = loadingTasks || loadingLogs;
 
+  // CRITICAL FIX: Daily reset logic must run only once per day
+  // Remove 'tasks' from dependencies to prevent infinite loops
   useEffect(() => {
+    if (loading) return;
+
     const lastVisitStr = localStorage.getItem("lastRoutineVisit");
     const todayStr = format(new Date(), "yyyy-MM-dd");
 
-    if (
-      !loading &&
-      (!lastVisitStr || isBefore(parseISO(lastVisitStr), parseISO(todayStr)))
-    ) {
-      const newDayTasks = tasks.map((task) =>
-        task.period ? { ...task, status: "todo" as TaskStatus } : task
-      );
+    // Only reset if we haven't visited today yet
+    if (!lastVisitStr || isBefore(parseISO(lastVisitStr), parseISO(todayStr))) {
+      setTasks((currentTasks) => {
+        const newDayTasks = currentTasks.map((task) =>
+          task.period ? { ...task, status: "todo" as TaskStatus } : task
+        );
 
-      if (JSON.stringify(tasks) !== JSON.stringify(newDayTasks)) {
-        setTasks(newDayTasks);
-      }
-      localStorage.setItem("lastRoutineVisit", todayStr);
+        // Only update if there are actual changes
+        const hasChanges = currentTasks.some(
+          (task, i) => task.status !== newDayTasks[i].status
+        );
+
+        if (hasChanges) {
+          // Mark as visited AFTER we decide to update
+          localStorage.setItem("lastRoutineVisit", todayStr);
+          return newDayTasks;
+        }
+
+        // No changes needed, but mark as visited anyway
+        localStorage.setItem("lastRoutineVisit", todayStr);
+        return currentTasks;
+      });
     }
-  }, [loading, tasks, setTasks]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading]); // Only depend on loading, not tasks
 
   // Removed effect that set state synchronously based on query params.
 

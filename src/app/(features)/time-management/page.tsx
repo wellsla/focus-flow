@@ -85,6 +85,7 @@ const TimeEntryForm = ({
     },
   });
 
+  // CRITICAL FIX: Only reset form when entry ID changes, not on every form change
   useEffect(() => {
     form.reset({
       activityType: entry?.activityType || "game",
@@ -92,7 +93,8 @@ const TimeEntryForm = ({
       hours: entry?.hours || 0,
       date: entry?.date || new Date().toISOString().split("T")[0],
     });
-  }, [entry, form]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entry?.id]); // Only depend on entry ID to prevent loops
 
   const handleSubmit = (values: TimeEntryFormValues) => {
     onSubmit({

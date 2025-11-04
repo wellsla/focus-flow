@@ -1,18 +1,30 @@
-
-'use client';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { RoadmapNode, RoadmapNodeStatus } from '@/lib/types';
-import { useEffect } from 'react';
+"use client";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { RoadmapNode, RoadmapNodeStatus } from "@/lib/types";
+import { useEffect } from "react";
 
 const formSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters.'),
-  status: z.enum(['todo', 'in_progress', 'done', 'skipped', 'parallel']),
+  name: z.string().min(2, "Name must be at least 2 characters."),
+  status: z.enum(["todo", "in_progress", "done", "skipped", "parallel"]),
 });
 
 type RoadmapNodeFormProps = {
@@ -24,17 +36,19 @@ export function RoadmapNodeForm({ node, onSubmit }: RoadmapNodeFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: node?.name || '',
-      status: node?.status || 'todo',
+      name: node?.name || "",
+      status: node?.status || "todo",
     },
   });
 
+  // CRITICAL FIX: Only reset form when node ID changes, not on every form change
   useEffect(() => {
     form.reset({
-      name: node?.name || '',
-      status: node?.status || 'todo',
+      name: node?.name || "",
+      status: node?.status || "todo",
     });
-  }, [node, form]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [node?.id]); // Only depend on node ID to prevent loops
 
   return (
     <Form {...form}>
@@ -66,7 +80,9 @@ export function RoadmapNodeForm({ node, onSubmit }: RoadmapNodeFormProps) {
                 </FormControl>
                 <SelectContent>
                   <SelectItem value="todo">To Do</SelectItem>
-                  <SelectItem value="in_progress">In Progress (Can talk about)</SelectItem>
+                  <SelectItem value="in_progress">
+                    In Progress (Can talk about)
+                  </SelectItem>
                   <SelectItem value="done">Done (Proficient)</SelectItem>
                   <SelectItem value="skipped">Skipped (Not needed)</SelectItem>
                   <SelectItem value="parallel">In Parallel</SelectItem>
@@ -77,7 +93,7 @@ export function RoadmapNodeForm({ node, onSubmit }: RoadmapNodeFormProps) {
           )}
         />
         <Button type="submit" className="w-full">
-          {node ? 'Update Node' : 'Add Node'}
+          {node ? "Update Node" : "Add Node"}
         </Button>
       </form>
     </Form>

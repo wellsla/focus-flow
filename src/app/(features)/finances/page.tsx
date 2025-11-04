@@ -1,4 +1,5 @@
 "use client";
+import { useRef } from "react";
 import {
   incomeSettings as initialIncomeSettings,
   dashboardCards as initialDashboardCards,
@@ -144,12 +145,22 @@ export default function FinancesPage() {
     (acc) => acc.type === "income"
   );
 
+  // CRITICAL FIX: Monthly log creation must be idempotent
+  // Use useRef to track if we've already processed this month
+  const processedMonthRef = useRef<string>("");
+
   useEffect(() => {
     if (isLoading) {
       return;
     }
 
     const currentMonth = format(new Date(), "yyyy-MM");
+
+    // Guard: Skip if we already processed this month in this session
+    if (processedMonthRef.current === currentMonth) {
+      return;
+    }
+
     const logExists = financialLogs.some(
       (log) => format(parseISO(log.date), "yyyy-MM") === currentMonth
     );
@@ -186,15 +197,20 @@ export default function FinancesPage() {
         const logsForOtherMonths = prevLogs.filter(
           (log) => format(parseISO(log.date), "yyyy-MM") !== currentMonth
         );
+        // Mark as processed only if we're actually adding the log
+        processedMonthRef.current = currentMonth;
         return [...logsForOtherMonths, newLog];
       });
+    } else {
+      // Log already exists, mark as processed to avoid checking again
+      processedMonthRef.current = currentMonth;
     }
+    // Remove financialLogs from dependencies to prevent loops when log is added
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     isLoading,
     financialAccounts,
     incomeSettings,
-    financialLogs,
-    setFinancialLogs,
     debts,
     expenses,
     oneTimeIncomes,

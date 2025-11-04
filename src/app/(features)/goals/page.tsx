@@ -152,6 +152,7 @@ const GoalForm = ({
     },
   });
 
+  // CRITICAL FIX: Only reset form when goal ID changes, not on every form change
   useEffect(() => {
     form.reset({
       title: goal?.title || "",
@@ -160,7 +161,8 @@ const GoalForm = ({
       timeframe: goal?.timeframe || "Short-Term",
       targetDate: goal?.targetDate ? new Date(goal.targetDate) : undefined,
     });
-  }, [goal, form]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [goal?.id]); // Only depend on goal ID to prevent loops
 
   function onSubmit(values: GoalFormValues) {
     const newGoal: Goal = {
