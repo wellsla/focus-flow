@@ -1,10 +1,9 @@
-
-'use client';
+"use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useEffect } from 'react';
+import { useEffect } from "react";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 
@@ -18,81 +17,110 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ApplicationStatus, JobApplication, ApplicationPriority } from "@/lib/types";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  ApplicationStatus,
+  JobApplication,
+  ApplicationPriority,
+} from "@/lib/types";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 
 const formSchema = z.object({
   role: z.string().min(2, { message: "Role must be at least 2 characters." }),
-  company: z.string().min(2, { message: "Company must be at least 2 characters." }),
+  company: z
+    .string()
+    .min(2, { message: "Company must be at least 2 characters." }),
   url: z.string().url({ message: "Please enter a valid URL." }),
-  status: z.enum(["Applied", "Interviewing", "Offer", "Rejected", "Wishlist"], { required_error: "Status is required."}),
+  status: z.enum(["Applied", "Interviewing", "Offer", "Rejected", "Wishlist"], {
+    required_error: "Status is required.",
+  }),
   dateApplied: z.date({
     required_error: "A date is required.",
   }),
-  priority: z.enum(["High", "Common", "Uninterested"], { required_error: "Priority is required."}),
+  priority: z.enum(["High", "Common", "Uninterested"], {
+    required_error: "Priority is required.",
+  }),
 });
 
 type ApplicationFormProps = {
-    application?: JobApplication | null;
-    onSubmitSuccess: (data: JobApplication) => void;
-    onDelete?: (id: string) => void;
+  application?: JobApplication | null;
+  onSubmitSuccess: (data: JobApplication) => void;
+  onDelete?: (id: string) => void;
 };
 
-export function ApplicationForm({ application, onSubmitSuccess, onDelete }: ApplicationFormProps) {
-    const { toast } = useToast();
-    const form = useForm<z.infer<typeof formSchema>>({
-        resolver: zodResolver(formSchema),
-        defaultValues: {
-            role: application?.role || "",
-            company: application?.company || "",
-            url: application?.url || "",
-            status: application?.status || "Applied",
-            dateApplied: application?.dateApplied ? new Date(application.dateApplied) : new Date(),
-            priority: application?.priority || "Common",
-        },
+export function ApplicationForm({
+  application,
+  onSubmitSuccess,
+  onDelete,
+}: ApplicationFormProps) {
+  const { toast } = useToast();
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      role: application?.role || "",
+      company: application?.company || "",
+      url: application?.url || "",
+      status: application?.status || "Applied",
+      dateApplied: application?.dateApplied
+        ? new Date(application.dateApplied)
+        : new Date(),
+      priority: application?.priority || "Common",
+    },
+  });
+
+  useEffect(() => {
+    // Only reset form when application ID changes (edit mode initialization)
+    form.reset({
+      role: application?.role || "",
+      company: application?.company || "",
+      url: application?.url || "",
+      status: application?.status || "Applied",
+      dateApplied: application?.dateApplied
+        ? new Date(application.dateApplied)
+        : new Date(),
+      priority: application?.priority || "Common",
     });
-
-    useEffect(() => {
-        form.reset({
-            role: application?.role || "",
-            company: application?.company || "",
-            url: application?.url || "",
-            status: application?.status || "Applied",
-            dateApplied: application?.dateApplied ? new Date(application.dateApplied) : new Date(),
-            priority: application?.priority || "Common",
-        });
-    }, [application, form]);
-
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [application?.id]); // Only depend on application ID to avoid loops
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     const applicationData: JobApplication = {
-        ...values,
-        id: application?.id || new Date().toISOString(),
-        dateApplied: format(values.dateApplied, 'yyyy-MM-dd'),
+      ...values,
+      id: application?.id || new Date().toISOString(),
+      dateApplied: format(values.dateApplied, "yyyy-MM-dd"),
     };
-    
+
     onSubmitSuccess(applicationData);
 
     toast({
-        title: application ? "Application Updated" : "Application Added",
-        description: `Successfully tracked application for ${values.role} at ${values.company}.`,
+      title: application ? "Application Updated" : "Application Added",
+      description: `Successfully tracked application for ${values.role} at ${values.company}.`,
     });
   }
 
   const handleDelete = () => {
     if (application && onDelete) {
-        onDelete(application.id);
-        toast({
-            title: "Application Deleted",
-            variant: "destructive",
-            description: `Removed application for ${application.role} at ${application.company}.`,
-        });
+      onDelete(application.id);
+      toast({
+        title: "Application Deleted",
+        variant: "destructive",
+        description: `Removed application for ${application.role} at ${application.company}.`,
+      });
     }
-  }
+  };
 
   return (
     <Form {...form}>
@@ -130,35 +158,44 @@ export function ApplicationForm({ application, onSubmitSuccess, onDelete }: Appl
             <FormItem>
               <FormLabel>Application URL</FormLabel>
               <FormControl>
-                <Input placeholder="https://linkedin.com/jobs/view/..." {...field} />
+                <Input
+                  placeholder="https://linkedin.com/jobs/view/..."
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
         <FormField
-            control={form.control}
-            name="status"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>Status</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                    <SelectTrigger>
-                        <SelectValue placeholder="Select application status" />
-                    </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                    {(Object.keys(formSchema.shape.status.Values) as ApplicationStatus[]).map((status) => (
-                        <SelectItem key={status} value={status}>{status}</SelectItem>
-                    ))}
-                    </SelectContent>
-                </Select>
-                <FormMessage />
-                </FormItem>
-            )}
+          control={form.control}
+          name="status"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Status</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select application status" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {(
+                    Object.keys(
+                      formSchema.shape.status.Values
+                    ) as ApplicationStatus[]
+                  ).map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {status}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-         <FormField
+        <FormField
           control={form.control}
           name="dateApplied"
           render={({ field }) => (
@@ -212,8 +249,14 @@ export function ApplicationForm({ application, onSubmitSuccess, onDelete }: Appl
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {(Object.keys(formSchema.shape.priority.Values) as ApplicationPriority[]).map((priority) => (
-                    <SelectItem key={priority} value={priority}>{priority}</SelectItem>
+                  {(
+                    Object.keys(
+                      formSchema.shape.priority.Values
+                    ) as ApplicationPriority[]
+                  ).map((priority) => (
+                    <SelectItem key={priority} value={priority}>
+                      {priority}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -223,10 +266,19 @@ export function ApplicationForm({ application, onSubmitSuccess, onDelete }: Appl
         />
 
         <div className="flex justify-between">
-            <Button type="submit" className="flex-grow">{application ? 'Update Application' : 'Add Application'}</Button>
-            {application && onDelete && (
-                 <Button type="button" variant="destructive" onClick={handleDelete} className="ml-2">Delete</Button>
-            )}
+          <Button type="submit" className="flex-grow">
+            {application ? "Update Application" : "Add Application"}
+          </Button>
+          {application && onDelete && (
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={handleDelete}
+              className="ml-2"
+            >
+              Delete
+            </Button>
+          )}
         </div>
       </form>
     </Form>
