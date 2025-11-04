@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Inter, Space_Grotesk } from "next/font/google";
 import Providers from "./providers";
+import { Toaster } from "@/components/ui/toaster";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const spaceGrotesk = Space_Grotesk({
@@ -27,8 +28,7 @@ export default function RootLayout({
       >
         <Providers>
           {children}
-          {/* Temporarily disable global Toaster to rule out update loops */}
-          {/* <Toaster /> */}
+          <Toaster />
         </Providers>
       </body>
     </html>

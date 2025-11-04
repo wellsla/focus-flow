@@ -7,8 +7,8 @@ export default function FeaturesLayout({
   children: React.ReactNode;
 }) {
   // Server component layout that delegates to a client shell to avoid chunking the app/(features)/layout directly.
-  // Temporarily render a minimal shell to isolate and eliminate update loops across pages.
-  const useMinimal = process.env.NEXT_PUBLIC_FEATURE_SHELL_SAFE !== "false";
+  // Use full shell by default; safe mode available via NEXT_PUBLIC_FEATURE_SHELL_SAFE=true if needed for debugging.
+  const useMinimal = process.env.NEXT_PUBLIC_FEATURE_SHELL_SAFE === "true";
   if (useMinimal) {
     return <MinimalFeaturesShell>{children}</MinimalFeaturesShell>;
   }

@@ -62,13 +62,15 @@ function useLocalStorage<T>(
   );
 
   // Ensure the key exists in localStorage; avoid state writes in effects
+  // Only check once on mount to avoid loops from changing initialValue references
   useEffect(() => {
     if (!isBrowser) return;
     if (window.localStorage.getItem(key) === null) {
       window.localStorage.setItem(key, JSON.stringify(initialValue));
       window.dispatchEvent(new Event("local-storage"));
     }
-  }, [isBrowser, key, initialValue]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isBrowser, key]); // Intentionally omit initialValue to avoid loops
 
   const setValue = (value: T | ((val: T) => T)) => {
     if (!isBrowser) {
