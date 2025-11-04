@@ -55,12 +55,26 @@ function useLocalStorage<T>(
         }
       };
 
+      const onLocalStorage = (ev: Event) => {
+        // Support CustomEvent with { detail: { key } } to force notify on same-tab writes
+        const ce = ev as CustomEvent<{ key?: string } | undefined>;
+        const targetKey = (ce?.detail as any)?.key;
+        if (!targetKey || targetKey === key) {
+          const next = window.localStorage.getItem(key);
+          rawCacheRef.current = next;
+          notify();
+        }
+      };
+
       window.addEventListener("storage", onStorage);
-      window.addEventListener("local-storage", handler as EventListener);
+      window.addEventListener("local-storage", onLocalStorage as EventListener);
 
       return () => {
         window.removeEventListener("storage", onStorage);
-        window.removeEventListener("local-storage", handler as EventListener);
+        window.removeEventListener(
+          "local-storage",
+          onLocalStorage as EventListener
+        );
       };
     },
     [isBrowser, key]
@@ -83,7 +97,9 @@ function useLocalStorage<T>(
       const serialized = JSON.stringify(initialFallback);
       rawCacheRef.current = serialized;
       window.localStorage.setItem(key, serialized);
-      window.dispatchEvent(new Event("local-storage"));
+      window.dispatchEvent(
+        new CustomEvent("local-storage", { detail: { key } })
+      );
     }
   }, [isBrowser, key, initialFallback]);
 
@@ -102,7 +118,7 @@ function useLocalStorage<T>(
 
     rawCacheRef.current = nextRaw;
     window.localStorage.setItem(key, nextRaw);
-    window.dispatchEvent(new Event("local-storage"));
+    window.dispatchEvent(new CustomEvent("local-storage", { detail: { key } }));
   };
 
   const loading = !isBrowser;
