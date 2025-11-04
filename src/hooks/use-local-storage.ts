@@ -2,6 +2,9 @@
 
 import { useEffect, useSyncExternalStore } from "react";
 
+// Throttle map to avoid rapid same-tab local-storage event cascades
+const __lsEventThrottle: Record<string, number> = {};
+
 function parseJSON<T>(value: string | null, fallback: T): T {
   if (value === null) return fallback;
   try {
@@ -28,7 +31,13 @@ function useLocalStorage<T>(
   // Subscribe to storage changes (cross-tab) and a custom event (same-tab)
   const subscribe = (callback: () => void) => {
     if (!isBrowser) return () => {};
-    const handler = () => callback();
+    const handler = () => {
+      const now = Date.now();
+      const last = __lsEventThrottle[key] ?? 0;
+      if (now - last < 30) return; // ignore bursts within 30ms
+      __lsEventThrottle[key] = now;
+      callback();
+    };
     window.addEventListener("storage", handler);
     window.addEventListener("local-storage", handler as EventListener);
     return () => {
