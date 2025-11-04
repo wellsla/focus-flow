@@ -711,15 +711,16 @@ function RoutinePageContent() {
   };
 
   const handleTaskSubmit = (task: Task) => {
-    const isEditing = !!(selectedTask && selectedTask.id);
-
-    let newTasks;
-    if (isEditing) {
-      newTasks = tasks.map((t) => (t.id === task.id ? task : t));
-    } else {
-      newTasks = [...tasks, task];
-    }
+    // Determine edit/create by presence in current task list, not selectedTask state
+    const exists = tasks.some((t) => t.id === task.id);
+    const newTasks = exists
+      ? tasks.map((t) => (t.id === task.id ? task : t))
+      : [...tasks, task];
     setTasks(newTasks);
+
+    // Close the form and clear selection to reflect updates immediately
+    setIsFormOpen(false);
+    setSelectedTask(null);
 
     // Sync with roadmap
     if (task.title.startsWith("Study: ")) {
@@ -734,7 +735,7 @@ function RoutinePageContent() {
     }
 
     toast({
-      title: isEditing ? "Task Updated" : "Task Added",
+      title: exists ? "Task Updated" : "Task Added",
       description: `Task "${task.title}" has been saved.`,
     });
   };
