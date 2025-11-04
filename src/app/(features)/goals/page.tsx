@@ -166,7 +166,11 @@ const GoalForm = ({
 
   function onSubmit(values: GoalFormValues) {
     const newGoal: Goal = {
-      id: goal?.id || new Date().toISOString(),
+      id:
+        goal?.id ||
+        (typeof crypto !== "undefined" && "randomUUID" in crypto
+          ? (crypto as any).randomUUID()
+          : new Date().toISOString()),
       title: values.title,
       description: values.description,
       status: values.status ?? "Not Started",
@@ -345,14 +349,16 @@ export default function GoalsPage() {
   };
 
   const handleGoalSubmit = (goal: Goal) => {
-    const isEditing = !!selectedGoal;
-    if (isEditing) {
-      setGoals((prev) => prev.map((g) => (g.id === goal.id ? goal : g)));
-    } else {
-      setGoals((prev) => [...prev, goal]);
-    }
+    setGoals((prev) => {
+      const exists = prev.some((g) => g.id === goal.id);
+      return exists
+        ? prev.map((g) => (g.id === goal.id ? goal : g))
+        : [...prev, goal];
+    });
+    setIsFormOpen(false);
+    setSelectedGoal(null);
     toast({
-      title: isEditing ? "Goal Updated" : "Goal Added",
+      title: "Goal Saved",
       description: `Your goal "${goal.title}" has been saved.`,
     });
   };

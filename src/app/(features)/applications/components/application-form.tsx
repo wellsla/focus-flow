@@ -99,7 +99,11 @@ export function ApplicationForm({
   function onSubmit(values: z.infer<typeof formSchema>) {
     const applicationData: JobApplication = {
       ...values,
-      id: application?.id || new Date().toISOString(),
+      id:
+        application?.id ||
+        (typeof crypto !== "undefined" && "randomUUID" in crypto
+          ? (crypto as any).randomUUID()
+          : new Date().toISOString()),
       dateApplied: format(values.dateApplied, "yyyy-MM-dd"),
     };
 

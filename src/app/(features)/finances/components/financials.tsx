@@ -192,7 +192,11 @@ const FinancialItemForm = ({
         : -Math.abs(values.amount);
     onSubmit({
       ...values,
-      id: item?.id || new Date().toISOString(),
+      id:
+        item?.id ||
+        (typeof crypto !== "undefined" && "randomUUID" in crypto
+          ? (crypto as any).randomUUID()
+          : new Date().toISOString()),
       amount,
       type: values.type,
       date:
@@ -638,23 +642,22 @@ export function Financials({
   }
 
   function handleFinancialItemFormSubmit(item: FinancialAccount) {
-    let updatedAccounts;
-    if (selectedItem && selectedItem.id) {
-      updatedAccounts = financialAccounts.map((acc) =>
-        acc.id === item.id ? item : acc
-      );
-    } else {
-      updatedAccounts = [...financialAccounts, item];
-    }
+    const exists = financialAccounts.some((acc) => acc.id === item.id);
+    const updatedAccounts = exists
+      ? financialAccounts.map((acc) => (acc.id === item.id ? item : acc))
+      : [...financialAccounts, item];
     onDataUpdate(updatedAccounts, incomeSettings);
+    setIsFinancialItemFormOpen(false);
+    setSelectedItem(null);
     toast({
-      title: selectedItem ? "Item Updated" : "Item Added",
+      title: exists ? "Item Updated" : "Item Added",
       description: `Financial item "${item.name}" has been saved.`,
     });
   }
 
   function handleIncomeFormSubmit(data: IncomeSettings) {
     onDataUpdate(financialAccounts, data);
+    setIsIncomeFormOpen(false);
     toast({
       title: "Income Settings Updated",
       description: "Your income information has been saved.",
