@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { ApplicationStatusChart } from "../components/application-status-chart";
+import { HistoryDialog } from "../components/history-dialog";
 import { RecentApplications } from "../components/recent-applications";
 import {
   Card,
@@ -23,6 +24,7 @@ import {
   FinancialAccount,
   IncomeSettings,
   Goal,
+  DailyLog,
 } from "@/lib/types";
 import useLocalStorage from "@/hooks/use-local-storage";
 import { FormDialog } from "@/components/form-dialog";
@@ -62,6 +64,7 @@ export default function DashboardPage() {
   >("financialAccounts", []);
   const [incomeSettings, ______, loadingIncome] =
     useLocalStorage<IncomeSettings>("incomeSettings", initialIncomeSettings);
+  const [dailyLogs] = useLocalStorage<DailyLog[]>("dailyLogs", []);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedCard, setSelectedCard] = useState<DashboardCard | null>(null);
@@ -165,6 +168,45 @@ export default function DashboardPage() {
             onClick={() => handleCardSelect(card)}
           />
         ))}
+        <HistoryDialog
+          title="Progress History"
+          description="Daily snapshots of applications, goals, and tasks."
+          logs={dailyLogs}
+          getLogDate={(log) => new Date(log.date)}
+          renderLog={(log) => (
+            <div className="grid gap-2 text-sm">
+              <div>
+                <span className="font-medium">Applications:</span>
+                <span className="ml-2 text-muted-foreground">
+                  {log.applications
+                    .map((s) => `${s.status}: ${s.count}`)
+                    .join(", ")}
+                </span>
+              </div>
+              <div>
+                <span className="font-medium">Goals:</span>
+                <span className="ml-2 text-muted-foreground">
+                  {log.goals.map((s) => `${s.status}: ${s.count}`).join(", ")}
+                </span>
+              </div>
+              <div>
+                <span className="font-medium">Tasks:</span>
+                <span className="ml-2 text-muted-foreground">
+                  {log.tasks.map((s) => `${s.status}: ${s.count}`).join(", ")}
+                </span>
+              </div>
+            </div>
+          )}
+          triggerButton={
+            <Button
+              variant="outline"
+              className="h-full flex flex-col justify-center items-center py-4"
+            >
+              <CalendarCheck className="h-6 w-6" />
+              <span className="text-xs mt-2">History</span>
+            </Button>
+          }
+        />
         <FormDialog
           isOpen={isFormOpen}
           setIsOpen={setIsFormOpen}

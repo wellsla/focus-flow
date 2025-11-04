@@ -32,6 +32,7 @@ import Logo from "@/components/logo";
 import { cn } from "@/lib/utils";
 import { MotivationalHeader } from "./components/motivational-header";
 import useLocalStorage from "@/hooks/use-local-storage";
+import useDataLogger from "@/hooks/use-data-logger";
 import {
   Tooltip,
   TooltipContent,
@@ -73,6 +74,8 @@ export default function FeaturesShell({
 }: {
   children: React.ReactNode;
 }) {
+  // Record a daily snapshot of key data so users can view progress over time
+  useDataLogger();
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     const id = setTimeout(() => setMounted(true), 0);

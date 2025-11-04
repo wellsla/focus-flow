@@ -3,6 +3,8 @@ const enableReactCompiler =
   process.env.NEXT_PUBLIC_REACT_COMPILER !== "off" &&
   process.env.NODE_ENV !== "production";
 
+const BACKEND_ORIGIN = process.env.BACKEND_ORIGIN || "http://localhost:9003";
+
 const nextConfig = {
   /* config options here */
   experimental: {
@@ -38,6 +40,14 @@ const nextConfig = {
         pathname: "/**",
       },
     ],
+  },
+  async rewrites() {
+    return [
+      {
+        source: "/api/dashboard",
+        destination: `${BACKEND_ORIGIN}/dashboard`,
+      },
+    ];
   },
 };
 
