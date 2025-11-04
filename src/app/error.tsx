@@ -52,6 +52,16 @@ export default function Error({
           </pre>
         </details>
       ) : null}
+      {error?.stack ? (
+        <details className="mt-2 max-w-3xl text-left">
+          <summary className="cursor-pointer text-xs text-muted-foreground">
+            Stack trace
+          </summary>
+          <pre className="mt-2 whitespace-pre-wrap break-words text-xs bg-muted p-3 rounded-md">
+            {error.stack}
+          </pre>
+        </details>
+      ) : null}
     </div>
   );
 }
