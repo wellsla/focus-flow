@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Toaster } from "@/components/ui/toaster";
 import { Inter, Space_Grotesk } from "next/font/google";
 import Providers from "./providers";
 
@@ -28,7 +27,8 @@ export default function RootLayout({
       >
         <Providers>
           {children}
-          <Toaster />
+          {/* Temporarily disable global Toaster to rule out update loops */}
+          {/* <Toaster /> */}
         </Providers>
       </body>
     </html>
