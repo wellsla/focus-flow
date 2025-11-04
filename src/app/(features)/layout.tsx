@@ -225,7 +225,9 @@ export default function FeaturesLayout({
             </SheetContent>
           </Sheet>
           <div className="w-full flex-1">
-            <MotivationalHeader />
+            {process.env.NEXT_PUBLIC_ENABLE_MOTIVATIONAL_HEADER !== "false" ? (
+              <MotivationalHeader />
+            ) : null}
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
