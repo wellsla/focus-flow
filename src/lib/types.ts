@@ -67,6 +67,8 @@ export type TimeTrackingEntry = {
   name: string;
   date: string;
   hours: number;
+  startTime?: string; // HH:mm format
+  endTime?: string; // HH:mm format
 };
 
 export type AppSettings = {

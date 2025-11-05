@@ -235,7 +235,8 @@ export default function Roadmap() {
     );
   };
 
-  const nodeSize = { x: 200, y: 300 };
+  // Tighter spacing so branches sit closer together
+  const nodeSize = { x: 220, y: 160 };
 
   if (loading) {
     return (
@@ -273,8 +274,8 @@ export default function Roadmap() {
           data={d3Data}
           orientation="horizontal"
           pathFunc={getPathFunc()}
-          separation={{ siblings: 1.5, nonSiblings: 2 }}
-          translate={{ x: 100, y: 300 }}
+          separation={{ siblings: 0.7, nonSiblings: 1 }}
+          translate={{ x: 120, y: 260 }}
           nodeSize={nodeSize}
           renderCustomNodeElement={renderCustomNodeElement}
         />

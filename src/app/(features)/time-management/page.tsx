@@ -57,10 +57,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 const timeEntrySchema = z.object({
   activityType: z.enum(["game", "app"]),
   name: z.string().min(1, "Name is required."),
-  hours: z.coerce.number().min(0.1, "Hours must be greater than 0."),
+  hours: z.coerce.number().min(0, "Hours cannot be negative."),
   date: z
     .string()
     .refine((val) => !isNaN(Date.parse(val)), { message: "Invalid date" }),
+  startTime: z.string().optional(),
+  endTime: z.string().optional(),
 });
 
 type TimeEntryFormValues = z.infer<typeof timeEntrySchema>;
@@ -82,8 +84,35 @@ const TimeEntryForm = ({
       name: entry?.name || "",
       hours: entry?.hours || 0,
       date: entry?.date || new Date().toISOString().split("T")[0],
+      startTime: entry?.startTime || "",
+      endTime: entry?.endTime || "",
     },
   });
+
+  const startTime = form.watch("startTime");
+  const endTime = form.watch("endTime");
+
+  // Auto-calculate hours from time interval
+  useEffect(() => {
+    if (startTime && endTime) {
+      const [startHour, startMin] = startTime.split(":").map(Number);
+      const [endHour, endMin] = endTime.split(":").map(Number);
+      const startMinutes = startHour * 60 + startMin;
+      let endMinutes = endHour * 60 + endMin;
+
+      // Handle overnight sessions
+      if (endMinutes < startMinutes) {
+        endMinutes += 24 * 60;
+      }
+
+      const totalMinutes = endMinutes - startMinutes;
+      const calculatedHours = totalMinutes / 60;
+
+      if (calculatedHours > 0) {
+        form.setValue("hours", Number(calculatedHours.toFixed(2)));
+      }
+    }
+  }, [startTime, endTime, form]);
 
   // CRITICAL FIX: Only reset form when entry ID changes, not on every form change
   useEffect(() => {
@@ -92,6 +121,8 @@ const TimeEntryForm = ({
       name: entry?.name || "",
       hours: entry?.hours || 0,
       date: entry?.date || new Date().toISOString().split("T")[0],
+      startTime: entry?.startTime || "",
+      endTime: entry?.endTime || "",
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [entry?.id]); // Only depend on entry ID to prevent loops
@@ -99,7 +130,7 @@ const TimeEntryForm = ({
   const handleSubmit = (values: TimeEntryFormValues) => {
     onSubmit({
       ...values,
-      id: entry?.id || new Date().toISOString(),
+      id: entry?.id || crypto.randomUUID(),
     });
   };
 
@@ -150,25 +181,60 @@ const TimeEntryForm = ({
         />
         <FormField
           control={form.control}
-          name="hours"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Hours Spent</FormLabel>
-              <FormControl>
-                <Input type="number" step="0.1" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
           name="date"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Date</FormLabel>
               <FormControl>
                 <Input type="date" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="startTime"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Start Time</FormLabel>
+                <FormControl>
+                  <Input type="time" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="endTime"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>End Time</FormLabel>
+                <FormControl>
+                  <Input type="time" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        <FormField
+          control={form.control}
+          name="hours"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Hours Spent</FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  step="0.01"
+                  {...field}
+                  placeholder={
+                    startTime && endTime ? "Auto-calculated" : "Enter manually"
+                  }
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -211,7 +277,8 @@ export default function TimeManagementPage() {
   }
 
   function handleFormSubmit(entryData: TimeTrackingEntry) {
-    if (selectedEntry && selectedEntry.id) {
+    const exists = entries.some((e) => e.id === entryData.id);
+    if (exists) {
       setEntries((prev) =>
         prev.map((e) => (e.id === entryData.id ? entryData : e))
       );
@@ -220,11 +287,15 @@ export default function TimeManagementPage() {
       setEntries((prev) => [...prev, entryData]);
       toast({ title: "Entry Added" });
     }
+    setIsFormOpen(false);
+    setSelectedEntry(null);
   }
 
   function handleDelete(entryId: string) {
     setEntries((prev) => prev.filter((e) => e.id !== entryId));
     toast({ title: "Entry Deleted", variant: "destructive" });
+    setIsFormOpen(false);
+    setSelectedEntry(null);
   }
 
   const weeklyData = (() => {
@@ -261,6 +332,65 @@ export default function TimeManagementPage() {
       .sort((a, b) => b.Gaming + b.Apps - (a.Gaming + a.Apps));
 
     return { totalGameHours, totalAppHours, chartData };
+  })();
+
+  // Calculate peak usage hours
+  const hourlyData = (() => {
+    const hourCounts: Record<
+      number,
+      { game: number; app: number; count: number }
+    > = {};
+
+    entries.forEach((entry) => {
+      if (entry.startTime && entry.endTime) {
+        const [startHour, startMin] = entry.startTime.split(":").map(Number);
+        const [endHour, endMin] = entry.endTime.split(":").map(Number);
+
+        let currentHour = startHour;
+        const startMinutes = startHour * 60 + startMin;
+        let endMinutes = endHour * 60 + endMin;
+
+        // Handle overnight
+        if (endMinutes < startMinutes) {
+          endMinutes += 24 * 60;
+        }
+
+        const totalMinutes = endMinutes - startMinutes;
+
+        // Distribute time across hours
+        let remainingMinutes = totalMinutes;
+        while (remainingMinutes > 0) {
+          const hour = currentHour % 24;
+          if (!hourCounts[hour]) {
+            hourCounts[hour] = { game: 0, app: 0, count: 0 };
+          }
+
+          const minutesInThisHour = Math.min(remainingMinutes, 60);
+          const hoursInThisSlot = minutesInThisHour / 60;
+
+          if (entry.activityType === "game") {
+            hourCounts[hour].game += hoursInThisSlot;
+          } else {
+            hourCounts[hour].app += hoursInThisSlot;
+          }
+          hourCounts[hour].count += 1;
+
+          remainingMinutes -= minutesInThisHour;
+          currentHour++;
+        }
+      }
+    });
+
+    const hourlyChartData = Array.from({ length: 24 }, (_, i) => {
+      const data = hourCounts[i] || { game: 0, app: 0, count: 0 };
+      return {
+        hour: `${i.toString().padStart(2, "0")}:00`,
+        Gaming: Number(data.game.toFixed(2)),
+        Apps: Number(data.app.toFixed(2)),
+      };
+    });
+
+    return hourlyChartData;
   })();
 
   const sortedEntries = [...entries].sort(
@@ -368,6 +498,53 @@ export default function TimeManagementPage() {
       </Card>
 
       <Card>
+        <CardHeader>
+          <CardTitle>Peak Usage Times</CardTitle>
+          <CardDescription>
+            Average hours spent by time of day across all entries. Identify your
+            most vulnerable hours.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {hourlyData.some((d) => d.Gaming > 0 || d.Apps > 0) ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart
+                data={hourlyData}
+                margin={{ top: 5, right: 20, left: 20, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="hour"
+                  tick={{ fontSize: 10 }}
+                  angle={-45}
+                  textAnchor="end"
+                  height={60}
+                />
+                <YAxis
+                  label={{ value: "Hours", angle: -90, position: "insideLeft" }}
+                />
+                <Tooltip
+                  cursor={{ fill: "hsl(var(--muted))" }}
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--background))",
+                    borderColor: "hsl(var(--border))",
+                  }}
+                />
+                <Legend />
+                <Bar dataKey="Gaming" fill="hsl(var(--chart-2))" stackId="a" />
+                <Bar dataKey="Apps" fill="hsl(var(--chart-4))" stackId="a" />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="text-center text-muted-foreground py-12">
+              No time entries with start/end times yet. Add entries with
+              specific times to see your peak usage patterns.
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle>All Logged Time Entries</CardTitle>
@@ -410,6 +587,7 @@ export default function TimeManagementPage() {
                 <TableHead>Activity</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Date</TableHead>
+                <TableHead>Time</TableHead>
                 <TableHead className="text-right">Hours</TableHead>
               </TableRow>
             </TableHeader>
@@ -432,6 +610,11 @@ export default function TimeManagementPage() {
                     </span>
                   </TableCell>
                   <TableCell>{format(new Date(entry.date), "PPP")}</TableCell>
+                  <TableCell className="text-muted-foreground text-sm">
+                    {entry.startTime && entry.endTime
+                      ? `${entry.startTime} - ${entry.endTime}`
+                      : "—"}
+                  </TableCell>
                   <TableCell className="text-right">
                     {entry.hours.toFixed(1)}
                   </TableCell>
@@ -440,7 +623,7 @@ export default function TimeManagementPage() {
               {entries.length === 0 && (
                 <TableRow>
                   <TableCell
-                    colSpan={4}
+                    colSpan={5}
                     className="text-center text-muted-foreground h-24"
                   >
                     No time entries logged yet.

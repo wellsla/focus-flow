@@ -627,14 +627,32 @@ export function Financials({
     if (!item.lastPaid) return true; // Always include if never paid
     return !isSameMonth(new Date(item.lastPaid), new Date());
   });
+  const paidThisMonth = financialAccounts.filter((item) => {
+    if (item.type === "income") return false;
+    return item.lastPaid && isSameMonth(new Date(item.lastPaid), new Date());
+  });
 
-  const monthlyOutgoings = unpaidExpensesAndDebts.reduce(
+  const unpaidAbs = unpaidExpensesAndDebts.reduce(
     (sum, item) =>
       sum +
-      convertCurrency(item.amount, item.currency, incomeSettings.currency),
+      Math.abs(
+        convertCurrency(item.amount, item.currency, incomeSettings.currency)
+      ),
     0
   );
-  const netMonthly = monthlyIncome + monthlyOutgoings;
+  const paidAbs = paidThisMonth.reduce(
+    (sum, item) =>
+      sum +
+      Math.abs(
+        convertCurrency(item.amount, item.currency, incomeSettings.currency)
+      ),
+    0
+  );
+
+  // Income remaining after what you already paid this month
+  const incomeRemaining = monthlyIncome - paidAbs;
+  // Net is what's left after paying what's due and what remains outstanding
+  const netMonthly = incomeRemaining - unpaidAbs;
 
   function handleItemSelect(item: FinancialAccount) {
     setSelectedItem(item);
@@ -743,9 +761,11 @@ export function Financials({
           </CardHeader>
           <CardContent className="grid sm:grid-cols-3 gap-4 items-start">
             <div className="p-4 bg-green-100/50 dark:bg-green-900/30 rounded-lg">
-              <p className="text-sm text-muted-foreground">Monthly Income</p>
+              <p className="text-sm text-muted-foreground">
+                Monthly Income (Remaining)
+              </p>
               <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                {incomeSettings.currency} {monthlyIncome.toFixed(2)}
+                {incomeSettings.currency} {incomeRemaining.toFixed(2)}
               </p>
             </div>
             <div className="p-4 bg-red-100/50 dark:bg-red-900/30 rounded-lg">
@@ -753,8 +773,7 @@ export function Financials({
                 Remaining Payments
               </p>
               <p className="text-2xl font-bold text-red-600 dark:text-red-400">
-                {incomeSettings.currency}{" "}
-                {Math.abs(monthlyOutgoings).toFixed(2)}
+                {incomeSettings.currency} {unpaidAbs.toFixed(2)}
               </p>
             </div>
             <div
