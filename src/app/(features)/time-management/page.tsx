@@ -475,10 +475,25 @@ export default function TimeManagementPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>This Week&apos;s Time Wasters</CardTitle>
-          <CardDescription>
-            A breakdown of where your time has gone in the last 7 days.
-          </CardDescription>
+          <div className="flex justify-between items-start">
+            <div>
+              <CardTitle>This Week&apos;s Time Wasters</CardTitle>
+              <CardDescription>
+                A breakdown of where your time has gone in the last 7 days.
+              </CardDescription>
+            </div>
+            {weeklyData.pieData.length > 0 && (
+              <div className="text-right">
+                <div className="text-3xl font-bold">
+                  {(
+                    weeklyData.totalGameHours + weeklyData.totalAppHours
+                  ).toFixed(1)}
+                  h
+                </div>
+                <p className="text-xs text-muted-foreground">Total this week</p>
+              </div>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           {weeklyData.pieData.length > 0 ? (

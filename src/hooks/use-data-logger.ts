@@ -32,11 +32,6 @@ const useDataLogger = () => {
   useEffect(() => {
     const todayStr = format(new Date(), "yyyy-MM-dd");
 
-    // Skip if already logged today this session
-    if (lastLoggedForDayRef.current === todayStr) {
-      return;
-    }
-
     const computed: DailyLog = {
       date: todayStr,
       applications: toStatusArray(countByStatus(jobApplications)),
@@ -44,28 +39,35 @@ const useDataLogger = () => {
       tasks: toStatusArray(countByStatus(tasks)),
     };
 
+    const computedSnapshot = JSON.stringify(computed);
+
+    // Skip if data hasn't changed
+    if (lastLoggedForDayRef.current === computedSnapshot) {
+      return;
+    }
+
     setLogs((prevLogs) => {
       const idx = prevLogs.findIndex((l) => l.date === todayStr);
 
       if (idx === -1) {
         // No log for today, add it
-        lastLoggedForDayRef.current = todayStr;
+        lastLoggedForDayRef.current = computedSnapshot;
         return [...prevLogs, computed];
       }
 
       const existing = prevLogs[idx];
-      const same = JSON.stringify(existing) === JSON.stringify(computed);
+      const existingSnapshot = JSON.stringify(existing);
 
-      if (!same) {
+      if (existingSnapshot !== computedSnapshot) {
         // Update existing log
         const copy = [...prevLogs];
         copy[idx] = computed;
-        lastLoggedForDayRef.current = todayStr;
+        lastLoggedForDayRef.current = computedSnapshot;
         return copy;
       }
 
       // No changes needed
-      lastLoggedForDayRef.current = todayStr;
+      lastLoggedForDayRef.current = computedSnapshot;
       return prevLogs;
     });
   }, [jobApplications, goals, tasks, setLogs]);
