@@ -32,6 +32,11 @@ const useDataLogger = () => {
   useEffect(() => {
     const todayStr = format(new Date(), "yyyy-MM-dd");
 
+    // Skip if already logged today this session
+    if (lastLoggedForDayRef.current === todayStr) {
+      return;
+    }
+
     const computed: DailyLog = {
       date: todayStr,
       applications: toStatusArray(countByStatus(jobApplications)),
@@ -39,26 +44,31 @@ const useDataLogger = () => {
       tasks: toStatusArray(countByStatus(tasks)),
     };
 
-    const idx = logs.findIndex((l) => l.date === todayStr);
+    setLogs((prevLogs) => {
+      const idx = prevLogs.findIndex((l) => l.date === todayStr);
 
-    if (idx === -1) {
-      setLogs((prev) => [...prev, computed]);
-      lastLoggedForDayRef.current = todayStr;
-      return;
-    }
+      if (idx === -1) {
+        // No log for today, add it
+        lastLoggedForDayRef.current = todayStr;
+        return [...prevLogs, computed];
+      }
 
-    const existing = logs[idx];
-    const same = JSON.stringify(existing) === JSON.stringify(computed);
-    if (!same) {
-      setLogs((prev) => {
-        const copy = prev.slice();
-        const j = copy.findIndex((l) => l.date === todayStr);
-        if (j !== -1) copy[j] = computed;
+      const existing = prevLogs[idx];
+      const same = JSON.stringify(existing) === JSON.stringify(computed);
+
+      if (!same) {
+        // Update existing log
+        const copy = [...prevLogs];
+        copy[idx] = computed;
+        lastLoggedForDayRef.current = todayStr;
         return copy;
-      });
+      }
+
+      // No changes needed
       lastLoggedForDayRef.current = todayStr;
-    }
-  }, [jobApplications, goals, tasks, logs, setLogs]);
+      return prevLogs;
+    });
+  }, [jobApplications, goals, tasks, setLogs]);
 };
 
 export default useDataLogger;

@@ -51,6 +51,9 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
 } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -331,7 +334,17 @@ export default function TimeManagementPage() {
       }))
       .sort((a, b) => b.Gaming + b.Apps - (a.Gaming + a.Apps));
 
-    return { totalGameHours, totalAppHours, chartData };
+    // Prepare pie chart data
+    const pieData = Object.keys(activityHours)
+      .map((name) => ({
+        name,
+        value: activityHours[name].game + activityHours[name].app,
+        gaming: activityHours[name].game,
+        apps: activityHours[name].app,
+      }))
+      .sort((a, b) => b.value - a.value);
+
+    return { totalGameHours, totalAppHours, chartData, pieData };
   })();
 
   // Calculate peak usage hours
@@ -468,26 +481,45 @@ export default function TimeManagementPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {weeklyData.chartData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart
-                data={weeklyData.chartData}
-                margin={{ top: 5, right: 20, left: 20, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                <YAxis />
+          {weeklyData.pieData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={400}>
+              <PieChart>
+                <Pie
+                  data={weeklyData.pieData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={true}
+                  label={({ name, value }: any) =>
+                    `${name}: ${value.toFixed(1)}h`
+                  }
+                  outerRadius={120}
+                  fill="hsl(var(--primary))"
+                  dataKey="value"
+                >
+                  {weeklyData.pieData.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={`hsl(var(--chart-${(index % 5) + 1}))`}
+                    />
+                  ))}
+                </Pie>
                 <Tooltip
-                  cursor={{ fill: "hsl(var(--muted))" }}
                   contentStyle={{
                     backgroundColor: "hsl(var(--background))",
                     borderColor: "hsl(var(--border))",
                   }}
+                  formatter={(value: number, name, props) => {
+                    const entry = props.payload;
+                    return [
+                      `${value.toFixed(1)}h (Gaming: ${entry.gaming.toFixed(
+                        1
+                      )}h, Apps: ${entry.apps.toFixed(1)}h)`,
+                      name,
+                    ];
+                  }}
                 />
                 <Legend />
-                <Bar dataKey="Gaming" fill="hsl(var(--chart-2))" stackId="a" />
-                <Bar dataKey="Apps" fill="hsl(var(--chart-4))" stackId="a" />
-              </BarChart>
+              </PieChart>
             </ResponsiveContainer>
           ) : (
             <div className="text-center text-muted-foreground py-12">

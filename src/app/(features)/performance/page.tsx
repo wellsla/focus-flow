@@ -117,13 +117,13 @@ export default function PerformancePage() {
   );
 
   const financialHistoryData = financialLogs
+    .sort((a, b) => parseISO(a.date).getTime() - parseISO(b.date).getTime())
     .map((log) => ({
       date: format(parseISO(log.date), "MMM yyyy"),
       Net: log.net,
       Income: log.totalIncome,
       Expenses: log.totalExpenses,
-    }))
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    }));
 
   const isLoading = loadingApps || loadingTasks || loadingTime || loadingLogs;
 

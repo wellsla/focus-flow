@@ -145,9 +145,8 @@ export default function FinancesPage() {
     (acc) => acc.type === "income"
   );
 
-  // CRITICAL FIX: Monthly log creation must be idempotent
-  // Use useRef to track if we've already processed this month
-  const processedMonthRef = useRef<string>("");
+  // CRITICAL FIX: Monthly log creation and update must be idempotent
+  const lastProcessedRef = useRef<string>("");
 
   useEffect(() => {
     if (isLoading) {
@@ -156,57 +155,65 @@ export default function FinancesPage() {
 
     const currentMonth = format(new Date(), "yyyy-MM");
 
-    // Guard: Skip if we already processed this month in this session
-    if (processedMonthRef.current === currentMonth) {
+    const totalIncome = getMonthlyIncome(incomeSettings, oneTimeIncomes);
+
+    const totalExpenses = expenses.reduce(
+      (sum, item) =>
+        sum +
+        convertCurrency(item.amount, item.currency, incomeSettings.currency),
+      0
+    );
+
+    const totalDebt = debts.reduce(
+      (sum, item) =>
+        sum +
+        convertCurrency(item.amount, item.currency, incomeSettings.currency),
+      0
+    );
+
+    const net = totalIncome + totalExpenses; // expenses are negative
+
+    const newLog: FinancialLog = {
+      date: format(new Date(), "yyyy-MM-dd"),
+      totalIncome,
+      totalExpenses: Math.abs(totalExpenses),
+      totalDebt: Math.abs(totalDebt),
+      net,
+      currency: incomeSettings.currency,
+    };
+
+    const logSnapshot = JSON.stringify(newLog);
+
+    // Skip if data hasn't changed
+    if (lastProcessedRef.current === logSnapshot) {
       return;
     }
 
-    const logExists = financialLogs.some(
-      (log) => format(parseISO(log.date), "yyyy-MM") === currentMonth
-    );
-
-    if (!logExists) {
-      const totalIncome = getMonthlyIncome(incomeSettings, oneTimeIncomes);
-
-      const totalExpenses = expenses.reduce(
-        (sum, item) =>
-          sum +
-          convertCurrency(item.amount, item.currency, incomeSettings.currency),
-        0
+    setFinancialLogs((prevLogs) => {
+      const idx = prevLogs.findIndex(
+        (log) => format(parseISO(log.date), "yyyy-MM") === currentMonth
       );
 
-      const totalDebt = debts.reduce(
-        (sum, item) =>
-          sum +
-          convertCurrency(item.amount, item.currency, incomeSettings.currency),
-        0
-      );
+      if (idx === -1) {
+        // No log for this month, add it
+        lastProcessedRef.current = logSnapshot;
+        return [...prevLogs, newLog];
+      }
 
-      const net = totalIncome + totalExpenses; // expenses are negative
+      // Update existing log if data changed
+      const existing = prevLogs[idx];
+      const existingSnapshot = JSON.stringify(existing);
 
-      const newLog: FinancialLog = {
-        date: format(new Date(), "yyyy-MM-dd"),
-        totalIncome,
-        totalExpenses: Math.abs(totalExpenses),
-        totalDebt: Math.abs(totalDebt),
-        net,
-        currency: incomeSettings.currency,
-      };
+      if (existingSnapshot !== logSnapshot) {
+        const copy = [...prevLogs];
+        copy[idx] = newLog;
+        lastProcessedRef.current = logSnapshot;
+        return copy;
+      }
 
-      setFinancialLogs((prevLogs) => {
-        const logsForOtherMonths = prevLogs.filter(
-          (log) => format(parseISO(log.date), "yyyy-MM") !== currentMonth
-        );
-        // Mark as processed only if we're actually adding the log
-        processedMonthRef.current = currentMonth;
-        return [...logsForOtherMonths, newLog];
-      });
-    } else {
-      // Log already exists, mark as processed to avoid checking again
-      processedMonthRef.current = currentMonth;
-    }
-    // Remove financialLogs from dependencies to prevent loops when log is added
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+      lastProcessedRef.current = logSnapshot;
+      return prevLogs;
+    });
   }, [
     isLoading,
     financialAccounts,
@@ -214,6 +221,7 @@ export default function FinancesPage() {
     debts,
     expenses,
     oneTimeIncomes,
+    setFinancialLogs,
   ]);
 
   const handleDataUpdate = (
