@@ -46,7 +46,7 @@ export type FinancialAccount = {
 };
 
 export type FinancialLog = {
-  date: string; // YYYY-MM format
+  date: string; // YYYY-MM-DD (stored as full date for monthly snapshot)
   totalIncome: number;
   totalExpenses: number;
   totalDebt: number;

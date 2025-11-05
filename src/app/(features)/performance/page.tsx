@@ -7,7 +7,7 @@ import {
   TimeTrackingEntry,
   FinancialLog,
 } from "@/lib/types";
-import { subDays, format, eachDayOfInterval, parse } from "date-fns";
+import { subDays, format, eachDayOfInterval, parse, parseISO } from "date-fns";
 import { ChartCard } from "./components/performance-chart";
 import {
   AreaChart,
@@ -24,6 +24,16 @@ import {
 } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
 
+const getEntryDateString = (raw: any) => {
+  if (!raw) return "";
+  if (raw instanceof Date) return format(raw, "yyyy-MM-dd");
+  if (typeof raw === "string") {
+    // Accept ISO strings or already formatted dates
+    return raw.split("T")[0];
+  }
+  return String(raw);
+};
+
 const processChartData = (
   days: Date[],
   entries: any[],
@@ -33,9 +43,11 @@ const processChartData = (
 ) => {
   return days.map((day) => {
     const dayString = format(day, "yyyy-MM-dd");
-    const entriesForDay = entries.filter(
-      (entry) => entry[dateKey] === dayString
-    );
+    const entriesForDay = entries.filter((entry) => {
+      const raw = entry[dateKey];
+      const entryDate = getEntryDateString(raw);
+      return entryDate === dayString;
+    });
 
     let value = 0;
     if (valueAggregator) {
@@ -78,21 +90,24 @@ export default function PerformancePage() {
     jobApplications,
     "dateApplied"
   );
+  // Use dailyLogs for completion rates (daily snapshot) instead of deriving from `tasks`
+  const [dailyLogs] = useLocalStorage<any[]>("dailyLogs", []);
 
-  const taskCompletionData = processChartData(
-    dateRange,
-    tasks,
-    "dueDate",
-    undefined,
-    (dailyTasks) => {
-      const routineTasks = dailyTasks.filter((t) => t.period); // Only count routine tasks for completion rate
-      if (routineTasks.length === 0) return 0;
-      const completedTasks = routineTasks.filter(
-        (t) => t.status === "done"
-      ).length;
-      return (completedTasks / routineTasks.length) * 100;
+  const taskCompletionData = dateRange.map((day) => {
+    const dayString = format(day, "yyyy-MM-dd");
+    const log = dailyLogs.find((l: any) => l.date === dayString);
+    if (!log || !log.tasks || log.tasks.length === 0) {
+      return { date: format(day, "MMM d"), value: 0 };
     }
-  );
+    const total = log.tasks.reduce(
+      (s: number, t: any) => s + (t.count || 0),
+      0
+    );
+    const completed =
+      log.tasks.find((t: any) => t.status === "done")?.count || 0;
+    const value = total === 0 ? 0 : (completed / total) * 100;
+    return { date: format(day, "MMM d"), value };
+  });
 
   const timeTrackingData = processChartData(
     dateRange,
@@ -103,7 +118,7 @@ export default function PerformancePage() {
 
   const financialHistoryData = financialLogs
     .map((log) => ({
-      date: format(parse(log.date, "yyyy-MM-dd", new Date()), "MMM yyyy"),
+      date: format(parseISO(log.date), "MMM yyyy"),
       Net: log.net,
       Income: log.totalIncome,
       Expenses: log.totalExpenses,

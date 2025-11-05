@@ -300,8 +300,8 @@ export default function TimeManagementPage() {
 
   const weeklyData = (() => {
     const today = new Date();
-    const start = startOfWeek(today, { weekStartsOn: 1 });
-    const end = endOfWeek(today, { weekStartsOn: 1 });
+    const start = startOfWeek(today, { weekStartsOn: 0 });
+    const end = endOfWeek(today, { weekStartsOn: 0 });
 
     const weeklyEntries = entries.filter((entry) => {
       const entryDate = new Date(entry.date);

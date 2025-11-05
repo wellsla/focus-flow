@@ -63,7 +63,7 @@ export function HistoryDialog<T>({
             <div className="space-y-4 pr-4">
               {sortedLogs.map((log, index) => (
                 <div
-                  key={index}
+                  key={`${format(getLogDate(log), "yyyy-MM-dd")}-${index}`}
                   className="rounded-lg border bg-card p-4 hover:shadow-md transition-shadow"
                 >
                   <div className="flex items-center justify-between mb-3">
