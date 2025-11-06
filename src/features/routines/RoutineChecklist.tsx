@@ -59,9 +59,20 @@ export function RoutineChecklist({
   showCategory = false,
   className,
 }: RoutineChecklistProps) {
+  const today = new Date();
+
   // Filter active routines due today
   const dueRoutines = routines
-    .filter((r) => r.active && isDue(r.frequency, checkmarks, r.id))
+    .filter((r) => {
+      if (!r.active) return false;
+
+      // Find last completion for this routine
+      const lastCheck = checkmarks
+        .filter((c) => c.routineId === r.id && c.done)
+        .sort((a, b) => b.dateISO.localeCompare(a.dateISO))[0];
+
+      return isDue(r, today, lastCheck?.dateISO);
+    })
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
   const displayRoutines = limit ? dueRoutines.slice(0, limit) : dueRoutines;
