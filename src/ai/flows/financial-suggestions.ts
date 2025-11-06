@@ -1,6 +1,6 @@
 // Financial suggestions based on user finances.
 
-'use server';
+"use server";
 
 /**
  * @fileOverview A financial suggestion AI agent.
@@ -10,32 +10,50 @@
  * - FinancialSuggestionsOutput - The return type for the getFinancialSuggestions function.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { ai } from "@/ai/genkit";
+import { z } from "genkit";
 
 const FinancialSuggestionsInputSchema = z.object({
-  income: z.number().describe('Monthly income.'),
-  debts: z.string().describe('List of debts, including the debt name and monthly payment amount'),
-  expenses: z.string().describe('List of expenses, including the expense name and monthly payment amount'),
+  income: z.number().describe("Monthly income."),
+  debts: z
+    .string()
+    .describe(
+      "List of debts, including the debt name and monthly payment amount"
+    ),
+  expenses: z
+    .string()
+    .describe(
+      "List of expenses, including the expense name and monthly payment amount"
+    ),
 });
-export type FinancialSuggestionsInput = z.infer<typeof FinancialSuggestionsInputSchema>;
+export type FinancialSuggestionsInput = z.infer<
+  typeof FinancialSuggestionsInputSchema
+>;
 
 const FinancialSuggestionsOutputSchema = z.object({
-  suggestions: z.string().describe('Financial suggestions based on the user input.'),
+  suggestions: z
+    .string()
+    .describe("Financial suggestions based on the user input."),
 });
-export type FinancialSuggestionsOutput = z.infer<typeof FinancialSuggestionsOutputSchema>;
+export type FinancialSuggestionsOutput = z.infer<
+  typeof FinancialSuggestionsOutputSchema
+>;
 
-export async function getFinancialSuggestions(input: FinancialSuggestionsInput): Promise<FinancialSuggestionsOutput> {
+export async function getFinancialSuggestions(
+  input: FinancialSuggestionsInput
+): Promise<FinancialSuggestionsOutput> {
   return financialSuggestionsFlow(input);
 }
 
 const prompt = ai.definePrompt({
-  name: 'financialSuggestionsPrompt',
-  input: {schema: FinancialSuggestionsInputSchema},
-  output: {schema: FinancialSuggestionsOutputSchema},
-  prompt: `You are a financial advisor providing suggestions based on the user's finances.
+  name: "financialSuggestionsPrompt",
+  input: { schema: FinancialSuggestionsInputSchema },
+  output: { schema: FinancialSuggestionsOutputSchema },
+  prompt: `You are a financial advisor providing concise, actionable suggestions based on the user's finances.
 
-  Provide concrete suggestions to improve the user's financial situation. Make the suggestions very specific (e.g. cancel a specific subscription).
+  Provide 5-7 SHORT, DIRECT micro-items to improve the user's financial situation. Each item should be ONE sentence max.
+  Focus on SPECIFIC actions (e.g., "Cancel Netflix subscription - saves $15/month").
+  Use bullet points. Be brutally honest and realistic. No fluff.
 
   Income: {{income}}
   Debts: {{debts}}
@@ -46,12 +64,12 @@ const prompt = ai.definePrompt({
 
 const financialSuggestionsFlow = ai.defineFlow(
   {
-    name: 'financialSuggestionsFlow',
+    name: "financialSuggestionsFlow",
     inputSchema: FinancialSuggestionsInputSchema,
     outputSchema: FinancialSuggestionsOutputSchema,
   },
-  async input => {
-    const {output} = await prompt(input);
+  async (input) => {
+    const { output } = await prompt(input);
     return output!;
   }
 );

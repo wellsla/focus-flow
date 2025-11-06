@@ -61,27 +61,20 @@ export function RoutineChecklist({
 }: RoutineChecklistProps) {
   const today = new Date();
 
-  // Filter active routines due today
-  const dueRoutines = routines
-    .filter((r) => {
-      if (!r.active) return false;
-
-      // Find last completion for this routine
-      const lastCheck = checkmarks
-        .filter((c) => c.routineId === r.id && c.done)
-        .sort((a, b) => b.dateISO.localeCompare(a.dateISO))[0];
-
-      return isDue(r, today, lastCheck?.dateISO);
-    })
+  // Show ALL active routines (allow unchecking completed ones)
+  const activeRoutines = routines
+    .filter((r) => r.active)
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
-  const displayRoutines = limit ? dueRoutines.slice(0, limit) : dueRoutines;
+  const displayRoutines = limit
+    ? activeRoutines.slice(0, limit)
+    : activeRoutines;
 
   if (displayRoutines.length === 0) {
     return (
       <div className={cn("text-center py-8", className)}>
         <p className="text-sm text-muted-foreground">
-          🎉 All today&apos;s routines completed!
+          No active routines. Create one to get started!
         </p>
       </div>
     );

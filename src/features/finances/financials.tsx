@@ -674,13 +674,11 @@ export function Financials({
   financialAccounts,
   onDataUpdate,
 }: FinancialsProps) {
-  const [suggestions, setSuggestions] = useState<string | null>(null);
-  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
-  const [suggestionsError, setSuggestionsError] = useState<string | null>(null);
-
-  const [tips, setTips] = useState<string | null>(null);
-  const [tipsLoading, setTipsLoading] = useState(false);
-  const [tipsError, setTipsError] = useState<string | null>(null);
+  // Unified AI states
+  const [aiGoal, setAiGoal] = useState<string>("");
+  const [aiResult, setAiResult] = useState<string | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
 
   const [isFinancialItemFormOpen, setIsFinancialItemFormOpen] = useState(false);
   const [isIncomeFormOpen, setIsIncomeFormOpen] = useState(false);
@@ -804,12 +802,12 @@ export function Financials({
     });
   }
 
-  const handleGetSuggestions = async () => {
-    setSuggestionsLoading(true);
-    setSuggestionsError(null);
-    setSuggestions(null);
+  const handleGetAIAdvice = async () => {
+    setAiLoading(true);
+    setAiError(null);
+    setAiResult(null);
 
-    const input = {
+    const baseInput = {
       income: monthlyIncome,
       debts: debts
         .map((d) => `${d.name}: ${d.currency}${Math.abs(d.amount)}/month`)
@@ -817,37 +815,36 @@ export function Financials({
       expenses: expenses
         .map((e) => `${e.name}: ${e.currency}${Math.abs(e.amount)}/month`)
         .join(", "),
-    };
-
-    const result = await fetchFinancialSuggestions(input);
-    if (result.success) {
-      setSuggestions(result.suggestions!);
-    } else {
-      setSuggestionsError(result.error!);
-    }
-    setSuggestionsLoading(false);
-  };
-
-  const handleGetTips = async () => {
-    setTipsLoading(true);
-    setTipsError(null);
-    setTips(null);
-
-    const input = {
-      income: monthlyIncome,
       savings,
-      debts: debts
-        .map((d) => `${d.name}: ${d.currency}${Math.abs(d.amount)}/month`)
-        .join(", "),
+      goal: aiGoal,
     };
 
-    const result = await fetchInvestmentTips(input);
+    // Select appropriate AI flow based on goal
+    const result =
+      aiGoal === "investment"
+        ? await fetchInvestmentTips({
+            income: baseInput.income,
+            savings: baseInput.savings,
+            debts: baseInput.debts,
+          })
+        : await fetchFinancialSuggestions({
+            income: baseInput.income,
+            debts: baseInput.debts,
+            expenses: baseInput.expenses,
+          });
+
     if (result.success) {
-      setTips(result.tips!);
+      const content =
+        "suggestions" in result
+          ? result.suggestions
+          : "tips" in result
+          ? result.tips
+          : "No advice generated.";
+      setAiResult(content || "No advice generated.");
     } else {
-      setTipsError(result.error!);
+      setAiError(result.error!);
     }
-    setTipsLoading(false);
+    setAiLoading(false);
   };
 
   const togglePaidStatus = (item: FinancialAccount, isPaid: boolean) => {
@@ -1103,58 +1100,29 @@ export function Financials({
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Bot className="h-5 w-5" /> AI Financial Suggestions
+              <Bot className="h-5 w-5" /> AI Financial Assistant
             </CardTitle>
             <CardDescription>
-              Let&apos;s be realistic. Here&apos;s what you can cut to improve
-              your situation.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {suggestionsLoading && (
-              <div className="flex items-center justify-center p-8">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
-            )}
-            {suggestionsError && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Error</AlertTitle>
-                <AlertDescription>{suggestionsError}</AlertDescription>
-              </Alert>
-            )}
-            {suggestions && (
-              <Alert>
-                <Sparkles className="h-4 w-4" />
-                <AlertTitle>Hard Truths</AlertTitle>
-                <AlertDescription>
-                  <MarkdownRenderer content={suggestions} />
-                </AlertDescription>
-                <CopyButton text={suggestions} />
-              </Alert>
-            )}
-          </CardContent>
-          <CardFooter>
-            <Button
-              onClick={handleGetSuggestions}
-              disabled={suggestionsLoading}
-              className="w-full"
-            >
-              {suggestionsLoading ? "Analyzing..." : "Generate Suggestions"}
-            </Button>
-          </CardFooter>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Bot className="h-5 w-5" /> AI Investment Tips
-            </CardTitle>
-            <CardDescription>
-              Thinking about investing? Let&apos;s see if that&apos;s even a
-              good idea right now.
+              Get personalized financial advice based on your current situation.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="aiGoal">What do you need help with?</Label>
+              <Select value={aiGoal} onValueChange={setAiGoal}>
+                <SelectTrigger id="aiGoal">
+                  <SelectValue placeholder="Select a goal" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="budget">Budget Optimization</SelectItem>
+                  <SelectItem value="investment">
+                    Investment Strategy
+                  </SelectItem>
+                  <SelectItem value="debt">Debt Management</SelectItem>
+                  <SelectItem value="savings">Savings Goals</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <div className="space-y-2">
               <Label htmlFor="savings">
                 Total Savings ({incomeSettings.currency})
@@ -1166,36 +1134,36 @@ export function Financials({
                 onChange={(e) => setSavings(Number(e.target.value))}
               />
             </div>
-            {tipsLoading && (
+            {aiLoading && (
               <div className="flex items-center justify-center p-8">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
             )}
-            {tipsError && (
+            {aiError && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle>Error</AlertTitle>
-                <AlertDescription>{tipsError}</AlertDescription>
+                <AlertDescription>{aiError}</AlertDescription>
               </Alert>
             )}
-            {tips && (
+            {aiResult && (
               <Alert>
                 <Sparkles className="h-4 w-4" />
-                <AlertTitle>Investment Reality</AlertTitle>
+                <AlertTitle>AI Advice</AlertTitle>
                 <AlertDescription>
-                  <MarkdownRenderer content={tips} />
+                  <MarkdownRenderer content={aiResult} />
                 </AlertDescription>
-                <CopyButton text={tips} />
+                <CopyButton text={aiResult} />
               </Alert>
             )}
           </CardContent>
           <CardFooter>
             <Button
-              onClick={handleGetTips}
-              disabled={tipsLoading}
+              onClick={handleGetAIAdvice}
+              disabled={aiLoading || !aiGoal}
               className="w-full"
             >
-              {tipsLoading ? "Thinking..." : "Generate Investment Tips"}
+              {aiLoading ? "Analyzing..." : "Get AI Advice"}
             </Button>
           </CardFooter>
         </Card>

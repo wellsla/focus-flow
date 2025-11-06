@@ -55,6 +55,7 @@ type NavGroup = { title: string; items: NavItem[] };
 const navItems: (NavItem | NavGroup)[] = [
   { href: "/home", icon: Home, label: "Home" },
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/settings", icon: Settings, label: "Settings" },
   {
     title: "Daily Flow",
     items: [
@@ -86,10 +87,6 @@ const navItems: (NavItem | NavGroup)[] = [
       { href: "/time-management", icon: Clock, label: "Time" },
       { href: "/performance", icon: LineChart, label: "Performance" },
     ],
-  },
-  {
-    title: "Settings",
-    items: [{ href: "/settings", icon: Settings, label: "Settings" }],
   },
 ];
 
