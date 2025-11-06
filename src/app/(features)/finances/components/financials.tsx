@@ -1,4 +1,5 @@
 "use client";
+"use no memo";
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -383,7 +384,8 @@ const IncomeForm = ({
         ? new Date(settings.benefitsEndDate)
         : undefined,
     });
-  }, [settings, form]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settings]);
 
   function handleFormSubmit(values: IncomeFormValues) {
     onSubmit({

@@ -68,7 +68,7 @@ const roadmapStatusToTaskStatus: Record<RoadmapNodeStatus, TaskStatus> = {
   todo: "todo",
   in_progress: "in-progress",
   done: "done",
-  skipped: "skipped",
+  skipped: "cancelled",
   parallel: "in-progress",
 };
 

@@ -12,14 +12,13 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
-  Task,
   Priority,
-  RoutinePeriod,
   TaskStatus,
   DailyLog,
   RoadmapNode,
   RoadmapNodeStatus,
 } from "@/lib/types";
+import { RoutinePeriod } from "@/lib/schedule";
 import { PlusCircle, Tag, Clock, CircleDot, Bell, History } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useForm } from "react-hook-form";
@@ -67,18 +66,36 @@ import { tasks as initialTasks, roadmap as initialRoadmap } from "@/lib/data";
 import { Skeleton } from "@/components/ui/skeleton";
 import { HistoryDialog } from "../components/history-dialog";
 
+// Legacy Task type for /routine page (uses old structure with period, startTime, endTime)
+// This page uses data.ts which still has the old structure
+// New Task feature uses @/lib/types Task (no period, has dueDate)
+type LegacyTaskStatus = "todo" | "in-progress" | "done" | "skipped";
+interface LegacyTask {
+  id: string;
+  title: string;
+  status: LegacyTaskStatus;
+  period?: RoutinePeriod;
+  startTime?: string;
+  endTime?: string;
+  priority?: Priority;
+  dueDate?: Date;
+  isGeneral?: boolean;
+  isRoadmapTask?: boolean;
+}
+
 const priorityColors: Record<Priority, string> = {
   low: "text-blue-500",
   medium: "text-yellow-500",
   high: "text-red-500",
 };
 
-const statusConfig: Record<TaskStatus, { label: string; color: string }> = {
-  todo: { label: "To Do", color: "bg-muted text-muted-foreground" },
-  "in-progress": { label: "In Progress", color: "bg-blue-200 text-blue-800" },
-  done: { label: "Done", color: "bg-green-200 text-green-800" },
-  skipped: { label: "Skipped", color: "bg-stone-200 text-stone-800" },
-};
+const statusConfig: Record<LegacyTaskStatus, { label: string; color: string }> =
+  {
+    todo: { label: "To Do", color: "bg-muted text-muted-foreground" },
+    "in-progress": { label: "In Progress", color: "bg-blue-200 text-blue-800" },
+    done: { label: "Done", color: "bg-green-200 text-green-800" },
+    skipped: { label: "Skipped", color: "bg-stone-200 text-stone-800" },
+  };
 
 const renderTaskLog = (log: DailyLog) => (
   <div className="space-y-4">
@@ -141,8 +158,8 @@ const TaskItem = ({
   onSelect,
   onStatusChange,
 }: {
-  task: Task;
-  onSelect: (task: Task) => void;
+  task: LegacyTask;
+  onSelect: (task: LegacyTask) => void;
   onStatusChange: (taskId: string, status: TaskStatus) => void;
 }) => {
   const [isNow, setIsNow] = useState(false);
@@ -289,8 +306,8 @@ const AddTaskForm = ({
   onTaskDelete,
   isRoadmapTask,
 }: {
-  task?: Task | null;
-  onTaskSubmit: (task: Task) => void;
+  task?: LegacyTask | null;
+  onTaskSubmit: (task: LegacyTask) => void;
   onTaskDelete?: (id: string) => void;
   isRoadmapTask?: boolean;
 }) => {
@@ -558,7 +575,7 @@ const AddTaskForm = ({
   );
 };
 
-const taskStatusToRoadmapStatus: Record<TaskStatus, RoadmapNodeStatus> = {
+const taskStatusToRoadmapStatus: Record<LegacyTaskStatus, RoadmapNodeStatus> = {
   todo: "todo",
   "in-progress": "in_progress",
   done: "done",
@@ -598,7 +615,7 @@ function findNodeByTaskTitle(
 
 function RoutinePageContent() {
   const searchParams = useSearchParams();
-  const [tasks, setTasks, loadingTasks] = useLocalStorage<Task[]>(
+  const [tasks, setTasks, loadingTasks] = useLocalStorage<LegacyTask[]>(
     "tasks",
     initialTasks
   );
@@ -610,7 +627,7 @@ function RoutinePageContent() {
     "roadmap",
     initialRoadmap
   );
-  const [selectedTask, setSelectedTask] = useState<Task | null>(() => {
+  const [selectedTask, setSelectedTask] = useState<LegacyTask | null>(() => {
     const prefillTaskTitle = searchParams.get("prefillTask");
     const taskId = searchParams.get("taskId");
     const isFromRoadmap = searchParams.get("isRoadmapTask") === "true";
@@ -619,7 +636,7 @@ function RoutinePageContent() {
       if (task) return task;
     }
     if (prefillTaskTitle) {
-      const defaultTask: Partial<Task> = {
+      const defaultTask: Partial<LegacyTask> = {
         title: decodeURIComponent(prefillTaskTitle),
         status: "todo",
       };
@@ -705,12 +722,12 @@ function RoutinePageContent() {
     return () => clearInterval(interval);
   }, [tasks, toast]);
 
-  const handleTaskSelect = (task: Task) => {
+  const handleTaskSelect = (task: LegacyTask) => {
     setSelectedTask(task);
     setIsFormOpen(true);
   };
 
-  const handleTaskSubmit = (task: Task) => {
+  const handleTaskSubmit = (task: LegacyTask) => {
     // Determine edit/create by presence in current task list, not selectedTask state
     const exists = tasks.some((t) => t.id === task.id);
     const newTasks = exists

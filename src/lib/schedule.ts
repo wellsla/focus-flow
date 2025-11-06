@@ -12,10 +12,13 @@ import {
   addWeeks,
   addMonths,
   parseISO,
+  differenceInDays,
 } from "date-fns";
-import type { Task, RoutinePeriod } from "./types";
+import type { Task } from "./types";
+import type { RoutineItem } from "./types";
 
 export type RecurrencePattern = "daily" | "weekly" | "monthly" | "once";
+export type RoutinePeriod = "morning" | "afternoon" | "evening";
 
 /**
  * Check if a task is due today based on its dueDate
@@ -80,56 +83,27 @@ export function getNextOccurrence(
 }
 
 /**
+ * @deprecated Task no longer has period property. Use RoutineItem for recurring habits.
  * Reset daily routine tasks to "todo" status if they're from a previous day
- * Used to auto-reset morning/afternoon/evening tasks each day
- *
- * @param tasks - Array of tasks to check
- * @returns Array of tasks with status reset if needed
  */
 export function resetDailyTasks(tasks: Task[]): Task[] {
-  const today = startOfDay(new Date()).toISOString();
-
-  return tasks.map((task) => {
-    // Only reset tasks with period (routine tasks) that aren't "skipped"
-    if (!task.period) return task;
-    if (task.status === "skipped") return task;
-
-    // If task has a dueDate and it's not today, reset it
-    if (task.dueDate && !isTaskDueToday(task)) {
-      return {
-        ...task,
-        status: "todo",
-        dueDate: today,
-      };
-    }
-
-    // If task doesn't have a dueDate but has status "done" or "in-progress",
-    // we assume it was completed yesterday and needs reset
-    if (
-      !task.dueDate &&
-      (task.status === "done" || task.status === "in-progress")
-    ) {
-      return {
-        ...task,
-        status: "todo",
-        dueDate: today,
-      };
-    }
-
-    return task;
-  });
+  // Tasks are now one-time items with dueDate, not recurring period-based items
+  // This function is deprecated for Tasks. Use RoutineItem for recurring habits.
+  return tasks;
 }
 
 /**
+ * @deprecated Task no longer has period property. Use RoutineItem for recurring habits.
  * Group tasks by routine period
  */
 export function groupTasksByPeriod(
   tasks: Task[]
 ): Record<RoutinePeriod, Task[]> {
+  // Tasks no longer have period property
   return {
-    morning: tasks.filter((t) => t.period === "morning"),
-    afternoon: tasks.filter((t) => t.period === "afternoon"),
-    evening: tasks.filter((t) => t.period === "evening"),
+    morning: [],
+    afternoon: [],
+    evening: [],
   };
 }
 
@@ -148,46 +122,31 @@ export function getCurrentPeriod(): RoutinePeriod {
 }
 
 /**
- * Check if all tasks in a period are completed
+ * @deprecated Task no longer has period property. Use RoutineItem for recurring habits.
  */
 export function isPeriodComplete(
   tasks: Task[],
   period: RoutinePeriod
 ): boolean {
-  const periodTasks = tasks.filter((t) => t.period === period);
-  if (periodTasks.length === 0) return false;
-
-  return periodTasks.every(
-    (t) => t.status === "done" || t.status === "skipped"
-  );
+  return false;
 }
 
 /**
- * Calculate completion percentage for a period
+ * @deprecated Task no longer has period property. Use RoutineItem for recurring habits.
  */
 export function getPeriodCompletionRate(
   tasks: Task[],
   period: RoutinePeriod
 ): number {
-  const periodTasks = tasks.filter((t) => t.period === period);
-  if (periodTasks.length === 0) return 0;
-
-  const completed = periodTasks.filter(
-    (t) => t.status === "done" || t.status === "skipped"
-  ).length;
-
-  return Math.round((completed / periodTasks.length) * 100);
+  return 0;
 }
 
 /**
  * Get tasks that should be visible today
- * Filters out tasks that are not due today (unless they're routine tasks)
+ * Filters out tasks that are not due today
  */
 export function getTodayTasks(tasks: Task[]): Task[] {
   return tasks.filter((task) => {
-    // Routine tasks are always shown
-    if (task.period) return true;
-
     // Tasks with no due date are shown
     if (!task.dueDate) return true;
 
@@ -202,7 +161,7 @@ export function getTodayTasks(tasks: Task[]): Task[] {
  */
 export function sortTasksByPriority(tasks: Task[]): Task[] {
   const priorityOrder = { high: 0, medium: 1, low: 2 };
-  const statusOrder = { todo: 0, "in-progress": 1, done: 2, skipped: 3 };
+  const statusOrder = { todo: 0, "in-progress": 1, done: 2, cancelled: 3 };
 
   return [...tasks].sort((a, b) => {
     // Sort by status first (incomplete tasks on top)
@@ -219,9 +178,6 @@ export function sortTasksByPriority(tasks: Task[]): Task[] {
 // ============================================================================
 // Routine Item Scheduling (for RoutineItem with Frequency)
 // ============================================================================
-
-import type { RoutineItem, Frequency } from "./types";
-import { differenceInDays } from "date-fns";
 
 /**
  * Check if a routine item is due on a given date
