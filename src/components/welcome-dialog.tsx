@@ -34,6 +34,28 @@ export function WelcomeDialog() {
     setIsOpen(false);
   };
 
+  const features = [
+    {
+      title: "Distraction-Free Focus",
+      description:
+        "Pomodoro timer, daily routines, and deep focus mode with Wake Lock API",
+    },
+    {
+      title: "Visible Progress",
+      description:
+        "Points system, badges, and streaks for sustainable motivation",
+    },
+    {
+      title: "Daily Reflection",
+      description: "3-line journal with PDF export for review",
+    },
+    {
+      title: "Private Data",
+      description:
+        "Everything stored locally in your browser. Zero external servers.",
+    },
+  ];
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="sm:max-w-[600px]">
@@ -41,95 +63,61 @@ export function WelcomeDialog() {
           <div className="flex items-center gap-2 mb-2">
             <Sparkles className="h-6 w-6 text-primary" />
             <DialogTitle className="text-2xl">
-              Bem-vindo ao Focus Flow
+              Welcome to Focus Flow
             </DialogTitle>
           </div>
           <DialogDescription className="text-base space-y-4 pt-4">
             <p>
-              Um sistema ADHD-friendly para transição de carreira, construído
-              com o princípio de{" "}
+              An ADHD-friendly system for career transition, built on the
+              principle of{" "}
               <span className="font-semibold text-foreground">
-                ritual &gt; gamificação
+                ritual &gt; gamification
               </span>
               .
             </p>
 
             <div className="space-y-3 py-4">
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-medium text-foreground">
-                    Foco sem distração
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Pomodoro, rotinas diárias e modo de foco profundo com Wake
-                    Lock API
-                  </p>
+              {features.map((feature, index) => (
+                <div key={index} className="flex items-start gap-3">
+                  <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-medium text-foreground">
+                      {feature.title}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {feature.description}
+                    </p>
+                  </div>
                 </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-medium text-foreground">
-                    Progresso visível
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Sistema de pontos, badges e streaks para motivação
-                    sustentável
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-medium text-foreground">Reflexão diária</p>
-                  <p className="text-sm text-muted-foreground">
-                    Diário de 3 linhas + exportação em PDF para revisão
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-medium text-foreground">Dados privados</p>
-                  <p className="text-sm text-muted-foreground">
-                    Tudo armazenado localmente no seu navegador. Zero servidores
-                    externos.
-                  </p>
-                </div>
-              </div>
+              ))}
             </div>
 
             <div className="bg-muted rounded-lg p-4 mt-4">
               <p className="text-sm">
                 <span className="font-semibold text-foreground">
-                  Começamos carregando:
+                  We&apos;ve loaded:
                 </span>
               </p>
               <ul className="text-sm text-muted-foreground mt-2 space-y-1 ml-4">
-                <li>• 20 rotinas padrão organizadas por categoria</li>
-                <li>• 6 lembretes ao longo do dia</li>
-                <li>• Configurações otimizadas para ADHD</li>
+                <li>• 20 default routines organized by category</li>
+                <li>• 6 reminders throughout the day</li>
+                <li>• ADHD-optimized settings</li>
               </ul>
               <p className="text-sm text-muted-foreground mt-2">
-                Você pode personalizar tudo nas páginas de Routines, Reminders e
-                Settings.
+                Customize everything in Routines, Reminders, and Settings pages.
               </p>
             </div>
 
             <p className="text-sm italic text-muted-foreground mt-4">
-              "Seja gentil consigo mesmo. Progresso de 1% por dia é tudo que
-              você precisa."
+              &quot;Be kind to yourself. 1% progress per day is all you
+              need.&quot;
             </p>
           </DialogDescription>
         </DialogHeader>
 
         <div className="flex justify-end gap-2 mt-4">
           <Button onClick={handleClose} size="lg" className="w-full sm:w-auto">
-            Começar Jornada
+            Start Journey
           </Button>
         </div>
       </DialogContent>

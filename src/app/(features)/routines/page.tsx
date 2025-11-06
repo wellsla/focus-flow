@@ -95,8 +95,8 @@ export default function RoutinesPage() {
       };
       setRoutines(routines.map((r) => (r.id === updated.id ? updated : r)));
       toast({
-        title: "Rotina atualizada",
-        description: `"${data.title}" foi atualizada com sucesso.`,
+        title: "Routine updated",
+        description: `"${data.title}" was successfully updated.`,
       });
     } else {
       // Create new
@@ -108,8 +108,8 @@ export default function RoutinesPage() {
       };
       setRoutines([...routines, newRoutine]);
       toast({
-        title: "Rotina criada",
-        description: `"${data.title}" foi adicionada às suas rotinas.`,
+        title: "Routine created",
+        description: `"${data.title}" was added to your routines.`,
       });
     }
     setIsFormOpen(false);
@@ -123,8 +123,8 @@ export default function RoutinesPage() {
     if (selectedRoutine) {
       setRoutines(routines.filter((r) => r.id !== selectedRoutine.id));
       toast({
-        title: "Rotina excluída",
-        description: `"${selectedRoutine.title}" foi removida.`,
+        title: "Routine deleted",
+        description: `"${selectedRoutine.title}" was removed.`,
         variant: "destructive",
       });
       setIsFormOpen(false);
@@ -148,19 +148,19 @@ export default function RoutinesPage() {
       {/* Header */}
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Minhas Rotinas</h1>
+          <h1 className="text-3xl font-bold tracking-tight">My Routines</h1>
           <p className="text-muted-foreground mt-1">
-            Gerencie suas rotinas diárias e construa hábitos consistentes
+            Manage your daily routines and build consistent habits
           </p>
         </div>
         <FormDialog
           isOpen={isFormOpen}
           setIsOpen={setIsFormOpen}
-          title={selectedRoutine ? "Editar Rotina" : "Nova Rotina"}
+          title={selectedRoutine ? "Edit Routine" : "New Routine"}
           description={
             selectedRoutine
-              ? "Atualize os detalhes da sua rotina"
-              : "Adicione uma nova rotina aos seus hábitos"
+              ? "Update your routine details"
+              : "Add a new routine to your habits"
           }
           triggerButton={
             <Button
@@ -171,7 +171,7 @@ export default function RoutinesPage() {
               }}
             >
               <PlusCircle className="mr-2 h-5 w-5" />
-              Nova Rotina
+              New Routine
             </Button>
           }
           onCloseAutoFocus={() => setSelectedRoutine(null)}
@@ -189,21 +189,21 @@ export default function RoutinesPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Sequência Atual
+              Current Streak
             </CardTitle>
             <CalendarCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{streak} dias</div>
+            <div className="text-2xl font-bold">{streak} days</div>
             <p className="text-xs text-muted-foreground">
-              Continue completando rotinas diariamente
+              Keep completing routines daily
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Hoje</CardTitle>
+            <CardTitle className="text-sm font-medium">Today</CardTitle>
             <ListChecks className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -211,7 +211,7 @@ export default function RoutinesPage() {
               {completedToday.length} / {dueToday.length}
             </div>
             <p className="text-xs text-muted-foreground">
-              {completionRate}% completo
+              {completionRate}% complete
             </p>
           </CardContent>
         </Card>
@@ -219,27 +219,27 @@ export default function RoutinesPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Rotinas Ativas
+              Active Routines
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{activeRoutines.length}</div>
             <p className="text-xs text-muted-foreground">
-              {routines.length - activeRoutines.length} inativas
+              {routines.length - activeRoutines.length} inactive
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pendentes</CardTitle>
+            <CardTitle className="text-sm font-medium">Pending</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {dueToday.length - completedToday.length}
             </div>
             <p className="text-xs text-muted-foreground">
-              Rotinas ainda não realizadas
+              Routines not yet completed
             </p>
           </CardContent>
         </Card>
@@ -248,17 +248,17 @@ export default function RoutinesPage() {
       {/* Main Content */}
       <Tabs defaultValue="today" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="today">Hoje</TabsTrigger>
-          <TabsTrigger value="all">Todas as Rotinas</TabsTrigger>
+          <TabsTrigger value="today">Today</TabsTrigger>
+          <TabsTrigger value="all">All Routines</TabsTrigger>
         </TabsList>
 
         {/* Today's Tab */}
         <TabsContent value="today" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Rotinas de Hoje</CardTitle>
+              <CardTitle>Today&apos;s Routines</CardTitle>
               <CardDescription>
-                Marque as rotinas conforme você as completa
+                Check off routines as you complete them
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -272,10 +272,10 @@ export default function RoutinesPage() {
               ) : (
                 <div className="text-center py-12">
                   <p className="text-muted-foreground">
-                    🎉 Todas as rotinas de hoje foram concluídas!
+                    🎉 All today&apos;s routines completed!
                   </p>
                   <p className="text-sm text-muted-foreground mt-2">
-                    Volte amanhã para continuar sua sequência
+                    Come back tomorrow to continue your streak
                   </p>
                 </div>
               )}
@@ -292,7 +292,7 @@ export default function RoutinesPage() {
                   <div className="flex items-center justify-between">
                     <CardTitle>{category}</CardTitle>
                     <Badge variant="secondary">
-                      {grouped[category].length} rotinas
+                      {grouped[category].length} routines
                     </Badge>
                   </div>
                 </CardHeader>
@@ -309,17 +309,17 @@ export default function RoutinesPage() {
                           <div className="flex-1">
                             <p className="font-medium">{routine.title}</p>
                             <p className="text-xs text-muted-foreground mt-0.5">
-                              {routine.frequency === "daily" && "Diário"}
-                              {routine.frequency === "weekly" && "Semanal"}
-                              {routine.frequency === "monthly" && "Mensal"}
+                              {routine.frequency === "daily" && "Daily"}
+                              {routine.frequency === "weekly" && "Weekly"}
+                              {routine.frequency === "monthly" && "Monthly"}
                               {routine.frequency === "every3days" &&
-                                "A cada 3 dias"}
+                                "Every 3 days"}
                             </p>
                           </div>
                           <Badge
                             variant={routine.active ? "default" : "outline"}
                           >
-                            {routine.active ? "Ativa" : "Inativa"}
+                            {routine.active ? "Active" : "Inactive"}
                           </Badge>
                         </div>
                       ))}
@@ -332,11 +332,11 @@ export default function RoutinesPage() {
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <ListChecks className="h-12 w-12 text-muted-foreground mb-4" />
                 <p className="text-lg font-medium mb-2">
-                  Nenhuma rotina criada ainda
+                  No routines created yet
                 </p>
                 <p className="text-sm text-muted-foreground mb-6 text-center max-w-md">
-                  Comece criando sua primeira rotina. Rotinas ajudam a construir
-                  hábitos consistentes.
+                  Start by creating your first routine. Routines help build
+                  consistent habits.
                 </p>
                 <Button
                   onClick={() => {
@@ -345,7 +345,7 @@ export default function RoutinesPage() {
                   }}
                 >
                   <PlusCircle className="mr-2 h-4 w-4" />
-                  Criar Primeira Rotina
+                  Create First Routine
                 </Button>
               </CardContent>
             </Card>

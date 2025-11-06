@@ -178,12 +178,12 @@ export type DailyLog = {
 export type Frequency = "daily" | "weekly" | "monthly" | "every3days";
 
 export type RoutineCategory =
-  | "Manhã"
-  | "Durante o Dia"
-  | "Noite"
-  | "Rotina Semanal"
-  | "Propósito e Direção"
-  | "Manutenção";
+  | "Morning"
+  | "During the Day"
+  | "Evening"
+  | "Weekly Routine"
+  | "Purpose and Direction"
+  | "Maintenance";
 
 export interface RoutineItem {
   id: string;

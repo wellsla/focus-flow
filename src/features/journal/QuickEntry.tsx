@@ -34,9 +34,9 @@ import { Smile, Meh, Frown } from "lucide-react";
 
 const formSchema = z.object({
   mood: z.enum(["low", "ok", "high"]).optional(),
-  line1: z.string().min(1, "Como você está se sentindo?").max(500),
-  line2: z.string().min(1, "O que você quer sentir?").max(500),
-  line3: z.string().min(1, "Qual sua frase-âncora?").max(500),
+  line1: z.string().min(1, "How are you feeling?").max(500),
+  line2: z.string().min(1, "What do you want to feel?").max(500),
+  line3: z.string().min(1, "What is your anchor phrase?").max(500),
   tags: z.string().optional(),
 });
 
@@ -54,9 +54,9 @@ const moodIcons = {
 };
 
 const moodLabels = {
-  low: "Difícil",
-  ok: "Neutro",
-  high: "Ótimo",
+  low: "Difficult",
+  ok: "Neutral",
+  high: "Great",
 };
 
 export function QuickEntry({ onSubmit, entry }: QuickEntryProps) {
@@ -100,7 +100,7 @@ export function QuickEntry({ onSubmit, entry }: QuickEntryProps) {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          {entry ? "Editar Registro" : "Registro Rápido"}
+          {entry ? "Edit Entry" : "Quick Entry"}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -114,14 +114,14 @@ export function QuickEntry({ onSubmit, entry }: QuickEntryProps) {
               name="mood"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Como está seu dia? (opcional)</FormLabel>
+                  <FormLabel>How is your day? (optional)</FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Selecione seu humor" />
+                        <SelectValue placeholder="Select your mood" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -146,11 +146,11 @@ export function QuickEntry({ onSubmit, entry }: QuickEntryProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-base font-semibold">
-                    1. Como estou me sentindo agora?
+                    1. How am I feeling right now?
                   </FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Ex: Estou ansioso sobre o futuro, mas esperançoso..."
+                      placeholder="Ex: I'm anxious about the future, but hopeful..."
                       className="min-h-[100px] text-base resize-none"
                       {...field}
                     />
@@ -166,11 +166,11 @@ export function QuickEntry({ onSubmit, entry }: QuickEntryProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-base font-semibold">
-                    2. Como eu quero me sentir?
+                    2. How do I want to feel?
                   </FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Ex: Quero sentir confiança e calma..."
+                      placeholder="Ex: I want to feel confident and calm..."
                       className="min-h-[100px] text-base resize-none"
                       {...field}
                     />
@@ -186,11 +186,11 @@ export function QuickEntry({ onSubmit, entry }: QuickEntryProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-base font-semibold">
-                    3. Minha frase-âncora de hoje
+                    3. My anchor phrase for today
                   </FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Ex: Eu estou fazendo o meu melhor, e isso é suficiente."
+                      placeholder="Ex: I am doing my best, and that is enough."
                       className="min-h-[100px] text-base resize-none"
                       {...field}
                     />
@@ -205,10 +205,10 @@ export function QuickEntry({ onSubmit, entry }: QuickEntryProps) {
               name="tags"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Tags (opcional)</FormLabel>
+                  <FormLabel>Tags (optional)</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Ex: ansiedade, trabalho, autocuidado (separadas por vírgula)"
+                      placeholder="Ex: anxiety, work, self-care (comma separated)"
                       className="min-h-[60px] resize-none"
                       {...field}
                     />
@@ -225,10 +225,10 @@ export function QuickEntry({ onSubmit, entry }: QuickEntryProps) {
               disabled={isSubmitting}
             >
               {isSubmitting
-                ? "Salvando..."
+                ? "Saving..."
                 : entry
-                ? "Atualizar Registro"
-                : "Salvar Registro"}
+                ? "Update Entry"
+                : "Save Entry"}
             </Button>
           </form>
         </Form>

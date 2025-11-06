@@ -32,14 +32,14 @@ import { Switch } from "@/components/ui/switch";
 import type { RoutineItem, RoutineCategory, Frequency } from "@/lib/types";
 
 const formSchema = z.object({
-  title: z.string().min(3, "Título deve ter pelo menos 3 caracteres"),
+  title: z.string().min(3, "Title must be at least 3 characters"),
   category: z.enum([
-    "Manhã",
-    "Durante o Dia",
-    "Noite",
-    "Rotina Semanal",
-    "Propósito e Direção",
-    "Manutenção",
+    "Morning",
+    "During the Day",
+    "Evening",
+    "Weekly Routine",
+    "Purpose and Direction",
+    "Maintenance",
   ]),
   frequency: z.enum(["daily", "weekly", "monthly", "every3days"]),
   active: z.boolean(),
@@ -54,19 +54,19 @@ interface RoutineFormProps {
 }
 
 const categoryDescriptions: Record<RoutineCategory, string> = {
-  Manhã: "Primeiras atividades do dia",
-  "Durante o Dia": "Tarefas ao longo do dia",
-  Noite: "Rotina antes de dormir",
-  "Rotina Semanal": "Atividades semanais",
-  "Propósito e Direção": "Reflexão e planejamento",
-  Manutenção: "Cuidados e organização",
+  Morning: "First activities of the day",
+  "During the Day": "Tasks throughout the day",
+  Evening: "Routine before bed",
+  "Weekly Routine": "Weekly activities",
+  "Purpose and Direction": "Reflection and planning",
+  Maintenance: "Care and organization",
 };
 
 const frequencyLabels: Record<Frequency, string> = {
-  daily: "Diário",
-  weekly: "Semanal (domingo)",
-  monthly: "Mensal (dia 1)",
-  every3days: "A cada 3 dias",
+  daily: "Daily",
+  weekly: "Weekly (Sunday)",
+  monthly: "Monthly (1st day)",
+  every3days: "Every 3 days",
 };
 
 export function RoutineForm({ routine, onSubmit, onDelete }: RoutineFormProps) {
@@ -76,7 +76,7 @@ export function RoutineForm({ routine, onSubmit, onDelete }: RoutineFormProps) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: routine?.title || "",
-      category: routine?.category || "Manhã",
+      category: routine?.category || "Morning",
       frequency: routine?.frequency || "daily",
       active: routine?.active ?? true,
     },
@@ -90,10 +90,10 @@ export function RoutineForm({ routine, onSubmit, onDelete }: RoutineFormProps) {
           name="title"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Título da Rotina</FormLabel>
+              <FormLabel>Routine Title</FormLabel>
               <FormControl>
                 <Input
-                  placeholder="Ex: Arrumar a cama"
+                  placeholder="Ex: Make the bed"
                   {...field}
                   className="text-base"
                 />
@@ -108,7 +108,7 @@ export function RoutineForm({ routine, onSubmit, onDelete }: RoutineFormProps) {
           name="category"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Categoria</FormLabel>
+              <FormLabel>Category</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
@@ -138,7 +138,7 @@ export function RoutineForm({ routine, onSubmit, onDelete }: RoutineFormProps) {
           name="frequency"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Frequência</FormLabel>
+              <FormLabel>Frequency</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
@@ -153,9 +153,7 @@ export function RoutineForm({ routine, onSubmit, onDelete }: RoutineFormProps) {
                   ))}
                 </SelectContent>
               </Select>
-              <FormDescription>
-                Quando esta rotina deve aparecer
-              </FormDescription>
+              <FormDescription>When this routine should appear</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -167,9 +165,9 @@ export function RoutineForm({ routine, onSubmit, onDelete }: RoutineFormProps) {
           render={({ field }) => (
             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
               <div className="space-y-0.5">
-                <FormLabel className="text-base">Ativa</FormLabel>
+                <FormLabel className="text-base">Active</FormLabel>
                 <FormDescription>
-                  Desative temporariamente para ocultar esta rotina
+                  Temporarily disable to hide this routine
                 </FormDescription>
               </div>
               <FormControl>
@@ -184,11 +182,11 @@ export function RoutineForm({ routine, onSubmit, onDelete }: RoutineFormProps) {
 
         <div className="flex gap-2 pt-4">
           <Button type="submit" className="flex-1">
-            {isEditing ? "Atualizar Rotina" : "Criar Rotina"}
+            {isEditing ? "Update Routine" : "Create Routine"}
           </Button>
           {isEditing && onDelete && (
             <Button type="button" variant="destructive" onClick={onDelete}>
-              Excluir
+              Delete
             </Button>
           )}
         </div>
