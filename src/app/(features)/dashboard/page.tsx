@@ -19,6 +19,7 @@ import { format } from "date-fns";
 import { PomodoroWidget } from "@/features/pomodoro/PomodoroWidget";
 import { RoutineChecklist } from "@/features/routines/RoutineChecklist";
 import { useRoutinesWithChecks } from "@/hooks/use-routines";
+import { RewardsSection } from "@/features/rewards/RewardsSection";
 import {
   JobApplication,
   Task,
@@ -283,6 +284,7 @@ export default function DashboardPage() {
               </div>
             </CardContent>
           </Card>
+          <RewardsSection variant="compact" />
         </div>
       </div>
     </div>
