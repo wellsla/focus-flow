@@ -38,6 +38,7 @@ import { cn } from "@/lib/utils";
 import { MotivationalHeader } from "./components/motivational-header";
 import useLocalStorage from "@/hooks/use-local-storage";
 import useDataLogger from "@/hooks/use-data-logger";
+import { useSeedInitialization } from "@/hooks/use-seed-initialization";
 import {
   Tooltip,
   TooltipContent,
@@ -46,6 +47,7 @@ import {
 } from "@/components/ui/tooltip";
 import { CommandPalette } from "@/components/command-palette";
 import { ReminderManager } from "@/features/reminders/ReminderManager";
+import { WelcomeDialog } from "@/components/welcome-dialog";
 
 type NavItem = { href: string; icon: React.ElementType; label: string };
 type NavGroup = { title: string; items: NavItem[] };
@@ -93,6 +95,8 @@ export default function FeaturesShell({
 }) {
   // Record a daily snapshot of key data so users can view progress over time
   useDataLogger();
+  // Initialize default data on first app run
+  useSeedInitialization();
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     const id = setTimeout(() => setMounted(true), 0);
@@ -296,6 +300,7 @@ export default function FeaturesShell({
       </div>
       <CommandPalette />
       <ReminderManager />
+      <WelcomeDialog />
     </div>
   );
 }
