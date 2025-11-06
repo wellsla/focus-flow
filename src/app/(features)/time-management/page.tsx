@@ -473,123 +473,127 @@ export default function TimeManagementPage() {
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <div className="flex justify-between items-start">
-            <div>
-              <CardTitle>This Week&apos;s Time Wasters</CardTitle>
-              <CardDescription>
-                A breakdown of where your time has gone in the last 7 days.
-              </CardDescription>
-            </div>
+      <div className="grid md:grid-cols-[30%_1fr] gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>This Week</CardTitle>
+            <CardDescription className="text-xs">
+              Time breakdown by activity
+            </CardDescription>
             {weeklyData.pieData.length > 0 && (
-              <div className="text-right">
-                <div className="text-3xl font-bold">
+              <div className="text-right pt-2">
+                <div className="text-2xl font-bold">
                   {(
                     weeklyData.totalGameHours + weeklyData.totalAppHours
                   ).toFixed(1)}
                   h
                 </div>
-                <p className="text-xs text-muted-foreground">Total this week</p>
+                <p className="text-xs text-muted-foreground">Total</p>
               </div>
             )}
-          </div>
-        </CardHeader>
-        <CardContent>
-          {weeklyData.pieData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={400}>
-              <PieChart>
-                <Pie
-                  data={weeklyData.pieData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={true}
-                  label={({ name, value }: any) =>
-                    `${name}: ${value.toFixed(1)}h`
-                  }
-                  outerRadius={120}
-                  fill="hsl(var(--primary))"
-                  dataKey="value"
-                >
-                  {weeklyData.pieData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={`hsl(var(--chart-${(index % 5) + 1}))`}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "hsl(var(--background))",
-                    borderColor: "hsl(var(--border))",
-                  }}
-                  formatter={(value: number, name, props) => {
-                    const entry = props.payload;
-                    return [
-                      `${value.toFixed(1)}h (Gaming: ${entry.gaming.toFixed(
-                        1
-                      )}h, Apps: ${entry.apps.toFixed(1)}h)`,
-                      name,
-                    ];
-                  }}
-                />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="text-center text-muted-foreground py-12">
-              No time logged this week. Keep it up!
-            </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardHeader>
+          <CardContent>
+            {weeklyData.pieData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={weeklyData.pieData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ value }: any) => `${value.toFixed(1)}h`}
+                    outerRadius={80}
+                    fill="hsl(var(--primary))"
+                    dataKey="value"
+                  >
+                    {weeklyData.pieData.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={`hsl(var(--chart-${(index % 5) + 1}))`}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "hsl(var(--background))",
+                      borderColor: "hsl(var(--border))",
+                    }}
+                    formatter={(value: number, name, props) => {
+                      const entry = props.payload;
+                      return [
+                        `${value.toFixed(1)}h (Gaming: ${entry.gaming.toFixed(
+                          1
+                        )}h, Apps: ${entry.apps.toFixed(1)}h)`,
+                        name,
+                      ];
+                    }}
+                  />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="text-center text-muted-foreground py-12">
+                No time logged this week. Keep it up!
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Peak Usage Times</CardTitle>
-          <CardDescription>
-            Average hours spent by time of day across all entries. Identify your
-            most vulnerable hours.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {hourlyData.some((d) => d.Gaming > 0 || d.Apps > 0) ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart
-                data={hourlyData}
-                margin={{ top: 5, right: 20, left: 20, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis
-                  dataKey="hour"
-                  tick={{ fontSize: 10 }}
-                  angle={-45}
-                  textAnchor="end"
-                  height={60}
-                />
-                <YAxis
-                  label={{ value: "Hours", angle: -90, position: "insideLeft" }}
-                />
-                <Tooltip
-                  cursor={{ fill: "hsl(var(--muted))" }}
-                  contentStyle={{
-                    backgroundColor: "hsl(var(--background))",
-                    borderColor: "hsl(var(--border))",
-                  }}
-                />
-                <Legend />
-                <Bar dataKey="Gaming" fill="hsl(var(--chart-2))" stackId="a" />
-                <Bar dataKey="Apps" fill="hsl(var(--chart-4))" stackId="a" />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="text-center text-muted-foreground py-12">
-              No time entries with start/end times yet. Add entries with
-              specific times to see your peak usage patterns.
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Peak Usage Times</CardTitle>
+            <CardDescription>
+              Average hours spent by time of day. Identify your most vulnerable
+              hours.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {hourlyData.some((d) => d.Gaming > 0 || d.Apps > 0) ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart
+                  data={hourlyData}
+                  margin={{ top: 5, right: 20, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="hour"
+                    tick={{ fontSize: 10 }}
+                    angle={-45}
+                    textAnchor="end"
+                    height={60}
+                  />
+                  <YAxis
+                    label={{
+                      value: "Hours",
+                      angle: -90,
+                      position: "insideLeft",
+                    }}
+                  />
+                  <Tooltip
+                    cursor={{ fill: "hsl(var(--muted))" }}
+                    contentStyle={{
+                      backgroundColor: "hsl(var(--background))",
+                      borderColor: "hsl(var(--border))",
+                    }}
+                  />
+                  <Legend />
+                  <Bar
+                    dataKey="Gaming"
+                    fill="hsl(var(--chart-2))"
+                    stackId="a"
+                  />
+                  <Bar dataKey="Apps" fill="hsl(var(--chart-4))" stackId="a" />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="text-center text-muted-foreground py-12">
+                No time entries with start/end times yet. Add entries with
+                specific times to see your peak usage patterns.
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">

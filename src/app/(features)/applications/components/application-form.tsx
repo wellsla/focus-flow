@@ -17,6 +17,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -53,6 +54,7 @@ const formSchema = z.object({
   priority: z.enum(["High", "Common", "Uninterested"], {
     required_error: "Priority is required.",
   }),
+  description: z.string().optional(),
 });
 
 type ApplicationFormProps = {
@@ -78,6 +80,7 @@ export function ApplicationForm({
         ? new Date(application.dateApplied)
         : new Date(),
       priority: application?.priority || "Common",
+      description: application?.description || "",
     },
   });
 
@@ -92,6 +95,7 @@ export function ApplicationForm({
         ? new Date(application.dateApplied)
         : new Date(),
       priority: application?.priority || "Common",
+      description: application?.description || "",
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [application?.id]); // Only depend on application ID to avoid loops
@@ -264,6 +268,24 @@ export function ApplicationForm({
                   ))}
                 </SelectContent>
               </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Description (Optional)</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="Add notes about the job, requirements, or interview details..."
+                  className="resize-none"
+                  rows={4}
+                  {...field}
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}

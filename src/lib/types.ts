@@ -33,11 +33,29 @@ export type JobApplication = {
   status: ApplicationStatus;
   url: string;
   priority: ApplicationPriority;
+  description?: string;
 };
 
 export type EmploymentStatus = "Unemployed" | "Benefited" | "Employed";
 export type IncomeFrequency = "annually" | "monthly" | "hourly" | "daily";
 export type Currency = "R$" | "$" | "€";
+
+export type ExpenseCategory =
+  | "Food & Groceries"
+  | "Streaming & Entertainment"
+  | "Clothing & Accessories"
+  | "Transportation"
+  | "Healthcare"
+  | "Housing & Utilities"
+  | "Education"
+  | "Shopping & Leisure"
+  | "Other";
+
+export type ExpensePriority =
+  | "Essential"
+  | "Necessary"
+  | "Common"
+  | "Unnecessary";
 
 export type FinancialAccount = {
   id: string;
@@ -47,6 +65,8 @@ export type FinancialAccount = {
   currency: Currency;
   date?: string; // For one-time income
   lastPaid?: string; // For expenses/debts (YYYY-MM-DD)
+  category?: ExpenseCategory; // For expenses and debts
+  priority?: ExpensePriority; // For expenses and debts
 };
 
 export type FinancialLog = {

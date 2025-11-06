@@ -19,7 +19,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { FinancialAccount, IncomeSettings, Currency } from "@/lib/types";
+import {
+  FinancialAccount,
+  IncomeSettings,
+  Currency,
+  ExpenseCategory,
+  ExpensePriority,
+} from "@/lib/types";
 import {
   fetchFinancialSuggestions,
   fetchInvestmentTips,
@@ -152,6 +158,22 @@ const financialItemFormSchema = z.object({
   type: z.enum(["expense", "debt", "income"]),
   currency: z.enum(["R$", "$", "€"]),
   date: z.date().optional(),
+  category: z
+    .enum([
+      "Food & Groceries",
+      "Streaming & Entertainment",
+      "Clothing & Accessories",
+      "Transportation",
+      "Healthcare",
+      "Housing & Utilities",
+      "Education",
+      "Shopping & Leisure",
+      "Other",
+    ])
+    .optional(),
+  priority: z
+    .enum(["Essential", "Necessary", "Common", "Unnecessary"])
+    .optional(),
 });
 
 type FinancialItemFormValues = z.infer<typeof financialItemFormSchema>;
@@ -174,6 +196,8 @@ const FinancialItemForm = ({
       type: item?.type || "expense",
       currency: item?.currency || "R$",
       date: item?.date ? new Date(item.date) : new Date(),
+      category: item?.category || undefined,
+      priority: item?.priority || undefined,
     },
   });
 
@@ -186,6 +210,8 @@ const FinancialItemForm = ({
       type: item?.type || "expense",
       currency: item?.currency || "R$",
       date: item?.date ? new Date(item.date) : new Date(),
+      category: item?.category || undefined,
+      priority: item?.priority || undefined,
     });
   }, [item, form]);
 
@@ -331,6 +357,87 @@ const FinancialItemForm = ({
             </FormItem>
           )}
         />
+        {(type === "expense" || type === "debt") && (
+          <>
+            <FormField
+              control={form.control}
+              name="category"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Category</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a category" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Food & Groceries">
+                        Food & Groceries
+                      </SelectItem>
+                      <SelectItem value="Streaming & Entertainment">
+                        Streaming & Entertainment
+                      </SelectItem>
+                      <SelectItem value="Clothing & Accessories">
+                        Clothing & Accessories
+                      </SelectItem>
+                      <SelectItem value="Transportation">
+                        Transportation
+                      </SelectItem>
+                      <SelectItem value="Healthcare">Healthcare</SelectItem>
+                      <SelectItem value="Housing & Utilities">
+                        Housing & Utilities
+                      </SelectItem>
+                      <SelectItem value="Education">Education</SelectItem>
+                      <SelectItem value="Shopping & Leisure">
+                        Shopping & Leisure
+                      </SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="priority"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Priority</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a priority" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Essential">
+                        Essential (e.g., rent, utilities)
+                      </SelectItem>
+                      <SelectItem value="Necessary">
+                        Necessary (e.g., groceries, transport)
+                      </SelectItem>
+                      <SelectItem value="Common">
+                        Common (e.g., phone bill, internet)
+                      </SelectItem>
+                      <SelectItem value="Unnecessary">
+                        Unnecessary (e.g., luxury items)
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </>
+        )}
         <div className="flex justify-between">
           <Button type="submit" className="flex-grow">
             {isEditing ? "Update Item" : "Add Item"}

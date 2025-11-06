@@ -5,6 +5,7 @@ import {
   dashboardCards as initialDashboardCards,
 } from "@/lib/data";
 import { Financials } from "../../../features/finances/financials";
+import { FinancialAlerts } from "../../../features/finances/financial-alerts";
 import {
   FinancialAccount,
   IncomeSettings,
@@ -311,6 +312,10 @@ export default function FinancesPage() {
         </div>
         <FinancialHistoryDialog logs={financialLogs} />
       </div>
+      <FinancialAlerts
+        incomeSettings={incomeSettings}
+        financialAccounts={financialAccounts}
+      />
       <Financials
         incomeSettings={incomeSettings}
         onDataUpdate={handleDataUpdate}
