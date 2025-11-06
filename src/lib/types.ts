@@ -25,6 +25,12 @@ export type ApplicationStatus =
   | "Wishlist";
 export type ApplicationPriority = "High" | "Common" | "Uninterested";
 
+export type ApplicationComment = {
+  id: string;
+  text: string;
+  createdAt: string; // ISO timestamp
+};
+
 export type JobApplication = {
   id: string;
   company: string;
@@ -34,6 +40,7 @@ export type JobApplication = {
   url: string;
   priority: ApplicationPriority;
   description?: string;
+  comments?: ApplicationComment[];
 };
 
 export type EmploymentStatus = "Unemployed" | "Benefited" | "Employed";

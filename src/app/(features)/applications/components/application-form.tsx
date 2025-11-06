@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 
@@ -30,6 +30,7 @@ import {
   ApplicationStatus,
   JobApplication,
   ApplicationPriority,
+  ApplicationComment,
 } from "@/lib/types";
 import {
   Popover,
@@ -38,6 +39,8 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
+import { ApplicationComments } from "./application-comments";
+import { Separator } from "@/components/ui/separator";
 
 const formSchema = z.object({
   role: z.string().min(2, { message: "Role must be at least 2 characters." }),
@@ -69,6 +72,10 @@ export function ApplicationForm({
   onDelete,
 }: ApplicationFormProps) {
   const { toast } = useToast();
+  const [comments, setComments] = useState<ApplicationComment[]>(
+    application?.comments || []
+  );
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -85,6 +92,8 @@ export function ApplicationForm({
   });
 
   useEffect(() => {
+    // Update comments when application changes
+    setComments(application?.comments || []);
     // Only reset form when application ID changes (edit mode initialization)
     form.reset({
       role: application?.role || "",
@@ -100,6 +109,51 @@ export function ApplicationForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [application?.id]); // Only depend on application ID to avoid loops
 
+  const handleAddComment = (text: string) => {
+    const newComment: ApplicationComment = {
+      id:
+        typeof crypto !== "undefined" && "randomUUID" in crypto
+          ? (crypto as any).randomUUID()
+          : new Date().toISOString(),
+      text,
+      createdAt: new Date().toISOString(),
+    };
+    const updatedComments = [...comments, newComment];
+    setComments(updatedComments);
+
+    // If editing existing application, update it immediately
+    if (application) {
+      const updatedApplication: JobApplication = {
+        ...application,
+        comments: updatedComments,
+      };
+      onSubmitSuccess(updatedApplication);
+      toast({
+        title: "Comment Added",
+        description: "Your comment has been added to the timeline.",
+      });
+    }
+  };
+
+  const handleDeleteComment = (commentId: string) => {
+    const updatedComments = comments.filter((c) => c.id !== commentId);
+    setComments(updatedComments);
+
+    // If editing existing application, update it immediately
+    if (application) {
+      const updatedApplication: JobApplication = {
+        ...application,
+        comments: updatedComments,
+      };
+      onSubmitSuccess(updatedApplication);
+      toast({
+        title: "Comment Deleted",
+        variant: "destructive",
+        description: "Comment has been removed from the timeline.",
+      });
+    }
+  };
+
   function onSubmit(values: z.infer<typeof formSchema>) {
     const applicationData: JobApplication = {
       ...values,
@@ -109,6 +163,7 @@ export function ApplicationForm({
           ? (crypto as any).randomUUID()
           : new Date().toISOString()),
       dateApplied: format(values.dateApplied, "yyyy-MM-dd"),
+      comments: comments,
     };
 
     onSubmitSuccess(applicationData);
@@ -306,6 +361,18 @@ export function ApplicationForm({
             </Button>
           )}
         </div>
+
+        {/* Comments Timeline Section - Only show for existing applications */}
+        {application && (
+          <>
+            <Separator className="my-6" />
+            <ApplicationComments
+              comments={comments}
+              onAddComment={handleAddComment}
+              onDeleteComment={handleDeleteComment}
+            />
+          </>
+        )}
       </form>
     </Form>
   );
