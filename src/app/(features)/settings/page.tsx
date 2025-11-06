@@ -243,19 +243,19 @@ export default function SettingsPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Modo Foco</CardTitle>
+              <CardTitle>Focus Mode</CardTitle>
               <CardDescription>
-                Configurações para sessões de foco profundo
+                Settings for deep focus sessions
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between rounded-lg border p-4">
                 <div className="space-y-0.5">
                   <Label htmlFor="strict-mode" className="text-base">
-                    Modo Estrito
+                    Strict Mode
                   </Label>
                   <p className="text-sm text-muted-foreground">
-                    Bloqueia todas as rotas exceto whitelist durante foco
+                    Blocks all routes except whitelist during focus
                   </p>
                 </div>
                 <Switch id="strict-mode" />
@@ -264,10 +264,10 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between rounded-lg border p-4">
                 <div className="space-y-0.5">
                   <Label htmlFor="breathing-indicator" className="text-base">
-                    Indicador de Respiração
+                    Breathing Indicator
                   </Label>
                   <p className="text-sm text-muted-foreground">
-                    Mostra animação sutil durante modo foco
+                    Shows subtle animation during focus mode
                   </p>
                 </div>
                 <Switch id="breathing-indicator" defaultChecked />
@@ -280,19 +280,19 @@ export default function SettingsPage() {
         <TabsContent value="notifications" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Notificações</CardTitle>
+              <CardTitle>Notifications</CardTitle>
               <CardDescription>
-                Gerencie como recebe alertas e lembretes
+                Manage how you receive alerts and reminders
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between rounded-lg border p-4">
                 <div className="space-y-0.5">
                   <Label htmlFor="sound-enabled" className="text-base">
-                    Som Habilitado
+                    Sound Enabled
                   </Label>
                   <p className="text-sm text-muted-foreground">
-                    Reproduz som ao completar pomodoro ou pausa
+                    Plays sound when completing pomodoro or break
                   </p>
                 </div>
                 <Switch
@@ -307,10 +307,10 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between rounded-lg border p-4">
                 <div className="space-y-0.5">
                   <Label htmlFor="desktop-notifications" className="text-base">
-                    Notificações Desktop
+                    Desktop Notifications
                   </Label>
                   <p className="text-sm text-muted-foreground">
-                    Envia notificações do sistema para eventos importantes
+                    Sends system notifications for important events
                   </p>
                 </div>
                 <Switch
@@ -325,10 +325,10 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between rounded-lg border p-4">
                 <div className="space-y-0.5">
                   <Label htmlFor="vibration" className="text-base">
-                    Vibração (Mobile)
+                    Vibration (Mobile)
                   </Label>
                   <p className="text-sm text-muted-foreground">
-                    Vibra em dispositivos móveis ao completar sessão
+                    Vibrates on mobile devices when completing session
                   </p>
                 </div>
                 <Switch
@@ -341,7 +341,7 @@ export default function SettingsPage() {
               </div>
 
               <Button onClick={handlePomodoroSave}>
-                Salvar Configurações de Notificações
+                Save Notification Settings
               </Button>
             </CardContent>
           </Card>
@@ -350,17 +350,17 @@ export default function SettingsPage() {
             <CardHeader>
               <CardTitle>Flash Reminders</CardTitle>
               <CardDescription>
-                Lembretes discretos aparecem no topo da tela
+                Discreet reminders appear at the top of the screen
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between rounded-lg border p-4">
                 <div className="space-y-0.5">
                   <Label htmlFor="reminders-enabled" className="text-base">
-                    Lembretes Habilitados
+                    Reminders Enabled
                   </Label>
                   <p className="text-sm text-muted-foreground">
-                    Ativa/desativa todos os flash reminders globalmente
+                    Enable/disable all flash reminders globally
                   </p>
                 </div>
                 <Switch id="reminders-enabled" defaultChecked />
@@ -368,12 +368,12 @@ export default function SettingsPage() {
 
               <div className="rounded-lg border p-4">
                 <p className="text-sm text-muted-foreground">
-                  Configure lembretes individuais na{" "}
+                  Configure individual reminders on the{" "}
                   <a
                     href="/reminders"
                     className="text-primary underline hover:no-underline"
                   >
-                    página de Reminders
+                    Reminders page
                   </a>
                 </p>
               </div>
@@ -385,26 +385,26 @@ export default function SettingsPage() {
         <TabsContent value="general" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Aparência</CardTitle>
+              <CardTitle>Appearance</CardTitle>
               <CardDescription>
-                Personalize a aparência da interface
+                Customize the interface appearance
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="theme">Tema</Label>
+                <Label htmlFor="theme">Theme</Label>
                 <Select defaultValue="system">
                   <SelectTrigger id="theme">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="light">Claro</SelectItem>
-                    <SelectItem value="dark">Escuro</SelectItem>
-                    <SelectItem value="system">Sistema</SelectItem>
+                    <SelectItem value="light">Light</SelectItem>
+                    <SelectItem value="dark">Dark</SelectItem>
+                    <SelectItem value="system">System</SelectItem>
                   </SelectContent>
                 </Select>
                 <p className="text-sm text-muted-foreground">
-                  Escolha entre tema claro, escuro ou automático
+                  Choose between light, dark or automatic theme
                 </p>
               </div>
 
