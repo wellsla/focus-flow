@@ -262,10 +262,10 @@ export default function DashboardPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <ListChecks className="h-5 w-5" />
-                Rotina de Hoje
+                Today&apos;s Routines
               </CardTitle>
               <CardDescription>
-                Mantenha o foco nas suas rotinas diárias
+                Recurring habits to build consistency
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -277,8 +277,8 @@ export default function DashboardPage() {
               />
               <div className="text-center">
                 <Button asChild variant="outline" size="sm">
-                  <Link href="/routine">
-                    Ver Todas <ArrowRight className="ml-2 h-4 w-4" />
+                  <Link href="/routines">
+                    View All <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>
               </div>

@@ -94,18 +94,26 @@ export function TaskList({ tasks, onToggle, onEdit }: TaskListProps) {
             </button>
 
             {/* Task Content */}
-            <div className="flex-1 min-w-0 cursor-pointer" onClick={() => onEdit(task)}>
+            <div
+              className="flex-1 min-w-0 cursor-pointer"
+              onClick={() => onEdit(task)}
+            >
               <div className="flex items-center gap-2 flex-wrap">
                 <p
                   className={`font-medium ${
-                    task.status === "done" ? "line-through text-muted-foreground" : ""
+                    task.status === "done"
+                      ? "line-through text-muted-foreground"
+                      : ""
                   }`}
                 >
                   {task.title}
                 </p>
 
                 {/* Priority Badge */}
-                <Badge variant="outline" className={priorityColors[task.priority]}>
+                <Badge
+                  variant="outline"
+                  className={priorityColors[task.priority]}
+                >
                   {task.priority}
                 </Badge>
 
@@ -118,7 +126,10 @@ export function TaskList({ tasks, onToggle, onEdit }: TaskListProps) {
                 )}
 
                 {isDueToday && (
-                  <Badge variant="outline" className="gap-1 bg-orange-500/10 text-orange-700 border-orange-200">
+                  <Badge
+                    variant="outline"
+                    className="gap-1 bg-orange-500/10 text-orange-700 border-orange-200"
+                  >
                     <Clock className="h-3 w-3" />
                     Due Today
                   </Badge>

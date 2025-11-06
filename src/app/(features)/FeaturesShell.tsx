@@ -21,6 +21,7 @@ import {
   Focus,
   Trophy,
   Bell,
+  CheckCircle2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -56,19 +57,26 @@ const navItems: (NavItem | NavGroup)[] = [
   { href: "/home", icon: Home, label: "Home" },
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   {
-    title: "Focus Flow",
+    title: "Daily Flow",
     items: [
+      { href: "/routines", icon: CalendarCheck, label: "Routines" },
+      { href: "/tasks", icon: CheckCircle2, label: "Tasks" },
       { href: "/pomodoro", icon: Timer, label: "Pomodoro" },
-      { href: "/routine", icon: CalendarCheck, label: "Routine" },
       { href: "/journal", icon: BookOpen, label: "Journal" },
+    ],
+  },
+  {
+    title: "Focus & Rewards",
+    items: [
       { href: "/focus", icon: Focus, label: "Focus Mode" },
       { href: "/rewards", icon: Trophy, label: "Rewards" },
       { href: "/reminders", icon: Bell, label: "Reminders" },
     ],
   },
   {
-    title: "Planning",
+    title: "Career & Goals",
     items: [
+      { href: "/applications", icon: Briefcase, label: "Applications" },
       { href: "/goals", icon: Target, label: "Goals" },
       { href: "/roadmap", icon: GitMerge, label: "Roadmap" },
     ],
@@ -76,14 +84,13 @@ const navItems: (NavItem | NavGroup)[] = [
   {
     title: "Tracking",
     items: [
-      { href: "/applications", icon: Briefcase, label: "Applications" },
       { href: "/finances", icon: Wallet, label: "Finances" },
-      { href: "/time-management", icon: Clock, label: "Time Management" },
+      { href: "/time-management", icon: Clock, label: "Time" },
       { href: "/performance", icon: LineChart, label: "Performance" },
     ],
   },
   {
-    title: "General",
+    title: "Settings",
     items: [{ href: "/settings", icon: Settings, label: "Settings" }],
   },
 ];
