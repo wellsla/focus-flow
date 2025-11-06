@@ -1,16 +1,20 @@
 export type Priority = "low" | "medium" | "high";
-export type RoutinePeriod = "morning" | "afternoon" | "evening";
-export type TaskStatus = "todo" | "in-progress" | "done" | "skipped";
+export type TaskStatus = "todo" | "in-progress" | "done" | "cancelled";
 
+/**
+ * Task - One-time todos with optional deadlines
+ * Unlike RoutineItem (recurring habits), Tasks are discrete items to complete
+ */
 export type Task = {
   id: string;
   title: string;
+  description?: string;
   status: TaskStatus;
-  dueDate?: string;
-  priority?: Priority;
-  period?: RoutinePeriod;
-  startTime?: string;
-  endTime?: string;
+  priority: Priority;
+  dueDate?: string; // YYYY-MM-DD
+  completedDate?: string; // YYYY-MM-DD
+  tags?: string[];
+  createdAt: string; // ISO timestamp
 };
 
 export type ApplicationStatus =
@@ -129,7 +133,6 @@ export type DashboardCardConfig = {
   metric: string;
   // Feature-specific filters
   applicationStatus?: ApplicationStatus;
-  routinePeriod?: RoutinePeriod;
   goalStatus?: GoalStatus;
   goalTimeframe?: GoalTimeframe;
   specialCard?: "benefits-countdown";

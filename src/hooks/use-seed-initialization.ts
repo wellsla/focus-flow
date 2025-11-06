@@ -7,7 +7,7 @@ import {
   loadReminders,
   saveReminders,
 } from "@/lib/storage";
-import { defaultRoutines, defaultReminders } from "@/lib/seed";
+import { defaultRoutines, defaultReminders } from "@/lib/initial-data";
 
 const INITIALIZED_KEY = "focus-flow:v1:initialized";
 

@@ -36,12 +36,12 @@ import { DashboardCardForm } from "../components/dashboard-card-form";
 import { DynamicDashboardCard } from "../components/dynamic-dashboard-card";
 import { BenefitsCountdownCard } from "../components/benefits-countdown-card";
 import {
-  dashboardCards as initialDashboardCards,
-  incomeSettings as initialIncomeSettings,
-  tasks as initialTasks,
-  timeTrackingEntries as initialTimeEntries,
-  goals as initialGoals,
-} from "@/lib/data";
+  defaultDashboardCards as initialDashboardCards,
+  defaultIncomeSettings as initialIncomeSettings,
+  defaultTasks as initialTasks,
+  defaultTimeTrackingEntries as initialTimeEntries,
+  defaultGoals as initialGoals,
+} from "@/lib/initial-data";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function DashboardPage() {

@@ -12,7 +12,7 @@ import { useLocalStorageState } from "./use-local-storage-state";
 import { loadChecks, saveChecks } from "@/lib/storage";
 import type { RoutineItem, Checkmark } from "@/lib/types";
 import { format, startOfDay } from "date-fns";
-import { initializeRoutines } from "@/lib/seed";
+import { initializeRoutines } from "@/lib/initial-data";
 
 /**
  * Main hook for routine management
