@@ -170,3 +170,87 @@ export type DailyLog = {
   goals: DailyGoalLog[];
   tasks: DailyTaskLog[];
 };
+
+// ============================================================================
+// New Types for Focus Flow System (Routines, Pomodoro, Journal, Rewards)
+// ============================================================================
+
+export type Frequency = "daily" | "weekly" | "monthly" | "every3days";
+
+export type RoutineCategory =
+  | "Manhã"
+  | "Durante o Dia"
+  | "Noite"
+  | "Rotina Semanal"
+  | "Propósito e Direção"
+  | "Manutenção";
+
+export interface RoutineItem {
+  id: string;
+  category: RoutineCategory;
+  title: string; // ex.: "Arrumar a cama"
+  frequency: Frequency;
+  active: boolean; // permitir ocultar temporariamente
+  order?: number;
+}
+
+export interface Checkmark {
+  id: string;
+  routineId: string;
+  dateISO: string; // yyyy-mm-dd
+  done: boolean;
+}
+
+export interface PomodoroSettings {
+  workMin: number; // default 25
+  breakMin: number; // default 5
+  longBreakMin: number; // default 15
+  cyclesUntilLong: number; // default 4
+  sound: boolean;
+  desktopNotifications: boolean;
+  vibration: boolean; // mobile
+}
+
+export interface PomodoroSession {
+  id: string;
+  startedAt: string;
+  endedAt?: string;
+  kind: "work" | "break" | "long-break";
+  completed: boolean;
+}
+
+export interface JournalEntry {
+  id: string;
+  dateISO: string;
+  mood?: "low" | "ok" | "high";
+  lines: [string, string, string]; // "como estou / o que quero sentir / frase-âncora"
+  tags?: string[];
+}
+
+export interface FocusBlock {
+  id: string;
+  startedAt: string;
+  endedAt?: string;
+  plannedMin: number;
+  whitelistRoutes?: string[]; // rotas permitidas
+  strict: boolean; // trava de saída
+  completed: boolean;
+}
+
+export interface RewardState {
+  points: number; // +1 micro-tarefa/cheque; +5 sessão pomodoro completa; streaks
+  streakDays: number; // dias seguidos com pelo menos N checks
+  badges: string[]; // ids das conquistas
+  lastCheckDate?: string; // para calcular streak
+}
+
+export type FlashReminderTrigger = "app-open" | "pomodoro-start" | "time";
+
+export interface FlashReminder {
+  id: string;
+  text: string; // lembrete curto / "porquê"
+  trigger: FlashReminderTrigger;
+  timeOfDay?: string; // '09:00'
+  enabled: boolean;
+  allowInFocus?: boolean; // exibir durante modo foco
+}

@@ -215,3 +215,81 @@ export function sortTasksByPriority(tasks: Task[]): Task[] {
     return aPriority - bPriority;
   });
 }
+
+// ============================================================================
+// Routine Item Scheduling (for RoutineItem with Frequency)
+// ============================================================================
+
+import type { RoutineItem, Frequency } from "./types";
+import { differenceInDays } from "date-fns";
+
+/**
+ * Check if a routine item is due on a given date
+ * @param item - Routine item to check
+ * @param date - Date to check against
+ * @param lastCompletedDate - ISO string of last completion (optional)
+ * @returns true if item is due on that date
+ */
+export function isDue(
+  item: RoutineItem,
+  date: Date,
+  lastCompletedDate?: string
+): boolean {
+  if (!item.active) return false;
+
+  const targetDay = startOfDay(date);
+
+  switch (item.frequency) {
+    case "daily":
+      return true; // Always due for daily items
+
+    case "weekly": {
+      // Due on the same day of week as last completion, or if never completed
+      if (!lastCompletedDate) return true;
+      const lastCompleted = startOfDay(parseISO(lastCompletedDate));
+      const daysDiff = differenceInDays(targetDay, lastCompleted);
+      return daysDiff >= 7;
+    }
+
+    case "monthly": {
+      // Due once per month (rough: 30 days)
+      if (!lastCompletedDate) return true;
+      const lastCompleted = startOfDay(parseISO(lastCompletedDate));
+      const daysDiff = differenceInDays(targetDay, lastCompleted);
+      return daysDiff >= 30;
+    }
+
+    case "every3days": {
+      if (!lastCompletedDate) return true;
+      const lastCompleted = startOfDay(parseISO(lastCompletedDate));
+      const daysDiff = differenceInDays(targetDay, lastCompleted);
+      return daysDiff >= 3;
+    }
+
+    default:
+      return false;
+  }
+}
+
+/**
+ * Calculate the next due date for a routine item
+ * @param item - Routine item
+ * @param fromDate - Starting date (usually last completed date)
+ * @returns ISO string of next due date
+ */
+export function nextDue(item: RoutineItem, fromDate: Date): string {
+  const from = startOfDay(fromDate);
+
+  switch (item.frequency) {
+    case "daily":
+      return addDays(from, 1).toISOString();
+    case "weekly":
+      return addWeeks(from, 1).toISOString();
+    case "monthly":
+      return addMonths(from, 1).toISOString();
+    case "every3days":
+      return addDays(from, 3).toISOString();
+    default:
+      return from.toISOString();
+  }
+}

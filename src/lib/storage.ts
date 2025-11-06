@@ -177,3 +177,144 @@ export async function getStorageInfo(): Promise<{
     return null;
   }
 }
+
+// ============================================================================
+// High-level storage functions for Focus Flow features
+// ============================================================================
+
+import type {
+  RoutineItem,
+  Checkmark,
+  PomodoroSettings,
+  PomodoroSession,
+  JournalEntry,
+  RewardState,
+  FlashReminder,
+  FocusBlock,
+} from "./types";
+
+// Routines
+export function loadRoutines(): RoutineItem[] {
+  return getStorageItem<RoutineItem[]>("routines") || [];
+}
+
+export function saveRoutines(routines: RoutineItem[]): boolean {
+  return setStorageItem("routines", routines);
+}
+
+// Checkmarks (daily checks) - stored by date for efficiency
+export function loadChecks(dateISO: string): Checkmark[] {
+  return getStorageItem<Checkmark[]>(`checks:${dateISO}`) || [];
+}
+
+export function saveChecks(dateISO: string, checks: Checkmark[]): boolean {
+  return setStorageItem(`checks:${dateISO}`, checks);
+}
+
+// Pomodoro settings
+export function loadPomodoroSettings(): PomodoroSettings {
+  return (
+    getStorageItem<PomodoroSettings>("pomodoro-settings") || {
+      workMin: 25,
+      breakMin: 5,
+      longBreakMin: 15,
+      cyclesUntilLong: 4,
+      sound: false,
+      desktopNotifications: false,
+      vibration: false,
+    }
+  );
+}
+
+export function savePomodoroSettings(settings: PomodoroSettings): boolean {
+  return setStorageItem("pomodoro-settings", settings);
+}
+
+// Pomodoro sessions (history)
+export function loadPomodoroSessions(): PomodoroSession[] {
+  return getStorageItem<PomodoroSession[]>("pomodoro-sessions") || [];
+}
+
+export function savePomodoroSessions(sessions: PomodoroSession[]): boolean {
+  return setStorageItem("pomodoro-sessions", sessions);
+}
+
+export function appendPomodoroSession(session: PomodoroSession): boolean {
+  const sessions = loadPomodoroSessions();
+  sessions.push(session);
+  return savePomodoroSessions(sessions);
+}
+
+// Journal entries
+export function loadJournalEntries(): JournalEntry[] {
+  return getStorageItem<JournalEntry[]>("journal-entries") || [];
+}
+
+export function saveJournalEntries(entries: JournalEntry[]): boolean {
+  return setStorageItem("journal-entries", entries);
+}
+
+export function appendJournal(entry: JournalEntry): boolean {
+  const entries = loadJournalEntries();
+  // Replace if exists for same date, otherwise append
+  const existingIndex = entries.findIndex((e) => e.dateISO === entry.dateISO);
+  if (existingIndex >= 0) {
+    entries[existingIndex] = entry;
+  } else {
+    entries.push(entry);
+  }
+  return saveJournalEntries(entries);
+}
+
+export function listJournal(
+  startDate?: string,
+  endDate?: string
+): JournalEntry[] {
+  const entries = loadJournalEntries();
+  if (!startDate && !endDate) return entries;
+
+  return entries.filter((entry) => {
+    if (startDate && entry.dateISO < startDate) return false;
+    if (endDate && entry.dateISO > endDate) return false;
+    return true;
+  });
+}
+
+// Rewards state
+export function loadRewards(): RewardState {
+  return (
+    getStorageItem<RewardState>("rewards") || {
+      points: 0,
+      streakDays: 0,
+      badges: [],
+    }
+  );
+}
+
+export function saveRewards(rewards: RewardState): boolean {
+  return setStorageItem("rewards", rewards);
+}
+
+// Flash reminders
+export function loadReminders(): FlashReminder[] {
+  return getStorageItem<FlashReminder[]>("reminders") || [];
+}
+
+export function saveReminders(reminders: FlashReminder[]): boolean {
+  return setStorageItem("reminders", reminders);
+}
+
+// Focus blocks (history)
+export function loadFocusBlocks(): FocusBlock[] {
+  return getStorageItem<FocusBlock[]>("focus-blocks") || [];
+}
+
+export function saveFocusBlocks(blocks: FocusBlock[]): boolean {
+  return setStorageItem("focus-blocks", blocks);
+}
+
+export function appendFocusBlock(block: FocusBlock): boolean {
+  const blocks = loadFocusBlocks();
+  blocks.push(block);
+  return saveFocusBlocks(blocks);
+}
