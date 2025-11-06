@@ -10,12 +10,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { CalendarCheck, PlusCircle } from "lucide-react";
+import { CalendarCheck, PlusCircle, ListChecks } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { format } from "date-fns";
+import { PomodoroWidget } from "@/features/pomodoro/PomodoroWidget";
+import { RoutineChecklist } from "@/features/routines/RoutineChecklist";
+import { useRoutinesWithChecks } from "@/hooks/use-routines";
 import {
   JobApplication,
   Task,
@@ -65,6 +68,8 @@ export default function DashboardPage() {
   const [incomeSettings, ______, loadingIncome] =
     useLocalStorage<IncomeSettings>("incomeSettings", initialIncomeSettings);
   const [dailyLogs] = useLocalStorage<DailyLog[]>("dailyLogs", []);
+
+  const { routines, checkmarks, toggleCheck } = useRoutinesWithChecks();
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedCard, setSelectedCard] = useState<DashboardCard | null>(null);
@@ -251,58 +256,28 @@ export default function DashboardPage() {
         </Card>
         <div className="grid auto-rows-max gap-4 md:gap-8">
           <ApplicationStatusChart applications={jobApplications} />
+          <PomodoroWidget />
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <CalendarCheck className="h-5 w-5" />
-                Today&apos;s Routine
+                <ListChecks className="h-5 w-5" />
+                Rotina de Hoje
               </CardTitle>
-              {tasks.length > 0 && (
-                <CardDescription>
-                  You have {incompleteTasks.length} incomplete tasks. Focus on
-                  what&apos;s next.
-                </CardDescription>
-              )}
+              <CardDescription>
+                Mantenha o foco nas suas rotinas diárias
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {incompleteTasks.length > 0 ? (
-                <ul className="space-y-3">
-                  {incompleteTasks.slice(0, 4).map((task) => (
-                    <li
-                      key={task.id}
-                      className="flex justify-between items-center"
-                    >
-                      <div>
-                        <p className="font-medium">{task.title}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {task.period
-                            ? `For the ${task.period}`
-                            : task.dueDate
-                            ? `Due: ${format(new Date(task.dueDate), "PPP")}`
-                            : ""}
-                        </p>
-                      </div>
-                      <Badge
-                        variant={
-                          task.status === "in-progress"
-                            ? "secondary"
-                            : "outline"
-                        }
-                      >
-                        {task.status}
-                      </Badge>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-sm text-muted-foreground text-center">
-                  No incomplete tasks. Great job!
-                </p>
-              )}
+              <RoutineChecklist
+                routines={routines}
+                checkmarks={checkmarks}
+                onToggleCheck={toggleCheck}
+                limit={5}
+              />
               <div className="text-center">
                 <Button asChild variant="outline" size="sm">
                   <Link href="/routine">
-                    View Full Routine <ArrowRight className="ml-2 h-4 w-4" />
+                    Ver Todas <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>
               </div>

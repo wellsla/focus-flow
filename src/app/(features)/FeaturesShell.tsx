@@ -16,6 +16,9 @@ import {
   GitMerge,
   Home,
   ChevronsLeft,
+  Timer,
+  BookOpen,
+  Focus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -39,6 +42,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { CommandPalette } from "@/components/command-palette";
 
 type NavItem = { href: string; icon: React.ElementType; label: string };
 type NavGroup = { title: string; items: NavItem[] };
@@ -47,10 +51,18 @@ const navItems: (NavItem | NavGroup)[] = [
   { href: "/home", icon: Home, label: "Home" },
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   {
+    title: "Focus Flow",
+    items: [
+      { href: "/pomodoro", icon: Timer, label: "Pomodoro" },
+      { href: "/routine", icon: CalendarCheck, label: "Routine" },
+      { href: "/journal", icon: BookOpen, label: "Journal" },
+      { href: "/focus", icon: Focus, label: "Focus Mode" },
+    ],
+  },
+  {
     title: "Planning",
     items: [
       { href: "/goals", icon: Target, label: "Goals" },
-      { href: "/routine", icon: CalendarCheck, label: "Routine" },
       { href: "/roadmap", icon: GitMerge, label: "Roadmap" },
     ],
   },
@@ -223,10 +235,29 @@ export default function FeaturesShell({
               </TooltipProvider>
             </SheetContent>
           </Sheet>
-          <div className="w-full flex-1">
+          <div className="w-full flex-1 flex items-center justify-between">
             {process.env.NEXT_PUBLIC_ENABLE_MOTIVATIONAL_HEADER !== "false" ? (
               <MotivationalHeader />
-            ) : null}
+            ) : (
+              <div />
+            )}
+            <Button
+              variant="outline"
+              className="hidden md:flex items-center gap-2 text-sm text-muted-foreground"
+              onClick={() => {
+                const event = new KeyboardEvent("keydown", {
+                  key: "k",
+                  ctrlKey: true,
+                  bubbles: true,
+                });
+                document.dispatchEvent(event);
+              }}
+            >
+              <span>Buscar...</span>
+              <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+                <span className="text-xs">⌘</span>K
+              </kbd>
+            </Button>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -258,6 +289,7 @@ export default function FeaturesShell({
           {children}
         </main>
       </div>
+      <CommandPalette />
     </div>
   );
 }
