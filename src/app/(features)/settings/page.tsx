@@ -36,8 +36,8 @@ export default function SettingsPage() {
   const handlePomodoroSave = () => {
     savePomodoroSettings(pomodoroSettings);
     toast({
-      title: "Configurações Salvas",
-      description: "As configurações do Pomodoro foram atualizadas.",
+      title: "Settings Saved",
+      description: "Pomodoro settings have been updated.",
     });
   };
 
@@ -56,19 +56,19 @@ export default function SettingsPage() {
       document.documentElement.classList.remove("reduce-motion");
     }
     toast({
-      title: "Acessibilidade Atualizada",
+      title: "Accessibility Updated",
       description: checked
-        ? "Animações reduzidas ativadas"
-        : "Animações normais restauradas",
+        ? "Reduced animations enabled"
+        : "Normal animations restored",
     });
   };
 
   return (
     <div className="container mx-auto py-6 space-y-8">
       <div>
-        <h1 className="text-4xl font-bold mb-2">Configurações</h1>
+        <h1 className="text-4xl font-bold mb-2">Settings</h1>
         <p className="text-muted-foreground text-lg">
-          Personalize sua experiência no Focus Flow
+          Customize your Focus Flow experience
         </p>
       </div>
 
@@ -80,15 +80,15 @@ export default function SettingsPage() {
           </TabsTrigger>
           <TabsTrigger value="accessibility">
             <Accessibility className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">Acessibilidade</span>
+            <span className="hidden sm:inline">Accessibility</span>
           </TabsTrigger>
           <TabsTrigger value="notifications">
             <Bell className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">Notificações</span>
+            <span className="hidden sm:inline">Notifications</span>
           </TabsTrigger>
           <TabsTrigger value="general">
             <Palette className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">Geral</span>
+            <span className="hidden sm:inline">General</span>
           </TabsTrigger>
         </TabsList>
 
@@ -96,17 +96,15 @@ export default function SettingsPage() {
         <TabsContent value="pomodoro" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Configurações do Pomodoro</CardTitle>
+              <CardTitle>Pomodoro Settings</CardTitle>
               <CardDescription>
-                Ajuste as durações das sessões de trabalho e pausas
+                Adjust work session and break durations
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="work-duration">
-                    Duração do Trabalho (minutos)
-                  </Label>
+                  <Label htmlFor="work-duration">Work Duration (minutes)</Label>
                   <Input
                     id="work-duration"
                     type="number"
@@ -124,7 +122,7 @@ export default function SettingsPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="break-duration">
-                    Duração da Pausa Curta (minutos)
+                    Short Break Duration (minutes)
                   </Label>
                   <Input
                     id="break-duration"
@@ -137,13 +135,13 @@ export default function SettingsPage() {
                     }
                   />
                   <p className="text-sm text-muted-foreground">
-                    Recomendado: 5 minutos
+                    Recommended: 5 minutes
                   </p>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="long-break-duration">
-                    Duração da Pausa Longa (minutos)
+                    Long Break Duration (minutes)
                   </Label>
                   <Input
                     id="long-break-duration"
@@ -159,12 +157,12 @@ export default function SettingsPage() {
                     }
                   />
                   <p className="text-sm text-muted-foreground">
-                    Recomendado: 15 minutos
+                    Recommended: 15 minutes
                   </p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="cycles">Ciclos até Pausa Longa</Label>
+                  <Label htmlFor="cycles">Cycles Until Long Break</Label>
                   <Input
                     id="cycles"
                     type="number"
@@ -179,13 +177,13 @@ export default function SettingsPage() {
                     }
                   />
                   <p className="text-sm text-muted-foreground">
-                    Recomendado: 4 ciclos
+                    Recommended: 4 cycles
                   </p>
                 </div>
               </div>
 
               <Button onClick={handlePomodoroSave}>
-                Salvar Configurações do Pomodoro
+                Save Pomodoro Settings
               </Button>
             </CardContent>
           </Card>
@@ -195,19 +193,19 @@ export default function SettingsPage() {
         <TabsContent value="accessibility" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Acessibilidade</CardTitle>
+              <CardTitle>Accessibility</CardTitle>
               <CardDescription>
-                Configurações ADHD-friendly e de acessibilidade
+                ADHD-friendly and accessibility settings
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between rounded-lg border p-4">
                 <div className="space-y-0.5">
                   <Label htmlFor="reduced-motion" className="text-base">
-                    Reduzir Animações
+                    Reduce Animations
                   </Label>
                   <p className="text-sm text-muted-foreground">
-                    Minimiza movimentos e transições para reduzir distrações
+                    Minimizes movements and transitions to reduce distractions
                   </p>
                 </div>
                 <Switch
@@ -220,10 +218,10 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between rounded-lg border p-4">
                 <div className="space-y-0.5">
                   <Label htmlFor="high-contrast" className="text-base">
-                    Alto Contraste
+                    High Contrast
                   </Label>
                   <p className="text-sm text-muted-foreground">
-                    Aumenta o contraste para melhor legibilidade
+                    Increases contrast for better readability
                   </p>
                 </div>
                 <Switch id="high-contrast" />
