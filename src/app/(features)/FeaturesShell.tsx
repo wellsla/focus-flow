@@ -36,7 +36,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Logo from "@/components/logo";
 import { cn } from "@/lib/utils";
-import { MotivationalHeader } from "./components/motivational-header";
+import { MotivationalHeader } from "../../features/motivational-header";
 import useLocalStorage from "@/hooks/use-local-storage";
 import useDataLogger from "@/hooks/use-data-logger";
 import { useSeedInitialization } from "@/hooks/use-seed-initialization";

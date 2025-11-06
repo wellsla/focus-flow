@@ -23,8 +23,8 @@ import { FormDialog } from "@/components/form-dialog";
 import type { Task, Priority, TaskStatus } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { TaskForm } from "./components/TaskForm";
-import { TaskList } from "./components/TaskList";
+import { TaskForm } from "../../../features/tasks/TaskForm";
+import { TaskList } from "../../../features/tasks/TaskList";
 
 export default function TasksPage() {
   const {

@@ -1,8 +1,8 @@
 "use client";
 import { useState } from "react";
-import { ApplicationStatusChart } from "../components/application-status-chart";
-import { HistoryDialog } from "../components/history-dialog";
-import { RecentApplications } from "../components/recent-applications";
+import { ApplicationStatusChart } from "../../../features/application-status-chart";
+import { HistoryDialog } from "../../../features/history-dialog";
+import { RecentApplications } from "../../../features/recent-applications";
 import {
   Card,
   CardContent,
@@ -32,9 +32,9 @@ import {
 } from "@/lib/types";
 import useLocalStorage from "@/hooks/use-local-storage";
 import { FormDialog } from "@/components/form-dialog";
-import { DashboardCardForm } from "../components/dashboard-card-form";
-import { DynamicDashboardCard } from "../components/dynamic-dashboard-card";
-import { BenefitsCountdownCard } from "../components/benefits-countdown-card";
+import { DashboardCardForm } from "../../../features/dashboard-card-form";
+import { DynamicDashboardCard } from "../../../features/dynamic-dashboard-card";
+import { BenefitsCountdownCard } from "../../../features/benefits-countdown-card";
 import {
   defaultDashboardCards as initialDashboardCards,
   defaultIncomeSettings as initialIncomeSettings,

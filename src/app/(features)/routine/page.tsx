@@ -62,26 +62,14 @@ import {
 import { FormDialog } from "@/components/form-dialog";
 import useLocalStorage from "@/hooks/use-local-storage";
 import { Sound, SoundHandles } from "@/components/sound";
-import { tasks as initialTasks, roadmap as initialRoadmap } from "@/lib/data";
+import {
+  legacyTasks as initialTasks,
+  roadmap as initialRoadmap,
+  LegacyTask,
+  LegacyTaskStatus,
+} from "@/lib/legacy-data";
 import { Skeleton } from "@/components/ui/skeleton";
-import { HistoryDialog } from "../components/history-dialog";
-
-// Legacy Task type for /routine page (uses old structure with period, startTime, endTime)
-// This page uses data.ts which still has the old structure
-// New Task feature uses @/lib/types Task (no period, has dueDate)
-type LegacyTaskStatus = "todo" | "in-progress" | "done" | "skipped";
-interface LegacyTask {
-  id: string;
-  title: string;
-  status: LegacyTaskStatus;
-  period?: RoutinePeriod;
-  startTime?: string;
-  endTime?: string;
-  priority?: Priority;
-  dueDate?: Date;
-  isGeneral?: boolean;
-  isRoadmapTask?: boolean;
-}
+import { HistoryDialog } from "../../../features/history-dialog";
 
 const priorityColors: Record<Priority, string> = {
   low: "text-blue-500",
@@ -105,7 +93,8 @@ const renderTaskLog = (log: DailyLog) => (
           <CardHeader className="p-4">
             <CardTitle className="text-base flex justify-between items-center">
               <span>
-                {statusConfig[taskLog.status]?.label || taskLog.status}
+                {statusConfig[taskLog.status as LegacyTaskStatus]?.label ||
+                  taskLog.status}
               </span>
               <Badge variant="secondary">{taskLog.count}</Badge>
             </CardTitle>
@@ -203,7 +192,7 @@ const TaskItem = ({
             </p>
             {task.dueDate && (
               <p className="text-sm text-muted-foreground">
-                Due: {format(parseISO(task.dueDate), "PPP")}
+                Due: {format(task.dueDate, "PPP")}
               </p>
             )}
             <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
@@ -352,7 +341,7 @@ const AddTaskForm = ({
   }, [task?.id, isRoadmapTask]); // Only depend on task ID and roadmap flag to prevent loops
 
   function onSubmit(values: TaskFormValues) {
-    const newTask: Task = {
+    const newTask: LegacyTask = {
       id: task?.id || new Date().toISOString(),
       title: values.title,
       status: values.status ?? "todo",
@@ -361,9 +350,7 @@ const AddTaskForm = ({
       endTime: values.endTime,
       ...((values.isGeneral ? true : false)
         ? {
-            dueDate: values.dueDate
-              ? format(values.dueDate, "yyyy-MM-dd")
-              : undefined,
+            dueDate: values.dueDate || undefined,
           }
         : { period: values.period }),
     };
@@ -641,9 +628,9 @@ function RoutinePageContent() {
         status: "todo",
       };
       if (isFromRoadmap) {
-        defaultTask.dueDate = format(new Date(), "yyyy-MM-dd");
+        defaultTask.dueDate = new Date();
       }
-      return defaultTask as Task;
+      return defaultTask as LegacyTask;
     }
     return null;
   });
@@ -670,7 +657,7 @@ function RoutinePageContent() {
     if (!lastVisitStr || isBefore(parseISO(lastVisitStr), parseISO(todayStr))) {
       setTasks((currentTasks) => {
         const newDayTasks = currentTasks.map((task) =>
-          task.period ? { ...task, status: "todo" as TaskStatus } : task
+          task.period ? { ...task, status: "todo" as LegacyTaskStatus } : task
         );
 
         // Only update if there are actual changes
@@ -759,8 +746,14 @@ function RoutinePageContent() {
 
   const handleStatusChange = (taskId: string, newStatus: TaskStatus) => {
     const task = tasks.find((t) => t.id === taskId);
-    if (task) {
-      handleTaskSubmit({ ...task, status: newStatus });
+    if (
+      task &&
+      (newStatus === "todo" ||
+        newStatus === "in-progress" ||
+        newStatus === "done")
+    ) {
+      // Only allow valid LegacyTaskStatus values
+      handleTaskSubmit({ ...task, status: newStatus as LegacyTaskStatus });
     }
   };
 

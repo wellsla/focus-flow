@@ -20,7 +20,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { FinancialAccount, IncomeSettings, Currency } from "@/lib/types";
-import { fetchFinancialSuggestions, fetchInvestmentTips } from "../actions";
+import {
+  fetchFinancialSuggestions,
+  fetchInvestmentTips,
+} from "../../app/(features)/finances/actions";
 import {
   AlertCircle,
   Bot,

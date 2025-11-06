@@ -45,7 +45,7 @@ import {
 import { FormDialog } from "@/components/form-dialog";
 import useLocalStorage from "@/hooks/use-local-storage";
 import { Skeleton } from "@/components/ui/skeleton";
-import { HistoryDialog } from "../components/history-dialog";
+import { HistoryDialog } from "../../../features/history-dialog";
 import {
   goals as initialGoals,
   dailyLogs as initialDailyLogs,

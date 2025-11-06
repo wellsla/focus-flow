@@ -8,7 +8,7 @@ import {
   FinancialLog,
 } from "@/lib/types";
 import { subDays, format, eachDayOfInterval, parse, parseISO } from "date-fns";
-import { ChartCard } from "./components/performance-chart";
+import { ChartCard } from "../../../features/performance/performance-chart";
 import {
   AreaChart,
   Area,

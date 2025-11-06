@@ -4,7 +4,7 @@ import {
   incomeSettings as initialIncomeSettings,
   dashboardCards as initialDashboardCards,
 } from "@/lib/data";
-import { Financials } from "./components/financials";
+import { Financials } from "../../../features/finances/financials";
 import {
   FinancialAccount,
   IncomeSettings,

@@ -1,6 +1,6 @@
-import { config } from 'dotenv';
+import { config } from "dotenv";
 config();
 
-import '@/ai/flows/financial-suggestions.ts';
-import '@/ai/flows/personalized-investment-tips.ts';
-import '@/ai/flows/extract-bank-statement-flow.ts';
+import "@/ai/flows/financial-suggestions";
+import "@/ai/flows/personalized-investment-tips";
+import "@/ai/flows/extract-bank-statement-flow";
