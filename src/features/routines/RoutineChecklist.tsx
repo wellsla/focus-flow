@@ -81,7 +81,7 @@ export function RoutineChecklist({
     return (
       <div className={cn("text-center py-8", className)}>
         <p className="text-sm text-muted-foreground">
-          🎉 Todas as rotinas de hoje foram concluídas!
+          🎉 All today&apos;s routines completed!
         </p>
       </div>
     );
@@ -129,10 +129,10 @@ export function RoutineChecklist({
                         </p>
                       </div>
                       <Badge variant="outline" className="text-xs">
-                        {routine.frequency === "daily" && "Diário"}
-                        {routine.frequency === "weekly" && "Semanal"}
-                        {routine.frequency === "monthly" && "Mensal"}
-                        {routine.frequency === "every3days" && "A cada 3 dias"}
+                        {routine.frequency === "daily" && "Daily"}
+                        {routine.frequency === "weekly" && "Weekly"}
+                        {routine.frequency === "monthly" && "Monthly"}
+                        {routine.frequency === "every3days" && "Every 3 days"}
                       </Badge>
                     </label>
                   </li>

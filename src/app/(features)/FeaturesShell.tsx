@@ -18,7 +18,6 @@ import {
   ChevronsLeft,
   Timer,
   BookOpen,
-  Focus,
   Trophy,
   Bell,
   CheckCircle2,
@@ -68,7 +67,6 @@ const navItems: (NavItem | NavGroup)[] = [
   {
     title: "Focus & Rewards",
     items: [
-      { href: "/focus", icon: Focus, label: "Focus Mode" },
       { href: "/rewards", icon: Trophy, label: "Rewards" },
       { href: "/reminders", icon: Bell, label: "Reminders" },
     ],

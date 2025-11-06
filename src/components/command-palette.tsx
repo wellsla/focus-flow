@@ -24,7 +24,6 @@ import {
   Target,
   Settings,
   LayoutDashboard,
-  Focus,
   Trophy,
 } from "lucide-react";
 
@@ -61,7 +60,7 @@ export function CommandPalette() {
         router.push("/dashboard");
         setOpen(false);
       },
-      group: "Navegação",
+      group: "Navigation",
     },
     {
       label: "Pomodoro",
@@ -70,61 +69,52 @@ export function CommandPalette() {
         router.push("/pomodoro");
         setOpen(false);
       },
-      group: "Navegação",
+      group: "Navigation",
     },
     {
-      label: "Rotinas",
+      label: "Routines",
       icon: <ListChecks className="mr-2 h-4 w-4" />,
       action: () => {
         router.push("/routine");
         setOpen(false);
       },
-      group: "Navegação",
+      group: "Navigation",
     },
     {
-      label: "Diário",
+      label: "Journal",
       icon: <BookOpen className="mr-2 h-4 w-4" />,
       action: () => {
         router.push("/journal");
         setOpen(false);
       },
-      group: "Navegação",
+      group: "Navigation",
     },
     {
-      label: "Modo Foco",
-      icon: <Focus className="mr-2 h-4 w-4" />,
-      action: () => {
-        router.push("/focus");
-        setOpen(false);
-      },
-      group: "Navegação",
-    },
-    {
-      label: "Recompensas",
+      label: "Rewards",
       icon: <Trophy className="mr-2 h-4 w-4" />,
       action: () => {
         router.push("/rewards");
         setOpen(false);
       },
-      group: "Navegação",
+      group: "Navigation",
     },
     {
-      label: "Metas",
+      label: "Goals",
       icon: <Target className="mr-2 h-4 w-4" />,
       action: () => {
         router.push("/goals");
         setOpen(false);
       },
-      group: "Navegação",
+      group: "Navigation",
     },
     {
-      label: "Configurações",
+      label: "Settings",
       icon: <Settings className="mr-2 h-4 w-4" />,
       action: () => {
         router.push("/settings");
         setOpen(false);
       },
-      group: "Navegação",
+      group: "Navigation",
     },
   ];
 
@@ -139,9 +129,9 @@ export function CommandPalette() {
 
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
-      <CommandInput placeholder="Digite um comando ou busque..." />
+      <CommandInput placeholder="Type a command or search..." />
       <CommandList>
-        <CommandEmpty>Nenhum resultado encontrado.</CommandEmpty>
+        <CommandEmpty>No results found.</CommandEmpty>
         {Object.entries(grouped).map(([group, items]) => (
           <CommandGroup key={group} heading={group}>
             {items.map((cmd) => (

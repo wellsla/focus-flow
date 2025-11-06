@@ -102,7 +102,7 @@ export default function RemindersPage() {
         </div>
         <Button onClick={handleAdd}>
           <Plus className="h-4 w-4 mr-2" />
-          Adicionar Lembrete
+          Adicionar Reminder
         </Button>
       </div>
 
@@ -204,14 +204,14 @@ export default function RemindersPage() {
                       )}
                       <div className="flex gap-2">
                         <Button onClick={handleSave} size="sm">
-                          Salvar
+                          Save
                         </Button>
                         <Button
                           onClick={() => setEditingId(null)}
                           variant="outline"
                           size="sm"
                         >
-                          Cancelar
+                          Cancel
                         </Button>
                       </div>
                     </div>
@@ -264,7 +264,7 @@ export default function RemindersPage() {
               </p>
               <Button onClick={handleAdd}>
                 <Plus className="h-4 w-4 mr-2" />
-                Criar Primeiro Lembrete
+                Create First Reminder
               </Button>
             </CardContent>
           </Card>

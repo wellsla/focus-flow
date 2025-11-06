@@ -3,6 +3,7 @@
  *
  * Robust pomodoro timer hook with accurate time tracking
  * Uses startedAt + duration calculation to handle tab switching
+ * Synchronized across components via localStorage
  */
 
 "use client";
@@ -13,17 +14,12 @@ import { useNotifications } from "./use-notifications";
 import { useSound } from "./use-sound";
 import type { PomodoroSettings, PomodoroSession } from "@/lib/types";
 import { loadPomodoroSettings, appendPomodoroSession } from "@/lib/storage";
-
-export type PomodoroState = "idle" | "work" | "break" | "long-break" | "paused";
-
-interface PomodoroTimerState {
-  state: PomodoroState;
-  remainingSeconds: number;
-  totalSeconds: number;
-  currentCycle: number; // Current work cycle (1-indexed)
-  startedAt: string | null; // ISO string when timer started
-  sessionId: string | null;
-}
+import {
+  getPomodoroState,
+  setPomodoroState,
+  type PomodoroState,
+  type PomodoroTimerState,
+} from "@/lib/pomodoro-store";
 
 interface UsePomodoroTimerReturn {
   state: PomodoroState;
@@ -44,14 +40,9 @@ interface UsePomodoroTimerReturn {
  */
 export function usePomodoroTimer(): UsePomodoroTimerReturn {
   const [settings] = useState<PomodoroSettings>(loadPomodoroSettings);
-  const [timerState, setTimerState] = useState<PomodoroTimerState>({
-    state: "idle",
-    remainingSeconds: settings.workMin * 60,
-    totalSeconds: settings.workMin * 60,
-    currentCycle: 1,
-    startedAt: null,
-    sessionId: null,
-  });
+  const [timerState, setTimerState] = useState<PomodoroTimerState>(() =>
+    getPomodoroState(settings)
+  );
 
   const { notify } = useNotifications();
   const { play } = useSound();
@@ -66,6 +57,35 @@ export function usePomodoroTimer(): UsePomodoroTimerReturn {
     timerStateRef.current = timerState;
     settingsRef.current = settings;
   });
+
+  // Sync with localStorage changes from other components
+  useEffect(() => {
+    const handleStorageChange = (e: CustomEvent) => {
+      const newState = e.detail as PomodoroTimerState | undefined;
+      if (newState) {
+        setTimerState(newState);
+      } else {
+        setTimerState(getPomodoroState(settings));
+      }
+    };
+
+    window.addEventListener(
+      "pomodoro-state-change" as keyof WindowEventMap,
+      handleStorageChange as EventListener
+    );
+
+    return () => {
+      window.removeEventListener(
+        "pomodoro-state-change" as keyof WindowEventMap,
+        handleStorageChange as EventListener
+      );
+    };
+  }, [settings]);
+
+  // Save state to localStorage whenever it changes
+  useEffect(() => {
+    setPomodoroState(timerState);
+  }, [timerState]);
 
   /**
    * Handle timer completion (work/break finished)
@@ -90,9 +110,9 @@ export function usePomodoroTimer(): UsePomodoroTimerReturn {
     // Alert user
     if (sett.desktopNotifications) {
       if (currentState === "work") {
-        notify("Pomodoro Completo! 🎯", "Hora de fazer uma pausa.");
+        notify("Pomodoro Complete! 🎯", "Time to take a break.");
       } else {
-        notify("Pausa Terminada", "Pronto para voltar ao foco?");
+        notify("Break Over", "Ready to get back to focus?");
       }
     }
 
@@ -133,7 +153,20 @@ export function usePomodoroTimer(): UsePomodoroTimerReturn {
     }
   }, [notify, play]);
 
-  // Calculate remaining time and handle completion
+  // Calculate remaining time dynamically (no setState needed)
+  const actualRemainingSeconds = (() => {
+    if (timerState.state === "paused" || timerState.state === "idle") {
+      return timerState.remainingSeconds;
+    }
+
+    if (!timerState.startedAt) return timerState.remainingSeconds;
+
+    const startedTime = new Date(timerState.startedAt).getTime();
+    const elapsed = Math.floor((now.getTime() - startedTime) / 1000);
+    return Math.max(0, timerState.totalSeconds - elapsed);
+  })();
+
+  // Handle completion
   useEffect(() => {
     if (timerState.state === "paused" || timerState.state === "idle") {
       return;
@@ -141,28 +174,17 @@ export function usePomodoroTimer(): UsePomodoroTimerReturn {
 
     if (!timerState.startedAt) return;
 
-    const startedTime = new Date(timerState.startedAt).getTime();
-    const elapsed = Math.floor((now.getTime() - startedTime) / 1000);
-    const remaining = Math.max(0, timerState.totalSeconds - elapsed);
-
-    setTimerState((prev) => ({
-      ...prev,
-      remainingSeconds: remaining,
-    }));
-
-    // Handle completion
     if (
-      remaining === 0 &&
+      actualRemainingSeconds === 0 &&
       completionHandledRef.current !== timerState.sessionId
     ) {
       completionHandledRef.current = timerState.sessionId;
       handleCompletion();
     }
   }, [
-    now,
+    actualRemainingSeconds,
     timerState.state,
     timerState.startedAt,
-    timerState.totalSeconds,
     timerState.sessionId,
     handleCompletion,
   ]);
@@ -235,14 +257,14 @@ export function usePomodoroTimer(): UsePomodoroTimerReturn {
 
   const progress =
     timerState.totalSeconds > 0
-      ? ((timerState.totalSeconds - timerState.remainingSeconds) /
+      ? ((timerState.totalSeconds - actualRemainingSeconds) /
           timerState.totalSeconds) *
         100
       : 0;
 
   return {
     state: timerState.state,
-    remainingSeconds: timerState.remainingSeconds,
+    remainingSeconds: actualRemainingSeconds,
     totalSeconds: timerState.totalSeconds,
     currentCycle: timerState.currentCycle,
     progress,

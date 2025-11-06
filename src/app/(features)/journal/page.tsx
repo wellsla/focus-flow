@@ -228,8 +228,8 @@ export default function JournalPage() {
             <Card>
               <CardContent className="pt-6">
                 <p className="text-sm text-muted-foreground text-center">
-                  ✅ Você já registrou seu diário hoje! Pode editar acima ou
-                  visualizar no histórico.
+                  ✅ You&apos;ve already logged your journal today! You can edit
+                  above or visualizar no histórico.
                 </p>
               </CardContent>
             </Card>
@@ -270,7 +270,7 @@ export default function JournalPage() {
                     todayTab?.click();
                   }}
                 >
-                  Criar Primeiro Registro
+                  Create First Entry
                 </Button>
               </CardContent>
             </Card>

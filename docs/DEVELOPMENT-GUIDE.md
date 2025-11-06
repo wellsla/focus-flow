@@ -29,6 +29,7 @@
 3. **ADHD-Friendly**: Interface clara, CTAs únicos, feedback imediato
 4. **Type-Safe**: TypeScript estrito, zero uso de `any`
 5. **Local-First**: Estado gerenciado pelo cliente, sem backend obrigatório
+6. **English-Only UI**: Todo conteúdo visível ao usuário DEVE estar em inglês
 
 ---
 
@@ -772,6 +773,7 @@ Ao criar ou modificar uma feature, SEMPRE verificar:
 - [ ] **Types**: Tipos exportados de `types.ts` ou arquivo dedicado?
 - [ ] **Mobile**: Layout responsivo testado?
 - [ ] **Accessibility**: Teclado funcional? Screen reader friendly?
+- [ ] **English-Only**: TODO conteúdo visível ao usuário está em inglês?
 
 ### Exemplo: Integração da Feature "Tasks"
 
@@ -1177,6 +1179,7 @@ setStorageItem("archive", archivedData);
 - [ ] ✅ Ações importantes logadas com `useDataLogger`
 - [ ] ✅ Layout responsivo (mobile-friendly)
 - [ ] ✅ Acessibilidade (teclado + screen reader)
+- [ ] ✅ TODO conteúdo visível ao usuário está em inglês
 - [ ] ✅ Mensagem de commit seguindo Conventional Commits
 
 ### Ao Integrar Feature Nova
@@ -1189,6 +1192,7 @@ setStorageItem("archive", archivedData);
 - [ ] ✅ Link na home (se feature principal)
 - [ ] ✅ Configurações em `/settings` (se necessário)
 - [ ] ✅ Logging de ações importantes
+- [ ] ✅ TODO texto visível ao usuário está em inglês
 - [ ] ✅ Documentação atualizada (este arquivo)
 
 ---

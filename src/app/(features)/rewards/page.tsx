@@ -13,7 +13,7 @@ export default function RewardsPage() {
       <div>
         <h1 className="text-4xl font-bold mb-2">Recompensas</h1>
         <p className="text-muted-foreground text-lg">
-          Acompanhe seu progresso e conquistas
+          Track your progress and achievements
         </p>
       </div>
 

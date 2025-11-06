@@ -79,7 +79,7 @@ export function RewardsSection({ variant = "full" }: RewardsSectionProps) {
                   {rewards.streakDays === 0
                     ? "Complete 5+ rotinas hoje para começar"
                     : rewards.streakDays === 1
-                    ? "Ótimo! Continue amanhã"
+                    ? "Great! Come back tomorrow"
                     : `${rewards.streakDays} dias seguidos!`}
                 </p>
               </CardContent>
@@ -126,7 +126,7 @@ export function RewardsSection({ variant = "full" }: RewardsSectionProps) {
       {variant === "compact" && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Progresso</CardTitle>
+            <CardTitle className="text-lg">Progress</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">

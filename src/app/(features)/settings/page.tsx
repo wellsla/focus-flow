@@ -230,47 +230,13 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between rounded-lg border p-4">
                 <div className="space-y-0.5">
                   <Label htmlFor="focus-indicators" className="text-base">
-                    Indicadores de Foco Fortes
+                    Strong Focus Indicators
                   </Label>
                   <p className="text-sm text-muted-foreground">
-                    Destaca elementos focados para navegação por teclado
+                    Highlights focused elements for keyboard navigation
                   </p>
                 </div>
                 <Switch id="focus-indicators" defaultChecked />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Focus Mode</CardTitle>
-              <CardDescription>
-                Settings for deep focus sessions
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between rounded-lg border p-4">
-                <div className="space-y-0.5">
-                  <Label htmlFor="strict-mode" className="text-base">
-                    Strict Mode
-                  </Label>
-                  <p className="text-sm text-muted-foreground">
-                    Blocks all routes except whitelist during focus
-                  </p>
-                </div>
-                <Switch id="strict-mode" />
-              </div>
-
-              <div className="flex items-center justify-between rounded-lg border p-4">
-                <div className="space-y-0.5">
-                  <Label htmlFor="breathing-indicator" className="text-base">
-                    Breathing Indicator
-                  </Label>
-                  <p className="text-sm text-muted-foreground">
-                    Shows subtle animation during focus mode
-                  </p>
-                </div>
-                <Switch id="breathing-indicator" defaultChecked />
               </div>
             </CardContent>
           </Card>
@@ -415,7 +381,7 @@ export default function SettingsPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="pt-BR">Português (BR)</SelectItem>
+                    <SelectItem value="pt-BR">Portuguese (BR)</SelectItem>
                     <SelectItem value="en-US">English (US)</SelectItem>
                     <SelectItem value="es-ES">Español</SelectItem>
                   </SelectContent>

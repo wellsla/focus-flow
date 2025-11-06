@@ -73,7 +73,7 @@ export default function PomodoroPage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight">Pomodoro</h1>
         <p className="text-muted-foreground mt-2">
-          Técnica de foco profundo em blocos de 25 minutos.
+          Deep focus technique in 25-minute blocks.
         </p>
       </div>
 
@@ -105,13 +105,13 @@ export default function PomodoroPage() {
           {/* Session history */}
           <Card className="mt-6">
             <CardHeader>
-              <CardTitle className="text-lg">Histórico Recente</CardTitle>
-              <CardDescription>Suas últimas 10 sessões</CardDescription>
+              <CardTitle className="text-lg">Recent History</CardTitle>
+              <CardDescription>Your last 10 sessions</CardDescription>
             </CardHeader>
             <CardContent>
               {sessions.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-4">
-                  Nenhuma sessão registrada ainda.
+                  No sessions recorded yet.
                 </p>
               ) : (
                 <div className="space-y-2">
@@ -125,22 +125,22 @@ export default function PomodoroPage() {
                           variant={session.completed ? "default" : "secondary"}
                         >
                           {session.kind === "work"
-                            ? "Foco"
+                            ? "Focus"
                             : session.kind === "long-break"
-                            ? "Pausa Longa"
-                            : "Pausa"}
+                            ? "Long Break"
+                            : "Break"}
                         </Badge>
                         <span className="text-sm">
                           {format(
                             parseISO(session.startedAt),
-                            "dd/MM · HH:mm",
+                            "MM/dd · HH:mm",
                             { locale: ptBR }
                           )}
                         </span>
                       </div>
                       {session.completed && (
                         <span className="text-xs text-green-600 dark:text-green-400">
-                          ✓ Completo
+                          ✓ Complete
                         </span>
                       )}
                     </div>
@@ -158,7 +158,7 @@ export default function PomodoroPage() {
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <Flame className="h-5 w-5 text-orange-500" />
-                Hoje
+                Today
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -166,7 +166,7 @@ export default function PomodoroPage() {
                 <div>
                   <p className="text-3xl font-bold">{todaySessions.length}</p>
                   <p className="text-sm text-muted-foreground">
-                    Sessões completas
+                    Completed sessions
                   </p>
                 </div>
                 <Separator />
@@ -175,7 +175,7 @@ export default function PomodoroPage() {
                     {todaySessions.length * 25}min
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    Tempo de foco profundo
+                    Deep focus time
                   </p>
                 </div>
               </div>
@@ -194,7 +194,7 @@ export default function PomodoroPage() {
               <div>
                 <p className="text-3xl font-bold">{totalWorkSessions}</p>
                 <p className="text-sm text-muted-foreground">
-                  Sessões de foco completas
+                  Completed focus sessions
                 </p>
               </div>
             </CardContent>
@@ -205,30 +205,30 @@ export default function PomodoroPage() {
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <Clock className="h-5 w-5 text-muted-foreground" />
-                Configurações
+                Settings
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Trabalho</span>
+                <span className="text-muted-foreground">Work</span>
                 <span className="font-medium">
                   {timer.settings.workMin} min
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Pausa curta</span>
+                <span className="text-muted-foreground">Short break</span>
                 <span className="font-medium">
                   {timer.settings.breakMin} min
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Pausa longa</span>
+                <span className="text-muted-foreground">Long break</span>
                 <span className="font-medium">
                   {timer.settings.longBreakMin} min
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Ciclos até longa</span>
+                <span className="text-muted-foreground">Cycles until long</span>
                 <span className="font-medium">
                   {timer.settings.cyclesUntilLong}
                 </span>
