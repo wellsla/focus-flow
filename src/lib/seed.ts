@@ -1,11 +1,11 @@
 /**
  * seed.ts
  *
- * Default routine items for initial setup
+ * Default routine items and flash reminders for initial setup
  * Based on Well's personal routine structure
  */
 
-import type { RoutineItem } from "./types";
+import type { RoutineItem, FlashReminder } from "./types";
 
 export const defaultRoutines: RoutineItem[] = [
   // Manhã (Morning)
@@ -182,6 +182,53 @@ export const defaultRoutines: RoutineItem[] = [
 ];
 
 /**
+ * Default flash reminders
+ */
+export const defaultReminders: FlashReminder[] = [
+  {
+    id: "reminder-app-open",
+    text: "Seja gentil consigo mesmo. Hoje é mais um dia de 1% de progresso.",
+    trigger: "app-open",
+    enabled: true,
+  },
+  {
+    id: "reminder-pomodoro-start",
+    text: "Foco nos próximos 25 minutos. Você consegue.",
+    trigger: "pomodoro-start",
+    enabled: true,
+    allowInFocus: false,
+  },
+  {
+    id: "reminder-morning",
+    text: "Bom dia! Revise suas 3 principais prioridades para hoje.",
+    trigger: "time",
+    timeOfDay: "09:00",
+    enabled: true,
+  },
+  {
+    id: "reminder-lunch",
+    text: "Hora de uma pausa para refeição. Desligue as telas por 30 minutos.",
+    trigger: "time",
+    timeOfDay: "12:30",
+    enabled: true,
+  },
+  {
+    id: "reminder-afternoon",
+    text: "Faça uma pausa ativa. Alongue-se e respire.",
+    trigger: "time",
+    timeOfDay: "15:00",
+    enabled: true,
+  },
+  {
+    id: "reminder-evening",
+    text: "Que tal registrar seu dia no diário? 3 linhas bastam.",
+    trigger: "time",
+    timeOfDay: "20:00",
+    enabled: true,
+  },
+];
+
+/**
  * Initialize default routines if none exist
  * Call this on app initialization
  */
@@ -194,4 +241,18 @@ export function initializeRoutines(
 
   console.info("[seed] Initializing default routines");
   return defaultRoutines;
+}
+
+/**
+ * Initialize default reminders if none exist
+ */
+export function initializeReminders(
+  existingReminders: FlashReminder[]
+): FlashReminder[] {
+  if (existingReminders.length > 0) {
+    return existingReminders;
+  }
+
+  console.info("[seed] Initializing default reminders");
+  return defaultReminders;
 }

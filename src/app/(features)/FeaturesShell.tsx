@@ -19,6 +19,8 @@ import {
   Timer,
   BookOpen,
   Focus,
+  Trophy,
+  Bell,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -43,6 +45,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { CommandPalette } from "@/components/command-palette";
+import { ReminderManager } from "@/features/reminders/ReminderManager";
 
 type NavItem = { href: string; icon: React.ElementType; label: string };
 type NavGroup = { title: string; items: NavItem[] };
@@ -57,6 +60,8 @@ const navItems: (NavItem | NavGroup)[] = [
       { href: "/routine", icon: CalendarCheck, label: "Routine" },
       { href: "/journal", icon: BookOpen, label: "Journal" },
       { href: "/focus", icon: Focus, label: "Focus Mode" },
+      { href: "/rewards", icon: Trophy, label: "Rewards" },
+      { href: "/reminders", icon: Bell, label: "Reminders" },
     ],
   },
   {
@@ -290,6 +295,7 @@ export default function FeaturesShell({
         </main>
       </div>
       <CommandPalette />
+      <ReminderManager />
     </div>
   );
 }
