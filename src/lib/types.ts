@@ -111,6 +111,7 @@ export type IncomeSettings = {
 
 export type GoalTimeframe = "Short-Term" | "Mid-Term" | "Long-Term";
 export type GoalStatus = "Not Started" | "In Progress" | "Achieved";
+export type GoalType = "Goal" | "Anti-Goal";
 
 export type Goal = {
   id: string;
@@ -119,6 +120,8 @@ export type Goal = {
   timeframe: GoalTimeframe;
   status: GoalStatus;
   targetDate?: string;
+  goalType: GoalType; // Goal (achieve something) or Anti-Goal (stop doing something)
+  actionSteps?: string[]; // AI-generated micro-actions to achieve the goal
 };
 
 export type RoadmapNodeStatus =

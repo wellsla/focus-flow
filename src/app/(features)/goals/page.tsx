@@ -10,8 +10,22 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Goal, GoalTimeframe, GoalStatus, DailyLog } from "@/lib/types";
-import { PlusCircle, Target, History } from "lucide-react";
+import {
+  Goal,
+  GoalTimeframe,
+  GoalStatus,
+  DailyLog,
+  GoalType,
+} from "@/lib/types";
+import {
+  PlusCircle,
+  Target,
+  History,
+  Loader2,
+  ChevronDown,
+  ChevronUp,
+  Ban,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -50,6 +64,8 @@ import {
   goals as initialGoals,
   dailyLogs as initialDailyLogs,
 } from "@/lib/data";
+import { fetchGoalActionSteps } from "./actions";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 const statusConfig: Record<GoalStatus, { label: string; color: string }> = {
   "Not Started": {
@@ -88,14 +104,23 @@ const GoalCard = ({
   goal: Goal;
   onSelect: (goal: Goal) => void;
 }) => {
+  const [showSteps, setShowSteps] = useState(false);
+  const isAntiGoal = goal.goalType === "Anti-Goal";
+
   return (
     <Card
-      className="cursor-pointer hover:shadow-lg transition-shadow"
+      className={cn(
+        "cursor-pointer hover:shadow-lg transition-shadow",
+        isAntiGoal && "border-red-200 dark:border-red-900"
+      )}
       onClick={() => onSelect(goal)}
     >
       <CardHeader>
         <div className="flex justify-between items-start">
-          <CardTitle className="text-lg">{goal.title}</CardTitle>
+          <div className="flex items-start gap-2 flex-1">
+            {isAntiGoal && <Ban className="h-5 w-5 text-red-500 mt-0.5" />}
+            <CardTitle className="text-lg">{goal.title}</CardTitle>
+          </div>
           <Badge
             variant="outline"
             className={cn(
@@ -106,13 +131,58 @@ const GoalCard = ({
             {statusConfig[goal.status].label}
           </Badge>
         </div>
+        {isAntiGoal && (
+          <Badge
+            variant="outline"
+            className="text-xs w-fit bg-red-50 text-red-700 border-red-300 dark:bg-red-950 dark:text-red-300"
+          >
+            Anti-Goal
+          </Badge>
+        )}
       </CardHeader>
       <CardContent>
         <p className="text-sm text-muted-foreground mb-4">{goal.description}</p>
         {goal.targetDate && (
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-muted-foreground mb-4">
             Target: {format(parseISO(goal.targetDate), "PPP")}
           </p>
+        )}
+
+        {goal.actionSteps && goal.actionSteps.length > 0 && (
+          <div className="mt-4 border-t pt-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-between h-8 px-2"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowSteps(!showSteps);
+              }}
+            >
+              <span className="text-xs font-medium">
+                {isAntiGoal ? "Steps to Stop" : "Action Steps"} (
+                {goal.actionSteps.length})
+              </span>
+              {showSteps ? (
+                <ChevronUp className="h-3 w-3" />
+              ) : (
+                <ChevronDown className="h-3 w-3" />
+              )}
+            </Button>
+
+            {showSteps && (
+              <ul className="mt-3 space-y-2 text-xs">
+                {goal.actionSteps.map((step, index) => (
+                  <li key={index} className="flex gap-2">
+                    <span className="text-muted-foreground font-medium">
+                      {index + 1}.
+                    </span>
+                    <span className="text-muted-foreground">{step}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         )}
       </CardContent>
     </Card>
@@ -127,6 +197,7 @@ const formSchema = z.object({
     .default("Not Started"),
   timeframe: z.enum(["Short-Term", "Mid-Term", "Long-Term"]),
   targetDate: z.date().optional(),
+  goalType: z.enum(["Goal", "Anti-Goal"]).default("Goal"),
 });
 
 type GoalFormValues = z.input<typeof formSchema>;
@@ -141,6 +212,9 @@ const GoalForm = ({
   onGoalDelete?: (id: string) => void;
 }) => {
   const isEditing = !!goal;
+  const [isGenerating, setIsGenerating] = useState(false);
+  const { toast } = useToast();
+
   const form = useForm<GoalFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -149,6 +223,7 @@ const GoalForm = ({
       status: goal?.status || "Not Started",
       timeframe: goal?.timeframe || "Short-Term",
       targetDate: goal?.targetDate ? new Date(goal.targetDate) : undefined,
+      goalType: goal?.goalType || "Goal",
     },
   });
 
@@ -160,27 +235,73 @@ const GoalForm = ({
       status: goal?.status || "Not Started",
       timeframe: goal?.timeframe || "Short-Term",
       targetDate: goal?.targetDate ? new Date(goal.targetDate) : undefined,
+      goalType: goal?.goalType || "Goal",
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [goal?.id]); // Only depend on goal ID to prevent loops
 
-  function onSubmit(values: GoalFormValues) {
-    const newGoal: Goal = {
-      id:
-        goal?.id ||
-        (typeof crypto !== "undefined" && "randomUUID" in crypto
-          ? (crypto as any).randomUUID()
-          : new Date().toISOString()),
-      title: values.title,
-      description: values.description,
-      status: values.status ?? "Not Started",
-      timeframe: values.timeframe,
-      targetDate: values.targetDate
-        ? format(values.targetDate, "yyyy-MM-dd")
-        : undefined,
-    };
-    onGoalSubmit(newGoal);
-    form.reset();
+  async function onSubmit(values: GoalFormValues) {
+    setIsGenerating(true);
+
+    try {
+      // Generate AI action steps before saving
+      const aiResult = await fetchGoalActionSteps({
+        goalType: values.goalType ?? "Goal",
+        title: values.title,
+        description: values.description,
+        timeframe: values.timeframe,
+        userProfile: {
+          currentSituation: "Job seeker transitioning careers",
+          challenges: "ADHD, maintaining focus and consistency",
+        },
+      });
+
+      const newGoal: Goal = {
+        id:
+          goal?.id ||
+          (typeof crypto !== "undefined" && "randomUUID" in crypto
+            ? (crypto as any).randomUUID()
+            : new Date().toISOString()),
+        title: values.title,
+        description: values.description,
+        status: values.status ?? "Not Started",
+        timeframe: values.timeframe,
+        targetDate: values.targetDate
+          ? format(values.targetDate, "yyyy-MM-dd")
+          : undefined,
+        goalType: values.goalType ?? "Goal",
+        actionSteps: aiResult.success
+          ? aiResult.actionSteps
+          : aiResult.actionSteps,
+      };
+
+      onGoalSubmit(newGoal);
+      form.reset();
+
+      if (aiResult.success) {
+        toast({
+          title: `${values.goalType} Created`,
+          description: `AI generated ${
+            aiResult.actionSteps?.length || 0
+          } action steps to help you achieve it!`,
+        });
+      } else {
+        toast({
+          title: `${values.goalType} Created`,
+          description: "Added with default action steps (AI was unavailable).",
+          variant: "default",
+        });
+      }
+    } catch (error) {
+      console.error("Error creating goal:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create goal. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
   }
 
   const handleDelete = () => {
@@ -192,6 +313,42 @@ const GoalForm = ({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="goalType"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Type</FormLabel>
+              <FormControl>
+                <RadioGroup
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  className="flex gap-4"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="Goal" id="goal" />
+                    <label
+                      htmlFor="goal"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                    >
+                      Goal (Achieve something)
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="Anti-Goal" id="anti-goal" />
+                    <label
+                      htmlFor="anti-goal"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                    >
+                      Anti-Goal (Stop doing something)
+                    </label>
+                  </div>
+                </RadioGroup>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <FormField
           control={form.control}
           name="title"
@@ -311,8 +468,17 @@ const GoalForm = ({
         />
 
         <div className="flex justify-between">
-          <Button type="submit" className="flex-grow">
-            {isEditing ? "Update Goal" : "Add Goal"}
+          <Button type="submit" className="flex-grow" disabled={isGenerating}>
+            {isGenerating ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Generating AI Action Steps...
+              </>
+            ) : isEditing ? (
+              "Update Goal"
+            ) : (
+              "Add Goal"
+            )}
           </Button>
           {isEditing && onGoalDelete && (
             <Button
@@ -320,6 +486,7 @@ const GoalForm = ({
               variant="destructive"
               onClick={handleDelete}
               className="ml-2"
+              disabled={isGenerating}
             >
               Delete
             </Button>
