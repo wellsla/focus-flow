@@ -11,6 +11,11 @@
 			"label": "Build app (prod)",
 			"type": "shell",
 			"command": "npx next build"
+		},
+		{
+			"label": "Build app (prod)",
+			"type": "shell",
+			"command": "npx next build"
 		}
 	]
 }

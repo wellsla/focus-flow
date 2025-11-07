@@ -18,7 +18,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { PlusCircle, Gamepad2, Smartphone } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
@@ -92,8 +92,8 @@ const TimeEntryForm = ({
     },
   });
 
-  const startTime = form.watch("startTime");
-  const endTime = form.watch("endTime");
+  const startTime = useWatch({ control: form.control, name: "startTime" });
+  const endTime = useWatch({ control: form.control, name: "endTime" });
 
   // Auto-calculate hours from time interval
   useEffect(() => {

@@ -50,6 +50,8 @@ import { ReminderManager } from "@/features/reminders/ReminderManager";
 import { WelcomeDialog } from "@/components/welcome-dialog";
 import { GemBalance } from "@/features/shared/GemBalance";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { EyeOff, Eye } from "lucide-react";
+import useLocalStorage from "@/hooks/use-local-storage";
 
 type NavItem = { href: string; icon: React.ElementType; label: string };
 type NavGroup = { title: string; items: NavItem[] };
@@ -113,6 +115,10 @@ export default function FeaturesShell({
     "sidebarCollapsed",
     false
   );
+  const [focusMode, setFocusMode] = useLocalStorage<boolean>(
+    "focusMode",
+    false
+  );
 
   const NavLink = ({ href, icon: Icon, label }: NavItem) => (
     <Tooltip>
@@ -140,7 +146,12 @@ export default function FeaturesShell({
   );
 
   const sidebarContent = (
-    <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
+    <nav
+      className={cn(
+        "grid items-start px-2 text-sm font-medium lg:px-4",
+        focusMode && "opacity-40 pointer-events-none select-none"
+      )}
+    >
       <div className="space-y-2">
         {navItems.map((item) => {
           if ("title" in item) {
@@ -195,7 +206,12 @@ export default function FeaturesShell({
       )}
     >
       <div className="hidden border-r bg-card md:block">
-        <div className="flex h-full max-h-screen flex-col gap-2">
+        <div
+          className={cn(
+            "flex h-full max-h-screen flex-col gap-2",
+            focusMode && "opacity-30"
+          )}
+        >
           <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
             <Link
               href="/home"
@@ -255,6 +271,21 @@ export default function FeaturesShell({
             <div className="hidden md:flex items-center gap-2 mr-3">
               <GemBalance />
               <ThemeToggle />
+              <Button
+                variant={focusMode ? "secondary" : "outline"}
+                size="icon"
+                aria-label={
+                  focusMode ? "Disable Focus Mode" : "Enable Focus Mode"
+                }
+                onClick={() => setFocusMode(!focusMode)}
+                className="transition-colors"
+              >
+                {focusMode ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </Button>
             </div>
             <Button
               variant="outline"
@@ -300,7 +331,12 @@ export default function FeaturesShell({
             </DropdownMenuContent>
           </DropdownMenu>
         </header>
-        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-background-alt">
+        <main
+          className={cn(
+            "flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-background-alt transition-all",
+            focusMode && "max-w-5xl mx-auto"
+          )}
+        >
           {children}
         </main>
       </div>

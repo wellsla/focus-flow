@@ -21,7 +21,7 @@ import {
 import { RoutinePeriod } from "@/lib/schedule";
 import { PlusCircle, Tag, Clock, CircleDot, Bell, History } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
@@ -319,7 +319,7 @@ const AddTaskForm = ({
     },
   });
 
-  const isGeneral = form.watch("isGeneral");
+  const isGeneral = useWatch({ control: form.control, name: "isGeneral" });
 
   // CRITICAL FIX: Only reset form when task ID or roadmap flag changes, not on every form change
   useEffect(() => {

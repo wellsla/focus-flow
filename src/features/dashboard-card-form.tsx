@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import React, { ElementType, useEffect, useState } from "react";
 
@@ -27,7 +27,7 @@ import {
   DashboardCardVisualStyle,
   DashboardCardFeature,
   ApplicationStatus,
-  RoutinePeriod,
+  // RoutinePeriod removed (legacy system) - dashboard cards shouldn't filter by period directly
   GoalStatus,
   GoalTimeframe,
 } from "@/lib/types";
@@ -140,11 +140,7 @@ const applicationStatusOptions: ApplicationStatus[] = [
   "Rejected",
   "Wishlist",
 ];
-const routinePeriodOptions: RoutinePeriod[] = [
-  "morning",
-  "afternoon",
-  "evening",
-];
+// Legacy routinePeriod selection removed per v1.2.3 guide (cards no longer filter by period directly)
 const goalStatusOptions: GoalStatus[] = [
   "Not Started",
   "In Progress",
@@ -166,7 +162,7 @@ const formSchema = z.object({
   applicationStatus: z
     .enum(["Applied", "Interviewing", "Offer", "Rejected", "Wishlist"])
     .optional(),
-  routinePeriod: z.enum(["morning", "afternoon", "evening"]).optional(),
+  // routinePeriod removed
   goalStatus: z.enum(["Not Started", "In Progress", "Achieved"]).optional(),
   goalTimeframe: z.enum(["Short-Term", "Mid-Term", "Long-Term"]).optional(),
 });
@@ -190,8 +186,8 @@ export function DashboardCardForm({
     },
   });
 
-  const feature = form.watch("feature");
-  const metric = form.watch("metric");
+  const feature = useWatch({ control: form.control, name: "feature" });
+  const metric = useWatch({ control: form.control, name: "metric" });
   const [isEditMode] = useState(() => !!card);
 
   useEffect(() => {
@@ -204,7 +200,7 @@ export function DashboardCardForm({
       feature: card?.config.feature || "applications",
       metric: card?.config.metric || "total",
       applicationStatus: card?.config.applicationStatus,
-      routinePeriod: card?.config.routinePeriod,
+      // routinePeriod removed
       goalStatus: card?.config.goalStatus,
       goalTimeframe: card?.config.goalTimeframe,
     });
@@ -222,7 +218,7 @@ export function DashboardCardForm({
     }
 
     form.setValue("applicationStatus", undefined);
-    form.setValue("routinePeriod", undefined);
+    // routinePeriod removed
     form.setValue("goalStatus", undefined);
     form.setValue("goalTimeframe", undefined);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -254,7 +250,7 @@ export function DashboardCardForm({
       feature,
       metric,
       applicationStatus,
-      routinePeriod,
+      // routinePeriod removed
       goalStatus,
       goalTimeframe,
     } = values;
@@ -267,7 +263,6 @@ export function DashboardCardForm({
         feature,
         metric,
         applicationStatus,
-        routinePeriod,
         goalStatus,
         goalTimeframe,
       },
@@ -394,39 +389,7 @@ export function DashboardCardForm({
           />
         )}
 
-        {feature === "routine" && metric === "period_incomplete" && (
-          <FormField
-            control={form.control}
-            name="routinePeriod"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Routine Period</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a period" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {routinePeriodOptions.map((period) => (
-                      <SelectItem
-                        key={period}
-                        value={period}
-                        className="capitalize"
-                      >
-                        {period}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        )}
+        {/* routinePeriod filter removed: period_incomplete now computes across all periods */}
 
         {feature === "goals" && metric === "status" && (
           <FormField
