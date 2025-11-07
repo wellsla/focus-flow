@@ -3,6 +3,7 @@ import "./globals.css";
 import { Inter, Space_Grotesk } from "next/font/google";
 import Providers from "./providers";
 import { Toaster } from "@/components/ui/toaster";
+import Script from "next/script";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const spaceGrotesk = Space_Grotesk({
@@ -69,6 +70,22 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <Script id="theme-init" strategy="beforeInteractive">
+        {`
+          (function() {
+            try {
+              var storageKey = 'theme';
+              var stored = localStorage.getItem(storageKey);
+              var mql = window.matchMedia('(prefers-color-scheme: dark)');
+              var system = mql.matches ? 'dark' : 'light';
+              var resolved = (stored === 'dark' || stored === 'light') ? stored : system;
+              var root = document.documentElement;
+              if (resolved === 'dark') root.classList.add('dark');
+              else root.classList.remove('dark');
+            } catch (e) {}
+          })();
+        `}
+      </Script>
       <body
         className={`${inter.variable} ${spaceGrotesk.variable} font-sans antialiased`}
       >

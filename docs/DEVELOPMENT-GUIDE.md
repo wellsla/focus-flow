@@ -201,7 +201,7 @@ import { flow } from "./flow"; // ✅
 
 ## 🎨 Sistema de Design
 
-### Paleta de Cores
+### Paleta de Cores e Tema (Light/Dark)
 
 ```css
 /* Primary */
@@ -228,6 +228,28 @@ import { flow } from "./flow"; // ✅
 --text-secondary: #6B7280
 --text-muted: #9CA3AF
 ```
+
+#### Dark/Light Theme
+
+- Dark mode é aplicado via classe `dark` no `document.documentElement` (Tailwind: `darkMode: ['class']`).
+- Provider: `ThemeProvider` em `src/components/theme-provider.tsx` (sem dependências externas)
+  - Persiste preferência em `localStorage` (`theme`: `light` | `dark` | `system`)
+  - Respeita `prefers-color-scheme` quando em `system`
+  - Emite evento `theme-change` no `window` para integrações opcionais
+- Toggle: `ThemeToggle` (`src/components/theme-toggle.tsx`)
+  - Botão simples (Sun/Moon) que alterna entre claro/escuro
+  - Presente no header público e no shell das features
+
+Notas de compatibilidade e FOUC:
+
+- next-themes não é compatível com React 19 (peer depende de React <= 18). Usamos um `ThemeProvider` próprio.
+- Para evitar flash de tema (FOUC), um script inline aplica o tema salvo/sistema antes da hidratação: veja `src/app/layout.tsx` (script `theme-init` com strategy `beforeInteractive`).
+
+Padrões de uso:
+
+- Use sempre tokens (`bg-background`, `text-foreground`, `bg-card`, `text-muted-foreground`) em vez de cores fixas
+- Evite inline colors; prefira `text-primary`, `bg-secondary`, etc.
+- Cards: use `bg-card` e `bg-card/50` com parcimônia; no dark, evite contrastes extremos
 
 ### Tipografia
 
@@ -754,20 +776,15 @@ useEffect(() => {
 // ⚠️ React Compiler não consegue memoizar form.watch()
 "use no memo"; // Adicionar no topo do componente se necessário
 
-// Arquivo: src/app/(features)/finances/components/financials.tsx
-("use no memo"); // Previne erro do React Compiler
+// Preferir useWatch em vez de form.watch() para compatibilidade
+import { useForm, useWatch } from "react-hook-form";
 
 export function FinancialsForm() {
   const form = useForm<FinancialData>({
     /* config */
   });
-
-  useEffect(() => {
-    const values = form.watch();
-    // Lógica
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
+  const type = useWatch({ control: form.control, name: "type" });
+  // ... restante do formulário
   return <Form {...form}>{/* fields */}</Form>;
 }
 ```
@@ -1818,6 +1835,10 @@ npm run build -- --analyze # (se configurado)
   - Fixed CTA typo: “Find your purpose”
   - Added badges: Privacy-first, Offline-ready, ADHD-friendly
   - Clarified “Time Management & Pomodoro” feature text
+- Theming:
+  - Added app-wide Light/Dark theme with `ThemeProvider` (class-based)
+  - Theme toggle (Sun/Moon) in main headers
+  - Guidance added to design section about using semantic tokens
 - Documentation:
   - Corrected useLocalStorage import to default export in examples
   - Bumped version to 1.2.3

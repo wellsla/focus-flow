@@ -49,6 +49,7 @@ import { CommandPalette } from "@/components/command-palette";
 import { ReminderManager } from "@/features/reminders/ReminderManager";
 import { WelcomeDialog } from "@/components/welcome-dialog";
 import { GemBalance } from "@/features/shared/GemBalance";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 type NavItem = { href: string; icon: React.ElementType; label: string };
 type NavGroup = { title: string; items: NavItem[] };
@@ -251,8 +252,9 @@ export default function FeaturesShell({
             ) : (
               <div />
             )}
-            <div className="hidden md:block mr-3">
+            <div className="hidden md:flex items-center gap-2 mr-3">
               <GemBalance />
+              <ThemeToggle />
             </div>
             <Button
               variant="outline"

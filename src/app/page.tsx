@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Card, CardContent } from "@/components/ui/card";
 import { placeHolderImages } from "@/lib/placeholder-images";
 import Logo from "@/components/logo";
@@ -24,9 +25,10 @@ const HomePageContent = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <header className="px-4 lg:px-6 h-16 flex items-center bg-background/80 backdrop-blur-sm fixed top-0 w-full z-50">
+      <header className="px-4 lg:px-6 h-16 flex items-center justify-between bg-background/80 backdrop-blur-sm fixed top-0 w-full z-50">
         <Logo />
-        <nav className="ml-auto flex gap-4 sm:gap-6">
+        <nav className="ml-auto flex items-center gap-4 sm:gap-6">
+          <ThemeToggle />
           <Button asChild variant="ghost">
             <a href="/auth/login?returnTo=/home">Login</a>
           </Button>

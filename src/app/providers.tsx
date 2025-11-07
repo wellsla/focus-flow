@@ -1,8 +1,8 @@
 "use client";
 
-// Auth0 v4 doesn't export UserProvider for client
-// useUser() hook works directly and fetches /auth/profile internally
-// No provider wrapper needed
+import { ThemeProvider } from "@/components/theme-provider";
+
+// Central app providers live here (kept minimal for performance)
 export default function Providers({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+  return <ThemeProvider>{children}</ThemeProvider>;
 }

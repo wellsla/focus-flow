@@ -6,6 +6,11 @@
 			"type": "shell",
 			"command": "npx next build",
 			"problemMatcher": []
+		},
+		{
+			"label": "Build app (prod)",
+			"type": "shell",
+			"command": "npx next build"
 		}
 	]
 }
