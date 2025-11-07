@@ -4,7 +4,7 @@
 
 **Última Atualização**: 7 de novembro de 2025  
 **Status do Projeto**: ✅ Build limpo (26 páginas, 0 erros)  
-**Versão**: 1.0.1
+**Versão**: 1.0.2
 
 ---
 
@@ -314,8 +314,30 @@ export interface RoutineItem {
   completedDates: string[]; // ISO dates
   streakCount: number;
   createdAt: string;
+  routineType?: "study" | "code" | "job-search" | "finances" | "general"; // For reflection questions
+  requiresReflection?: boolean; // If true, shows reflection dialog before completing
 }
+```
 
+**Routine Reflection System**:
+
+O sistema de rotinas suporta **reflexão opcional** antes da conclusão:
+
+- ✅ **requiresReflection: true** → Mostra dialog de reflexão com perguntas baseadas em `routineType`
+- ✅ **requiresReflection: false** → Completa imediatamente ao marcar checkbox
+- ✅ **routineType** determina as perguntas: study, code, job-search, finances, general
+- ✅ Usuário controla no RoutineForm se cada rotina precisa reflexão
+
+**Quando usar reflexão**:
+
+- ✅ Atividades de estudo profundo
+- ✅ Sessões de código importantes
+- ✅ Aplicações de emprego
+- ✅ Revisões financeiras
+- ❌ Tarefas simples (arrumar cama, exercícios de rotina)
+- ❌ Atividades mecânicas sem aprendizado
+
+```typescript
 // Candidaturas de emprego
 export interface Application {
   id: string;
@@ -778,6 +800,37 @@ const handleReflectionComplete = (reflection: RoutineReflection) => {
   }
 };
 ```
+
+**Optional Reflection Pattern** (v1.0.2+):
+
+Rotinas podem ter reflexão **opcional** usando `requiresReflection`:
+
+```typescript
+// ✅ PATTERN: Conditional reflection based on routine type
+const handleCheckboxChange = (routine: RoutineItem, checked: boolean) => {
+  if (checked) {
+    if (routine.requiresReflection) {
+      // Show dialog for important routines
+      setSelectedRoutine(routine);
+      setReflectionDialogOpen(true);
+    } else {
+      // Complete immediately for simple tasks
+      onToggleCheck(routine.id, true);
+    }
+  } else {
+    onToggleCheck(routine.id, false);
+  }
+};
+```
+
+**Quando ativar requiresReflection**:
+
+- ✅ Study sessions (deep learning)
+- ✅ Coding sessions (intentional practice)
+- ✅ Job search activities (track effectiveness)
+- ✅ Financial reviews (conscious decisions)
+- ❌ Simple tasks (make bed, water plants)
+- ❌ Mechanical routines (no learning involved)
 
 **Best Practice para Dialog Forms**:
 
@@ -1617,6 +1670,32 @@ npm run build -- --analyze # (se configurado)
 ---
 
 ## 📝 Notas de Versão
+
+### v1.0.2 (7 Nov 2025)
+
+**Build**: ✅ 26 páginas, 0 erros
+
+**Features**:
+
+- ✅ Added optional reflection system for routines
+- ✅ New `requiresReflection` field in RoutineItem
+- ✅ New `routineType` field for categorizing routines
+- ✅ Routines can now complete immediately without reflection dialog
+- ✅ RoutineForm includes switches for reflection settings
+
+**Changes**:
+
+- Reflection dialog now optional based on routine configuration
+- Simple tasks (make bed, etc) can complete with one click
+- Complex tasks (study, code) can still require reflection
+- User has full control over which routines need reflection
+- Better UX for routine completion workflow
+
+**Documentation**:
+
+- Added "Optional Reflection Pattern" section
+- Documented when to use/not use reflection
+- Updated RoutineItem type documentation
 
 ### v1.0.1 (7 Nov 2025)
 

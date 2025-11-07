@@ -42,6 +42,10 @@ const formSchema = z.object({
     "Maintenance",
   ]),
   frequency: z.enum(["daily", "weekly", "monthly", "every3days"]),
+  routineType: z
+    .enum(["study", "code", "job-search", "finances", "general"])
+    .optional(),
+  requiresReflection: z.boolean(),
   active: z.boolean(),
 });
 
@@ -78,6 +82,8 @@ export function RoutineForm({ routine, onSubmit, onDelete }: RoutineFormProps) {
       title: routine?.title || "",
       category: routine?.category || "Morning",
       frequency: routine?.frequency || "daily",
+      routineType: routine?.routineType || undefined,
+      requiresReflection: routine?.requiresReflection ?? false,
       active: routine?.active ?? true,
     },
   });
@@ -155,6 +161,58 @@ export function RoutineForm({ routine, onSubmit, onDelete }: RoutineFormProps) {
               </Select>
               <FormDescription>When this routine should appear</FormDescription>
               <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="routineType"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Routine Type (Optional)</FormLabel>
+              <Select
+                onValueChange={field.onChange}
+                defaultValue={field.value || "general"}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="general">General</SelectItem>
+                  <SelectItem value="study">Study</SelectItem>
+                  <SelectItem value="code">Code</SelectItem>
+                  <SelectItem value="job-search">Job Search</SelectItem>
+                  <SelectItem value="finances">Finances</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormDescription>
+                Type determines reflection questions if enabled
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="requiresReflection"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+              <div className="space-y-0.5">
+                <FormLabel className="text-base">Requires Reflection</FormLabel>
+                <FormDescription>
+                  Show reflection questions before completing this routine
+                </FormDescription>
+              </div>
+              <FormControl>
+                <Switch
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
             </FormItem>
           )}
         />

@@ -262,6 +262,7 @@ export interface RoutineItem {
   active: boolean; // permitir ocultar temporariamente
   order?: number;
   routineType?: "study" | "code" | "job-search" | "finances" | "general"; // For reflection questions
+  requiresReflection?: boolean; // If true, shows reflection dialog before completing
 }
 
 // Routine Reflection - Questions answered when completing routine

@@ -75,9 +75,15 @@ export function RoutineChecklist({
   // Handle checkbox change - show reflection dialog for checking items
   const handleCheckboxChange = (routine: RoutineItem, checked: boolean) => {
     if (checked) {
-      // Show reflection dialog before marking as complete
-      setSelectedRoutine(routine);
-      setReflectionDialogOpen(true);
+      // Check if routine requires reflection
+      if (routine.requiresReflection) {
+        // Show reflection dialog before marking as complete
+        setSelectedRoutine(routine);
+        setReflectionDialogOpen(true);
+      } else {
+        // Complete immediately without reflection
+        onToggleCheck(routine.id, true);
+      }
     } else {
       // Allow unchecking without reflection
       onToggleCheck(routine.id, false);

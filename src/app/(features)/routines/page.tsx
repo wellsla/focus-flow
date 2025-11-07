@@ -85,6 +85,8 @@ export default function RoutinesPage() {
     title: string;
     category: RoutineCategory;
     frequency: Frequency;
+    routineType?: "study" | "code" | "job-search" | "finances" | "general";
+    requiresReflection: boolean;
     active: boolean;
   }) => {
     if (selectedRoutine) {
