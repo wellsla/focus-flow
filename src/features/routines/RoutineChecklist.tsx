@@ -3,21 +3,28 @@
  *
  * Display routine items with checkboxes
  * Shows today's due items, minimal and focused (ADHD-friendly)
+ * Includes reflection dialog before marking routine as complete
  */
 
 "use client";
 
+import { useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import type { RoutineItem, Checkmark } from "@/lib/types";
+import type { RoutineItem, Checkmark, RoutineReflection } from "@/lib/types";
 import { isDue } from "@/lib/schedule";
 import { format, startOfDay } from "date-fns";
 import { cn } from "@/lib/utils";
+import { RoutineReflectionDialog } from "./routine-reflection-dialog";
 
 interface RoutineChecklistProps {
   routines: RoutineItem[];
   checkmarks: Checkmark[];
-  onToggleCheck: (routineId: string, checked: boolean) => void;
+  onToggleCheck: (
+    routineId: string,
+    checked: boolean,
+    reflection?: RoutineReflection
+  ) => void;
   limit?: number;
   showCategory?: boolean;
   className?: string;
@@ -60,6 +67,30 @@ export function RoutineChecklist({
   className,
 }: RoutineChecklistProps) {
   const today = new Date();
+  const [reflectionDialogOpen, setReflectionDialogOpen] = useState(false);
+  const [selectedRoutine, setSelectedRoutine] = useState<RoutineItem | null>(
+    null
+  );
+
+  // Handle checkbox change - show reflection dialog for checking items
+  const handleCheckboxChange = (routine: RoutineItem, checked: boolean) => {
+    if (checked) {
+      // Show reflection dialog before marking as complete
+      setSelectedRoutine(routine);
+      setReflectionDialogOpen(true);
+    } else {
+      // Allow unchecking without reflection
+      onToggleCheck(routine.id, false);
+    }
+  };
+
+  // Handle reflection completion
+  const handleReflectionComplete = (reflection: RoutineReflection) => {
+    if (selectedRoutine) {
+      onToggleCheck(selectedRoutine.id, true, reflection);
+      setSelectedRoutine(null);
+    }
+  };
 
   // Show ALL active routines (allow unchecking completed ones)
   const activeRoutines = routines
@@ -107,7 +138,7 @@ export function RoutineChecklist({
                       <Checkbox
                         checked={isChecked}
                         onCheckedChange={(checked) =>
-                          onToggleCheck(routine.id, checked === true)
+                          handleCheckboxChange(routine, checked === true)
                         }
                         className="h-5 w-5"
                       />
@@ -156,7 +187,7 @@ export function RoutineChecklist({
               <Checkbox
                 checked={isChecked}
                 onCheckedChange={(checked) =>
-                  onToggleCheck(routine.id, checked === true)
+                  handleCheckboxChange(routine, checked === true)
                 }
                 className="h-5 w-5"
               />
@@ -179,6 +210,18 @@ export function RoutineChecklist({
           </li>
         );
       })}
+
+      {/* Reflection Dialog */}
+      {selectedRoutine && (
+        <RoutineReflectionDialog
+          open={reflectionDialogOpen}
+          onOpenChange={setReflectionDialogOpen}
+          routineTitle={selectedRoutine.title}
+          routineType={selectedRoutine.routineType}
+          routineId={selectedRoutine.id}
+          onComplete={handleReflectionComplete}
+        />
+      )}
     </ul>
   );
 }

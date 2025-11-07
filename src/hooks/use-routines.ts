@@ -10,7 +10,7 @@
 import { useCallback, useState } from "react";
 import { useLocalStorageState } from "./use-local-storage-state";
 import { loadChecks, saveChecks } from "@/lib/storage";
-import type { RoutineItem, Checkmark } from "@/lib/types";
+import type { RoutineItem, Checkmark, RoutineReflection } from "@/lib/types";
 import { format, startOfDay } from "date-fns";
 import { initializeRoutines } from "@/lib/initial-data";
 
@@ -48,16 +48,19 @@ export function useTodayCheckmarks() {
 
   /**
    * Toggle checkmark for a routine on today's date
+   * Optionally attach reflection data when completing
    */
   const toggleCheck = useCallback(
-    (routineId: string, checked: boolean) => {
+    (routineId: string, checked: boolean, reflection?: RoutineReflection) => {
       const existing = checkmarks.find((c) => c.routineId === routineId);
 
       let updated: Checkmark[];
       if (existing) {
         // Update existing checkmark
         updated = checkmarks.map((c) =>
-          c.id === existing.id ? { ...c, done: checked } : c
+          c.id === existing.id
+            ? { ...c, done: checked, reflection: reflection || c.reflection }
+            : c
         );
       } else {
         // Create new checkmark
@@ -66,6 +69,7 @@ export function useTodayCheckmarks() {
           routineId,
           dateISO: todayISO,
           done: checked,
+          reflection,
         };
         updated = [...checkmarks, newCheck];
       }
