@@ -4,7 +4,7 @@
 
 **Última Atualização**: 7 de novembro de 2025  
 **Status do Projeto**: ✅ Build limpo (0 erros)  
-**Versão**: 1.2.2
+**Versão**: 1.2.3
 
 ---
 
@@ -466,7 +466,7 @@ setStorageItem("tasks", updatedTasks);
 **Arquivo**: `src/hooks/use-local-storage.ts`
 
 ```typescript
-import { useLocalStorage } from "@/hooks/use-local-storage";
+import useLocalStorage from "@/hooks/use-local-storage";
 
 function MyComponent() {
   const [tasks, setTasks] = useLocalStorage<Task[]>("tasks", []);
@@ -694,7 +694,7 @@ function getTask(id: string): Task | null {
 "use client"; // Se necessário
 
 import { useState, useEffect } from "react"; // Direto do React
-import { useLocalStorage } from "@/hooks/use-local-storage";
+import useLocalStorage from "@/hooks/use-local-storage";
 import { Button } from "@/components/ui/button";
 import type { Task } from "@/lib/types";
 
@@ -1801,6 +1801,26 @@ npm run build -- --analyze # (se configurado)
 ---
 
 ## 📝 Notas de Versão
+
+### v1.2.3 (7 Nov 2025)
+
+**Build**: ✅ 0 erros
+
+**Home Enhancements & Landing Polish**:
+
+- Home (/home): Added interactive sections for quicker momentum
+  - Today Focus: surfaces weakest performance domain with suggested action
+  - Performance Snapshot: overall score and unlocked achievements count
+  - High Priority Tasks: top 5 pending “high” priority tasks
+  - Recent Achievements: latest 3 unlocks with gem rewards
+  - All sections react to the unified `local-storage` event
+- Landing (public):
+  - Fixed CTA typo: “Find your purpose”
+  - Added badges: Privacy-first, Offline-ready, ADHD-friendly
+  - Clarified “Time Management & Pomodoro” feature text
+- Documentation:
+  - Corrected useLocalStorage import to default export in examples
+  - Bumped version to 1.2.3
 
 ### v1.2.2 (7 Nov 2025)
 

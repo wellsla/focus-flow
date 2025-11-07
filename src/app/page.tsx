@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { placeHolderImages } from "@/lib/placeholder-images";
 import Logo from "@/components/logo";
@@ -18,7 +19,7 @@ const HomePageContent = () => {
     "Financial Management & AI Insights",
     "Personalized Investment Tips",
     "Performance Dashboards",
-    "Time Management Assistance",
+    "Time Management & Pomodoro",
   ];
 
   return (
@@ -54,9 +55,14 @@ const HomePageContent = () => {
               <div className="flex flex-col gap-2 min-[400px]:flex-row">
                 <Button asChild size="lg">
                   <a href="/auth/login?screen_hint=signup&returnTo=/home">
-                    Find your proposite
+                    Find your purpose
                   </a>
                 </Button>
+                <div className="flex items-center gap-2 mt-2">
+                  <Badge variant="secondary">Privacy-first</Badge>
+                  <Badge variant="secondary">Offline-ready</Badge>
+                  <Badge variant="secondary">ADHD-friendly</Badge>
+                </div>
               </div>
             </div>
             <div className="relative">

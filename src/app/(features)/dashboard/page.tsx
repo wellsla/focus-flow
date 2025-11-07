@@ -17,6 +17,10 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { format } from "date-fns";
 import { PomodoroWidget } from "@/features/pomodoro/PomodoroWidget";
+import { MiniPerformanceSummary } from "@/features/dashboard/MiniPerformanceSummary";
+import { FeatureProgressOverview } from "@/features/dashboard/FeatureProgressOverview";
+import { QuickActions } from "@/features/dashboard/QuickActions";
+import { RecentAchievementsCompact } from "@/features/rewards/RecentAchievementsCompact";
 import { RoutineChecklist } from "@/features/routines/RoutineChecklist";
 import { useRoutinesWithChecks } from "@/hooks/use-routines";
 import { RewardsSection } from "@/features/rewards/RewardsSection";
@@ -161,7 +165,37 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="grid auto-rows-max items-start gap-4 md:gap-8 lg:col-span-2">
+    <div className="grid auto-rows-max items-start gap-6 md:gap-8 lg:col-span-2">
+      {/* Top summary strip */}
+      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
+        <MiniPerformanceSummary />
+        <QuickActions />
+        <RecentAchievementsCompact />
+        <Card className="hidden xl:block">
+          <CardHeader className="py-4">
+            <CardTitle className="text-base">Day & Date</CardTitle>
+            <CardDescription>
+              {format(new Date(), "EEEE, MMM d")}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-xs text-muted-foreground space-y-1">
+            <p>Your window of execution. Protect it.</p>
+            <p>Eliminate one distraction right now.</p>
+          </CardContent>
+        </Card>
+        <Card className="hidden xl:block">
+          <CardHeader className="py-4">
+            <CardTitle className="text-base">Incomplete Tasks</CardTitle>
+            <CardDescription>
+              {incompleteTasks.length} remaining
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-xs text-muted-foreground space-y-1">
+            <p>Prioritize: pick one high priority and finish it.</p>
+          </CardContent>
+        </Card>
+      </div>
+      {/* Existing customizable cards */}
       <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4">
         {benefitsCard && incomeSettings.benefitsEndDate && (
           <BenefitsCountdownCard endDate={incomeSettings.benefitsEndDate} />
@@ -240,7 +274,8 @@ export default function DashboardPage() {
           />
         </FormDialog>
       </div>
-      <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
+      {/* Core sections */}
+      <div className="grid gap-6 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
         <Card className="xl:col-span-2">
           <CardHeader>
             <CardTitle>Recent Applications</CardTitle>
@@ -255,7 +290,7 @@ export default function DashboardPage() {
             <RecentApplications applications={jobApplications.slice(0, 5)} />
           </CardContent>
         </Card>
-        <div className="grid auto-rows-max gap-4 md:gap-8">
+        <div className="grid auto-rows-max gap-6 md:gap-8">
           <ApplicationStatusChart applications={jobApplications} />
           <PomodoroWidget />
           <Card>
@@ -285,6 +320,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
           <RewardsSection variant="compact" />
+          <FeatureProgressOverview />
         </div>
       </div>
     </div>
