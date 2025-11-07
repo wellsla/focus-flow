@@ -12,8 +12,16 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useNow } from "./use-now";
 import { useNotifications } from "./use-notifications";
 import { useSound } from "./use-sound";
-import type { PomodoroSettings, PomodoroSession } from "@/lib/types";
-import { loadPomodoroSettings, appendPomodoroSession } from "@/lib/storage";
+import type {
+  PomodoroSettings,
+  PomodoroSession,
+  PomodoroCategory,
+} from "@/lib/types";
+import {
+  loadPomodoroSettings,
+  appendPomodoroSession,
+  loadPomodoroSessions,
+} from "@/lib/storage";
 import {
   getPomodoroState,
   setPomodoroState,
@@ -27,12 +35,15 @@ interface UsePomodoroTimerReturn {
   totalSeconds: number;
   currentCycle: number;
   progress: number; // 0-100
+  category?: PomodoroCategory;
   start: () => void;
+  startWithCategory: (category: PomodoroCategory) => void;
   pause: () => void;
   resume: () => void;
   skip: () => void;
   reset: () => void;
   settings: PomodoroSettings;
+  validateProductivity: (wasTrulyProductive: boolean) => void;
 }
 
 /**
@@ -198,9 +209,27 @@ export function usePomodoroTimer(): UsePomodoroTimerReturn {
       currentCycle: timerState.state === "idle" ? timerState.currentCycle : 1,
       startedAt: new Date().toISOString(),
       sessionId: crypto.randomUUID(),
+      category: undefined, // Category will be set by startWithCategory
     });
     completionHandledRef.current = null;
   }, [settings.workMin, timerState.state, timerState.currentCycle]);
+
+  const startWithCategory = useCallback(
+    (category: PomodoroCategory) => {
+      const duration = settings.workMin * 60;
+      setTimerState({
+        state: "work",
+        remainingSeconds: duration,
+        totalSeconds: duration,
+        currentCycle: timerState.state === "idle" ? timerState.currentCycle : 1,
+        startedAt: new Date().toISOString(),
+        sessionId: crypto.randomUUID(),
+        category,
+      });
+      completionHandledRef.current = null;
+    },
+    [settings.workMin, timerState.state, timerState.currentCycle]
+  );
 
   const pause = useCallback(() => {
     if (timerState.state === "idle" || timerState.state === "paused") return;
@@ -251,9 +280,38 @@ export function usePomodoroTimer(): UsePomodoroTimerReturn {
       currentCycle: 1,
       startedAt: null,
       sessionId: null,
+      category: undefined,
     });
     completionHandledRef.current = null;
   }, [settings.workMin]);
+
+  const validateProductivity = useCallback(
+    (wasTrulyProductive: boolean) => {
+      // Find the most recent work session and update it
+      if (timerState.sessionId) {
+        const sessions = loadPomodoroSessions();
+        const sessionIndex = sessions.findIndex(
+          (s) => s.id === timerState.sessionId
+        );
+
+        if (sessionIndex !== -1) {
+          sessions[sessionIndex] = {
+            ...sessions[sessionIndex],
+            wasTrulyProductive,
+          };
+
+          // Save updated sessions
+          if (typeof window !== "undefined") {
+            localStorage.setItem(
+              "focus-flow:v1:pomodoro-sessions",
+              JSON.stringify(sessions)
+            );
+          }
+        }
+      }
+    },
+    [timerState.sessionId]
+  );
 
   const progress =
     timerState.totalSeconds > 0
@@ -268,11 +326,14 @@ export function usePomodoroTimer(): UsePomodoroTimerReturn {
     totalSeconds: timerState.totalSeconds,
     currentCycle: timerState.currentCycle,
     progress,
+    category: timerState.category,
     start,
+    startWithCategory,
     pause,
     resume,
     skip,
     reset,
     settings,
+    validateProductivity,
   };
 }

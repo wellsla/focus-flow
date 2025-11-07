@@ -6,9 +6,12 @@
  * - Controls
  * - Session history
  * - Quick settings
+ * - Category selection before starting
+ * - Productivity validation after work sessions
  */
 
 "use client";
+"use no memo";
 
 import {
   Card,
@@ -23,9 +26,11 @@ import { usePomodoroTimer } from "@/hooks/use-pomodoro-timer";
 import { usePomodoroRewards } from "@/hooks/use-pomodoro-rewards";
 import { PomodoroTimer } from "@/features/pomodoro/PomodoroTimer";
 import { PomodoroControls } from "@/features/pomodoro/PomodoroControls";
+import { CategorySelectorDialog } from "@/features/pomodoro/category-selector-dialog";
+import { ProductivityValidationDialog } from "@/features/pomodoro/productivity-validation-dialog";
 import { loadPomodoroSessions } from "@/lib/storage";
-import { useState, useEffect } from "react";
-import type { PomodoroSession } from "@/lib/types";
+import { useState, useEffect, useRef } from "react";
+import type { PomodoroSession, PomodoroCategory } from "@/lib/types";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Clock, TrendingUp, Flame } from "lucide-react";
@@ -36,6 +41,11 @@ export default function PomodoroPage() {
   // Integrate with rewards system
   usePomodoroRewards();
   const [sessions, setSessions] = useState<PomodoroSession[]>([]);
+  const [showCategoryDialog, setShowCategoryDialog] = useState(false);
+  const [showValidationDialog, setShowValidationDialog] = useState(false);
+  const [lastCompletedCategory, setLastCompletedCategory] =
+    useState<PomodoroCategory | null>(null);
+  const previousStateRef = useRef(timer.state);
 
   // Load sessions on mount and when timer completes
   useEffect(() => {
@@ -55,7 +65,38 @@ export default function PomodoroPage() {
     ) {
       loadSessions();
     }
-  }, [timer.state]);
+
+    // Show productivity validation dialog when work session completes
+    if (
+      previousStateRef.current === "work" &&
+      (timer.state === "break" || timer.state === "long-break")
+    ) {
+      // Work session just finished
+      if (timer.category) {
+        setTimeout(() => {
+          setLastCompletedCategory(timer.category || null);
+          setShowValidationDialog(true);
+        }, 0);
+      }
+    }
+
+    previousStateRef.current = timer.state;
+  }, [timer.state, timer.category]);
+
+  // Handle start button - show category selector
+  const handleStartClick = () => {
+    setShowCategoryDialog(true);
+  };
+
+  // Handle category selection
+  const handleCategorySelect = (category: PomodoroCategory) => {
+    timer.startWithCategory(category);
+  };
+
+  // Handle productivity validation
+  const handleProductivityValidation = (wasTrulyProductive: boolean) => {
+    timer.validateProductivity(wasTrulyProductive);
+  };
 
   // Calculate stats
   const todaySessions = sessions.filter((s) => {
@@ -92,7 +133,7 @@ export default function PomodoroPage() {
               <div className="mt-8">
                 <PomodoroControls
                   state={timer.state}
-                  onStart={timer.start}
+                  onStart={handleStartClick}
                   onPause={timer.pause}
                   onResume={timer.resume}
                   onSkip={timer.skip}
@@ -237,6 +278,23 @@ export default function PomodoroPage() {
           </Card>
         </div>
       </div>
+
+      {/* Category Selector Dialog */}
+      <CategorySelectorDialog
+        open={showCategoryDialog}
+        onOpenChange={setShowCategoryDialog}
+        onSelect={handleCategorySelect}
+      />
+
+      {/* Productivity Validation Dialog */}
+      {lastCompletedCategory && (
+        <ProductivityValidationDialog
+          open={showValidationDialog}
+          onOpenChange={setShowValidationDialog}
+          category={lastCompletedCategory}
+          onValidate={handleProductivityValidation}
+        />
+      )}
     </div>
   );
 }

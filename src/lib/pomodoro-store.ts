@@ -7,7 +7,7 @@
 
 "use client";
 
-import type { PomodoroSettings } from "./types";
+import type { PomodoroSettings, PomodoroCategory } from "./types";
 
 export type PomodoroState = "idle" | "work" | "break" | "long-break" | "paused";
 
@@ -18,6 +18,7 @@ export interface PomodoroTimerState {
   currentCycle: number;
   startedAt: string | null;
   sessionId: string | null;
+  category?: PomodoroCategory; // Current session category
 }
 
 const POMODORO_STATE_KEY = "focus-flow:v1:pomodoro-state";
@@ -52,6 +53,7 @@ export function getPomodoroState(
     currentCycle: 1,
     startedAt: null,
     sessionId: null,
+    category: undefined,
   };
 }
 
