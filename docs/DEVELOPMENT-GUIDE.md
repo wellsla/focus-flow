@@ -4,7 +4,7 @@
 
 **Última Atualização**: 7 de novembro de 2025  
 **Status do Projeto**: ✅ Build limpo (26 páginas, 0 erros)  
-**Versão**: 1.0.3
+**Versão**: 1.1.0
 
 ---
 
@@ -327,6 +327,40 @@ O sistema de rotinas suporta **reflexão opcional** antes da conclusão:
 - ✅ **requiresReflection: false** → Completa imediatamente ao marcar checkbox
 - ✅ **routineType** determina as perguntas: study, code, job-search, finances, general
 - ✅ Usuário controla no RoutineForm se cada rotina precisa reflexão
+- ✅ **Checkbox funciona como toggle**: Rotinas podem ser marcadas/desmarcadas livremente
+
+**Tipos de Perguntas por Routine Type**:
+
+1. **study**: Foco em aprendizado e compreensão
+
+   - Can you explain what you learned?
+   - Do you know WHY this matters?
+   - How will you apply this? (Be specific)
+
+2. **code**: Foco em qualidade e entendimento do código
+
+   - Did you learn it or just copy it?
+   - Can you explain this code to someone?
+   - Is this worth committing?
+   - What did AI help with? What did YOU solve?
+
+3. **job-search**: Foco em qualidade da candidatura
+
+   - Did you fully read the job description?
+   - Did you research the company?
+   - Why are you a good fit? (Specific reasons)
+   - Did you customize your application?
+
+4. **finances**: Foco em consciência financeira
+
+   - Did you review all transactions?
+   - What pattern did you notice?
+   - Did you identify one action to improve?
+
+5. **general**: Foco em atenção plena
+   - Did you complete this task fully?
+   - Did you do it mindfully or on autopilot?
+   - What did you notice or learn?
 
 **Quando usar reflexão**:
 
@@ -822,6 +856,33 @@ const handleCheckboxChange = (routine: RoutineItem, checked: boolean) => {
   }
 };
 ```
+
+**Toggle Behavior** (v1.1.0+):
+
+Rotinas funcionam como **toggle completo** - não desaparecem ao serem completadas:
+
+```typescript
+// ✅ CORRETO: Show all active routines (toggle functionality)
+const activeRoutines = routines
+  .filter((r) => r.active)
+  .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+
+// ❌ ERRADO: Filter out completed routines (makes them disappear)
+const activeRoutines = routines
+  .filter((r) => r.active)
+  .filter((r) => {
+    const todayCheckmark = getTodayCheckmark(r.id, checkmarks);
+    return !todayCheckmark || !todayCheckmark.done; // ❌ Remove completed
+  });
+```
+
+**UX Behavior**:
+
+- ✅ Usuário pode marcar/desmarcar rotinas livremente
+- ✅ Rotinas completadas permanecem visíveis na lista
+- ✅ Estado visual claro (line-through, opacity) para completadas
+- ✅ Permite correção se marcar errado
+- ❌ Rotinas NÃO desaparecem ao serem completadas
 
 **Quando ativar requiresReflection**:
 
@@ -1670,6 +1731,45 @@ npm run build -- --analyze # (se configurado)
 ---
 
 ## 📝 Notas de Versão
+
+### v1.1.0 (7 Nov 2025)
+
+**Build**: ✅ 26 páginas, 0 erros
+
+**Features**:
+
+- ✅ **Routine Toggle Behavior**: Rotinas agora funcionam como checkbox toggle completo
+- ✅ **Perguntas Específicas por Tipo**: Cada routine type tem perguntas únicas de reflexão
+- ✅ **General Routine Type**: Adicionado tipo "general" com perguntas próprias
+- ✅ Rotinas completadas permanecem visíveis e podem ser desmarcadas
+
+**Changes**:
+
+- Rotinas NÃO desaparecem mais ao serem completadas
+- Checkbox permite marcar/desmarcar livremente (toggle behavior)
+- Melhor UX: usuário pode corrigir se marcar errado
+- Estado visual claro para rotinas completadas (line-through + opacity)
+
+**Routine Reflection Questions by Type**:
+
+1. **study**: Foco em aprendizado (explain, why matters, apply)
+2. **code**: Foco em qualidade (learn vs copy, explain, commit-worthy, AI vs YOU)
+3. **job-search**: Foco em candidatura (read description, research, fit, customize)
+4. **finances**: Foco em consciência (review, patterns, action)
+5. **general**: Foco em atenção plena (complete, mindful vs autopilot, insights)
+
+**Technical**:
+
+- Removido filtro `!todayCheckmark.done` de activeRoutines
+- Adicionado `generalSchema` e `renderGeneralQuestions()`
+- Rotinas sempre visíveis quando `active: true`
+- Toggle behavior consistente com expectativas do usuário
+
+**Documentation**:
+
+- Atualizado "Routine Reflection System" com tipos de perguntas
+- Adicionado "Toggle Behavior" pattern
+- Documentado quando usar cada tipo de rotina
 
 ### v1.0.3 (7 Nov 2025)
 

@@ -66,6 +66,13 @@ const financesSchema = z.object({
   q3: z.enum(["yes", "no"], { required_error: "Required" }),
 });
 
+// General routine questions
+const generalSchema = z.object({
+  q1: z.enum(["yes", "no"], { required_error: "Required" }),
+  q2: z.enum(["yes", "no"], { required_error: "Required" }),
+  q3: z.string().min(10, "At least 10 characters"),
+});
+
 export function RoutineReflectionDialog({
   open,
   onOpenChange,
@@ -88,8 +95,9 @@ export function RoutineReflectionDialog({
       case "finances":
         return financesSchema;
       case "general":
+        return generalSchema;
       default:
-        return studySchema;
+        return generalSchema;
     }
   };
 
@@ -123,6 +131,8 @@ export function RoutineReflectionDialog({
         return "Job Search Reflection";
       case "finances":
         return "Financial Reflection";
+      case "general":
+        return "Routine Reflection";
       default:
         return "Routine Reflection";
     }
@@ -519,6 +529,83 @@ export function RoutineReflectionDialog({
     </>
   );
 
+  // Render General Questions
+  const renderGeneralQuestions = () => (
+    <>
+      <FormField
+        control={form.control}
+        name="q1"
+        render={({ field }) => (
+          <FormItem className="space-y-3">
+            <FormLabel>Did you complete this task fully?</FormLabel>
+            <FormControl>
+              <RadioGroup
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+                className="flex space-x-4"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="yes" id="q1-yes" />
+                  <label htmlFor="q1-yes">Yes</label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="no" id="q1-no" />
+                  <label htmlFor="q1-no">Partially</label>
+                </div>
+              </RadioGroup>
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="q2"
+        render={({ field }) => (
+          <FormItem className="space-y-3">
+            <FormLabel>Did you do it mindfully or on autopilot?</FormLabel>
+            <FormControl>
+              <RadioGroup
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+                className="flex space-x-4"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="yes" id="q2-yes" />
+                  <label htmlFor="q2-yes">Mindfully</label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="no" id="q2-no" />
+                  <label htmlFor="q2-no">Autopilot</label>
+                </div>
+              </RadioGroup>
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="q3"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>What did you notice or learn?</FormLabel>
+            <FormControl>
+              <Textarea
+                placeholder="Any insights, observations, or improvements you noticed..."
+                className="min-h-[80px]"
+                {...field}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    </>
+  );
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
@@ -550,6 +637,7 @@ export function RoutineReflectionDialog({
             {routineType === "code" && renderCodeQuestions()}
             {routineType === "job-search" && renderJobSearchQuestions()}
             {routineType === "finances" && renderFinancesQuestions()}
+            {routineType === "general" && renderGeneralQuestions()}
 
             <div className="flex justify-end gap-2 pt-4">
               <Button
