@@ -52,6 +52,7 @@ import {
 } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -411,11 +412,9 @@ const AddTaskForm = ({
           render={({ field }) => (
             <FormItem className="flex flex-row items-center space-x-3 space-y-0">
               <FormControl>
-                <input
-                  type="checkbox"
-                  checked={field.value}
-                  onChange={field.onChange}
-                  className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                <Checkbox
+                  checked={!!field.value}
+                  onCheckedChange={(v) => field.onChange(!!v)}
                   disabled={isRoadmapTask}
                 />
               </FormControl>

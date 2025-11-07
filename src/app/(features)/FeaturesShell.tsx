@@ -51,7 +51,6 @@ import { WelcomeDialog } from "@/components/welcome-dialog";
 import { GemBalance } from "@/features/shared/GemBalance";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { EyeOff, Eye } from "lucide-react";
-import useLocalStorage from "@/hooks/use-local-storage";
 
 type NavItem = { href: string; icon: React.ElementType; label: string };
 type NavGroup = { title: string; items: NavItem[] };
