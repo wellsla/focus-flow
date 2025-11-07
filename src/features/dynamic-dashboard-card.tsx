@@ -183,24 +183,16 @@ function getCardData(
       }));
       break;
     case "routine":
+      // Routine cards now operate over the new Task model (no period/startTime).
+      // Both metrics (total_incomplete / period_incomplete) collapse to the same aggregation
+      // until a future version introduces RoutineItem-specific dashboards.
       const incompleteTasks = tasks.filter((task) => task.status !== "done");
-      if (config.metric === "period_incomplete" && config.routinePeriod) {
-        const filteredTasks = incompleteTasks.filter(
-          (task) => task.period === config.routinePeriod
-        );
-        value = filteredTasks.length.toString();
-        details = filteredTasks.map((t) => ({
-          title: t.title,
-          label: t.startTime || "Any time",
-        }));
-      } else {
-        // 'total_incomplete'
-        value = incompleteTasks.length.toString();
-        details = incompleteTasks.map((t) => ({
-          title: t.title,
-          label: t.period || "General",
-        }));
-      }
+      value = incompleteTasks.length.toString();
+      details = incompleteTasks.map((t) => ({
+        title: t.title,
+        // Prefer dueDate if available, else show status as context.
+        label: t.dueDate ? t.dueDate : t.status,
+      }));
       break;
     case "finances":
       const monthlyIncome = getMonthlyIncome(incomeSettings);
@@ -310,7 +302,7 @@ export function DynamicDashboardCard({
     <Collapsible open={isOpen} onOpenChange={setIsOpen} asChild>
       <Card
         className={cn(
-          "cursor-pointer hover:shadow-md transition-shadow flex flex-col",
+          "cursor-pointer transition-shadow flex flex-col bg-card/50 hover:shadow-sm",
           styles.card
         )}
         onClick={handleCardClick}

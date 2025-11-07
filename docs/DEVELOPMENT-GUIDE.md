@@ -4,7 +4,7 @@
 
 **Última Atualização**: 7 de novembro de 2025  
 **Status do Projeto**: ✅ Build limpo (0 erros)  
-**Versão**: 1.2.3
+**Versão**: 1.2.4
 
 ---
 
@@ -421,14 +421,22 @@ export interface Application {
 }
 
 // Dashboard cards dinâmicos
+// DashboardCardConfig (v1.2.4) - unified; legacy routinePeriod removed
 export interface DashboardCardConfig {
   id: string;
-  type: "motivational" | "countdown" | "applications" | "finances" | "goals";
+  type:
+    | "motivational"
+    | "countdown"
+    | "applications"
+    | "finances"
+    | "goals"
+    | "routine" // aggregated incomplete Tasks
+    | "time"; // weekly time tracking summary
   title: string;
   position: number;
   isVisible: boolean;
   data?: Record<string, unknown>;
-  // ⚠️ NÃO tem routinePeriod - propriedade do sistema antigo
+  // ⚠️ NÃO tem routinePeriod - removido (legacy)
 }
 ```
 
@@ -1818,6 +1826,48 @@ npm run build -- --analyze # (se configurado)
 ---
 
 ## 📝 Notas de Versão
+
+### v1.2.4 (7 Nov 2025)
+
+**Build**: ✅ 0 erros
+
+**Phase 2 Refinements (ADHD-friendly polish & consistency)**:
+
+- Focus Mode Enhancements:
+  - Added keyboard shortcut Shift+F to toggle Focus Mode globally
+  - Hides Motivational Header and GemBalance when active to reduce cognitive load
+  - Centers main content area with constrained width (`max-w-5xl`) for focus
+  - Respects new settings toggle: “Enable Focus Mode by default” (`focusModeDefault` in localStorage)
+- Settings Page (Appearance → General):
+  - Added theme selector wired to custom `ThemeProvider` (`light` | `dark` | `system`)
+  - Added Focus Mode default switch (persists to localStorage)
+- Performance Page Progressive Disclosure:
+  - Wrapped key charts in Accordion sections: “Key Activity Metrics” and “Deep Dive & Correlations”
+  - Reduces initial visual density and improves scan-ability
+- Card Style Normalization:
+  - Unified dashboard card surfaces to `bg-card/50` + subtle `hover:shadow-sm`
+  - Removed legacy visual divergence; consistent borders and spacing
+- Dashboard Routine Metrics Cleanup:
+  - Removed deprecated `routinePeriod` / `period_incomplete` filtering logic from dynamic dashboard cards
+  - Routine metrics now aggregate incomplete modern `Task` items uniformly (legacy period fields eliminated)
+  - Eliminated type errors caused by references to removed properties (`period`, `startTime`)
+- Documentation Updates:
+  - Bumped version to 1.2.4
+  - Added notes on Focus Mode hotkey, default setting, accordion usage in Performance, and removal of `routinePeriod` from cards
+
+**Developer Impact**:
+
+- Dashboard card configuration schema simplified (no hidden period-based branch)
+- Future enhancement path: introduce separate RoutineItem-based analytics card set
+- Cleaner codepath in `dynamic-dashboard-card.tsx` reduces branching and avoids reliance on deprecated legacy task shape
+
+**Next Candidates (Not Implemented Yet)**:
+
+- Friendly date labeling ("Today", "Tomorrow") for task due dates in routine card details
+- RoutineItem-based dashboard metrics (streaks, completion rates by category)
+- Achievement unlock toasts & performance trend annotations
+
+---
 
 ### v1.2.3 (7 Nov 2025)
 
