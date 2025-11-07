@@ -16,6 +16,7 @@ import { isDue } from "@/lib/schedule";
 import { format, startOfDay } from "date-fns";
 import { cn } from "@/lib/utils";
 import { RoutineReflectionDialog } from "./routine-reflection-dialog";
+import { useRewardSystem } from "@/hooks/use-reward-system";
 
 interface RoutineChecklistProps {
   routines: RoutineItem[];
@@ -71,6 +72,7 @@ export function RoutineChecklist({
   const [selectedRoutine, setSelectedRoutine] = useState<RoutineItem | null>(
     null
   );
+  const { grantRoutineGems } = useRewardSystem();
 
   // Handle checkbox change - show reflection dialog for checking items
   const handleCheckboxChange = (routine: RoutineItem, checked: boolean) => {
@@ -83,6 +85,8 @@ export function RoutineChecklist({
       } else {
         // Complete immediately without reflection
         onToggleCheck(routine.id, true);
+        // Grant gems for routine completion
+        grantRoutineGems(false);
       }
     } else {
       // Allow unchecking without reflection
@@ -94,6 +98,8 @@ export function RoutineChecklist({
   const handleReflectionComplete = (reflection: RoutineReflection) => {
     if (selectedRoutine) {
       onToggleCheck(selectedRoutine.id, true, reflection);
+      // Grant gems for routine completion with reflection (more gems!)
+      grantRoutineGems(true);
       setSelectedRoutine(null);
       setReflectionDialogOpen(false);
     }

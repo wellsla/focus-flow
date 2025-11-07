@@ -20,6 +20,7 @@ import {
   Trophy,
   Bell,
   CheckCircle2,
+  Gift,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -47,6 +48,7 @@ import {
 import { CommandPalette } from "@/components/command-palette";
 import { ReminderManager } from "@/features/reminders/ReminderManager";
 import { WelcomeDialog } from "@/components/welcome-dialog";
+import { GemBalance } from "@/features/shared/GemBalance";
 
 type NavItem = { href: string; icon: React.ElementType; label: string };
 type NavGroup = { title: string; items: NavItem[] };
@@ -67,7 +69,8 @@ const navItems: (NavItem | NavGroup)[] = [
   {
     title: "Focus & Rewards",
     items: [
-      { href: "/rewards", icon: Trophy, label: "Rewards" },
+      { href: "/achievements", icon: Trophy, label: "Achievements" },
+      { href: "/rewards", icon: Gift, label: "Rewards" },
       { href: "/reminders", icon: Bell, label: "Reminders" },
     ],
   },
@@ -248,6 +251,9 @@ export default function FeaturesShell({
             ) : (
               <div />
             )}
+            <div className="hidden md:block mr-3">
+              <GemBalance />
+            </div>
             <Button
               variant="outline"
               className="hidden md:flex items-center gap-2 text-sm text-muted-foreground"

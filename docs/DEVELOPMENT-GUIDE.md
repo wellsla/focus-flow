@@ -3,8 +3,8 @@
 > **📌 IMPORTANTE**: Este documento DEVE ser consultado antes de iniciar qualquer alteração e atualizado após cada mudança significativa no projeto.
 
 **Última Atualização**: 7 de novembro de 2025  
-**Status do Projeto**: ✅ Build limpo (26 páginas, 0 erros)  
-**Versão**: 1.1.0
+**Status do Projeto**: ✅ Build limpo (0 erros)  
+**Versão**: 1.2.0
 
 ---
 
@@ -98,7 +98,9 @@ focus-flow/
 │   │   │   ├── routine/             # Rotinas diárias (LEGACY)
 │   │   │   ├── settings/            # Configurações
 │   │   │   ├── tasks/               # Tarefas one-time (NOVO)
-│   │   │   └── time-management/     # Gestão de tempo
+│   │   │   ├── time-management/     # Gestão de tempo
+│   │   │   ├── rewards/             # Rewards (condicionais e compráveis)
+│   │   │   └── achievements/        # Achievements (vitalícios)
 │   │   ├── api/                     # API routes
 │   │   ├── globals.css              # Estilos globais + CSS vars
 │   │   ├── layout.tsx               # Root layout
@@ -114,15 +116,23 @@ focus-flow/
 │   │   ├── tasks/                   # Task management
 │   │   │   ├── TaskForm.tsx
 │   │   │   └── TaskList.tsx
+│   │   ├── achievements/            # UI de achievements
+│   │   │   ├── AchievementCard.tsx
+│   │   │   └── AchievementGallery.tsx
+│   │   ├── rewards/                 # UI de rewards
+│   │   │   └── RewardCard.tsx
 │   │   ├── roadmap/
 │   │   │   └── roadmap-loader.tsx   # Dynamic import para SSR
 │   │   ├── pomodoro/
 │   │   ├── routines/
+│   │   ├── shared/
+│   │   │   └── GemBalance.tsx       # Saldo de gemas no header
 │   │   └── ...
 │   │
 │   ├── hooks/                        # Custom React hooks
 │   │   ├── use-data-logger.ts       # Logging de ações
 │   │   ├── use-local-storage.ts     # Persistência local
+│   │   ├── use-reward-system.ts     # Hook do sistema de rewards/achievements
 │   │   ├── use-mobile.tsx           # Detecção mobile
 │   │   └── use-toast.ts             # Notificações
 │   │
@@ -135,6 +145,9 @@ focus-flow/
 │   │   ├── utils.ts                 # Utility functions
 │   │   ├── motivational-phrases.ts  # Frases motivacionais
 │   │   └── placeholder-images.ts    # Imagens placeholder
+│   │   ├── initial-achievements.ts  # Achievements padrão (16)
+│   │   ├── initial-rewards.ts       # Rewards padrão (condicionais/compráveis)
+│   │   └── reward-utils.ts          # Lógica de gemas, resets e unlock
 │   │
 │   ├── ai/                           # Genkit AI flows
 │   │   ├── genkit.ts                # Genkit config
@@ -1036,6 +1049,17 @@ Ao criar ou modificar uma feature, SEMPRE verificar:
 - [ ] **Accessibility**: Teclado funcional? Screen reader friendly?
 - [ ] **English-Only**: TODO conteúdo visível ao usuário está em inglês?
 
+### Integração: Rewards & Achievements (v1.2.0)
+
+- [x] Routines → conceder gemas ao completar (5g normal, 10g com reflexão)
+- [x] Tasks → conceder gemas ao concluir (2g low, 5g medium, 10g high)
+- [x] Pomodoro → conceder gemas ao finalizar sessão produtiva (3g)
+- [x] Navegação → separar `/achievements` (lifetime) e `/rewards` (condicional/comprável)
+- [x] Header → exibir saldo de gemas (`GemBalance`)
+- [x] Reset automático → rewards diários/semanais/mensais reiniciam progresso
+- [ ] Notificações → toast ao desbloquear achievement (próximo passo)
+- [ ] Migração → mapear badges/points antigos para novo sistema (próximo passo)
+
 ### Exemplo: Integração da Feature "Tasks"
 
 **1. Criar tipos** (`src/lib/types.ts`)
@@ -1731,6 +1755,52 @@ npm run build -- --analyze # (se configurado)
 ---
 
 ## 📝 Notas de Versão
+
+### v1.2.0 (7 Nov 2025)
+
+**Build**: ✅ 0 erros
+
+**Gamification Overhaul**:
+
+- ✅ Novo sistema de Rewards (condicionais e compráveis)
+
+  - Condicionais com frequências: daily/weekly/monthly/one-time
+  - Compráveis com gemas (luxos): restaurante, spa, viagem, etc.
+  - Arquivo: `src/lib/initial-rewards.ts`
+
+- ✅ Sistema de Achievements (vitalícios e revogáveis)
+
+  - 16 achievements padrão (routines, study, career, tasks, finance, milestone)
+  - Arquivo: `src/lib/initial-achievements.ts`
+
+- ✅ Economia de Gemas
+
+  - Ganho: rotinas, tasks, pomodoro, achievements
+  - Gasto: rewards compráveis
+  - Utilitários: `src/lib/reward-utils.ts`
+
+- ✅ Hook de Estado
+
+  - `useRewardSystem()` para gerenciar gems, rewards e achievements
+  - Arquivo: `src/hooks/use-reward-system.ts`
+
+- ✅ UI & Navegação
+
+  - Página `/achievements` (galeria): `src/app/(features)/achievements/page.tsx`
+  - Página `/rewards` (loja + condicionais): `src/app/(features)/rewards/page.tsx`
+  - Componentes: `AchievementCard`, `AchievementGallery`, `RewardCard`, `GemBalance`
+  - Sidebar atualizado: “Achievements” (Trophy) e “Rewards” (Gift)
+
+- ✅ Integração com Features
+  - Rotinas: gemas ao completar (+ reflexão)
+  - Tasks: gemas por prioridade
+  - Pomodoro: gemas por sessão concluída
+
+**Próximos Passos**:
+
+- Toast/feedback ao desbloquear achievements
+- Migração de dados antigos (points/badges → gems/achievements)
+- Cards no dashboard para saldo de gems e conquistas recentes
 
 ### v1.1.0 (7 Nov 2025)
 

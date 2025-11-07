@@ -12,6 +12,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useNow } from "./use-now";
 import { useNotifications } from "./use-notifications";
 import { useSound } from "./use-sound";
+import { useRewardSystem } from "./use-reward-system";
 import type {
   PomodoroSettings,
   PomodoroSession,
@@ -57,6 +58,7 @@ export function usePomodoroTimer(): UsePomodoroTimerReturn {
 
   const { notify } = useNotifications();
   const { play } = useSound();
+  const { grantPomodoroGems } = useRewardSystem();
   const now = useNow(1000); // Update every second
   const completionHandledRef = useRef<string | null>(null);
 
@@ -135,8 +137,16 @@ export function usePomodoroTimer(): UsePomodoroTimerReturn {
       navigator.vibrate(200);
     }
 
-    // Transition to next state
+    // Reward gems for productive work session
     if (currentState === "work") {
+      // Grant gems for finishing a work session
+      try {
+        grantPomodoroGems();
+      } catch (e) {
+        // no-op
+      }
+
+      // Transition to break state
       const isLongBreak = currentCycle % sett.cyclesUntilLong === 0;
       const nextState = isLongBreak ? "long-break" : "break";
       const nextDuration = isLongBreak
@@ -162,7 +172,7 @@ export function usePomodoroTimer(): UsePomodoroTimerReturn {
         sessionId: null,
       });
     }
-  }, [notify, play]);
+  }, [notify, play, grantPomodoroGems]);
 
   // Calculate remaining time dynamically (no setState needed)
   const actualRemainingSeconds = (() => {

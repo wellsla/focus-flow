@@ -332,11 +332,108 @@ export interface FocusBlock {
   completed: boolean;
 }
 
+// ============================================================================
+// Achievement System (formerly Rewards) - Lifetime achievements that can be revoked
+// ============================================================================
+
+export type AchievementCategory =
+  | "routines"
+  | "study"
+  | "career"
+  | "finance"
+  | "consistency"
+  | "milestone";
+
+export interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+  category: AchievementCategory;
+  icon: string; // Lucide icon name
+  gemReward: number; // Gems earned when unlocked
+  unlockedAt?: string; // ISO timestamp when first unlocked
+  revokedAt?: string; // ISO timestamp if revoked due to bad behavior
+  isUnlocked: boolean;
+  isRevoked: boolean;
+  // Conditions to unlock (evaluated dynamically)
+  condition: {
+    type:
+      | "routine-streak"
+      | "task-completed"
+      | "pomodoro-sessions"
+      | "applications-sent"
+      | "financial-goal"
+      | "custom";
+    target: number; // e.g., 7 days streak, 50 pomodoros
+    current?: number; // Current progress
+  };
+}
+
+// ============================================================================
+// Reward System - Real rewards with conditions and reset schedules
+// ============================================================================
+
+export type RewardType = "conditional" | "purchasable";
+export type RewardResetFrequency = "daily" | "weekly" | "monthly" | "one-time";
+export type RewardConditionType =
+  | "routine-completion"
+  | "task-completion"
+  | "pomodoro-sessions"
+  | "study-concepts"
+  | "custom";
+
+export interface RewardCondition {
+  type: RewardConditionType;
+  description: string; // e.g., "Complete morning routine"
+  target: number; // e.g., 2 concepts studied
+  routineId?: string; // If type is routine-completion
+  taskTag?: string; // If type is task-completion
+  isMet: boolean; // Calculated dynamically
+  progress: number; // Current progress towards target
+}
+
+export interface Reward {
+  id: string;
+  title: string;
+  description: string;
+  type: RewardType;
+  icon: string; // Lucide icon name
+  category: "food" | "entertainment" | "break" | "luxury" | "custom";
+
+  // For conditional rewards (e.g., coffee after studying)
+  conditions?: RewardCondition[];
+  isUnlocked: boolean; // If all conditions are met
+  resetFrequency?: RewardResetFrequency; // When conditions reset
+
+  // For purchasable rewards (bought with gems)
+  gemCost?: number; // Cost in gems
+  isPurchased?: boolean; // If already purchased
+  purchasedAt?: string; // ISO timestamp
+  isOneTime?: boolean; // If true, can only be purchased once
+
+  // Tracking
+  lastResetAt?: string; // ISO timestamp of last reset
+  timesUsed: number; // How many times claimed
+  createdAt: string; // ISO timestamp
+}
+
 export interface RewardState {
+  gems: number; // Currency earned from completing actions and achievements
+  totalGemsEarned: number; // Lifetime total
+  totalGemsSpent: number; // Lifetime total
+
+  // Point tracking (legacy, can be used for additional gamification)
   points: number; // +1 micro-tarefa/cheque; +5 sessão pomodoro completa; streaks
   streakDays: number; // dias seguidos com pelo menos N checks
-  badges: string[]; // ids das conquistas
   lastCheckDate?: string; // para calcular streak
+
+  // Achievement tracking
+  achievements: Achievement[];
+  unlockedAchievementIds: string[]; // Quick lookup
+
+  // Reward tracking
+  rewards: Reward[];
+  purchasedRewardIds: string[]; // Quick lookup
 }
 
 export type FlashReminderTrigger = "app-open" | "pomodoro-start" | "time";

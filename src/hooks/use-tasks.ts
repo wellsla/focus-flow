@@ -9,6 +9,7 @@
 
 import { useState, useEffect } from "react";
 import type { Task } from "@/lib/types";
+import { useRewardSystem } from "./use-reward-system";
 
 const STORAGE_KEY = "focus-flow:v1:tasks";
 
@@ -48,6 +49,7 @@ function saveTasks(tasks: Task[]): void {
  */
 export function useTasks() {
   const [tasks, setTasksState] = useState<Task[]>(loadTasks);
+  const { grantTaskGems } = useRewardSystem();
 
   // Save whenever tasks change
   useEffect(() => {
@@ -104,6 +106,11 @@ export function useTasks() {
           newStatus === "done"
             ? new Date().toISOString().split("T")[0]
             : undefined;
+
+        // Grant gems when completing a task
+        if (newStatus === "done") {
+          grantTaskGems(task.priority || "medium");
+        }
 
         return {
           ...task,
