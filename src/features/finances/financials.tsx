@@ -71,75 +71,9 @@ import { cn } from "@/lib/utils";
 import { format, startOfMonth, isSameMonth } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
+import { MarkdownModal } from "@/features/shared/MarkdownModal";
 
-const MarkdownRenderer = ({ content }: { content: string }) => {
-  // Simple HTML sanitization to prevent XSS
-  const sanitize = (str: string): string => {
-    return str
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#x27;");
-  };
-
-  const formatLine = (line: string): string => {
-    // Sanitize input first, then apply formatting
-    const sanitized = sanitize(line);
-    const formattedLine = sanitized
-      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>") // Bold
-      .replace(/\*(.*?)\*/g, "<em>$1</em>"); // Italics
-
-    if (formattedLine.trim().startsWith("- ")) {
-      return `<li>${formattedLine.trim().substring(2)}</li>`;
-    }
-    if (formattedLine.trim().startsWith("* ")) {
-      return `<li>${formattedLine.trim().substring(2)}</li>`;
-    }
-    if (/^\d+\.\s/.test(formattedLine.trim())) {
-      return `<li>${formattedLine
-        .trim()
-        .substring(formattedLine.indexOf(" ") + 1)}</li>`;
-    }
-
-    return `<p>${formattedLine}</p>`;
-  };
-
-  const createMarkup = () => {
-    const lines = content.split("\n");
-    let html = "";
-    let inList = false;
-    let listType = "";
-
-    lines.forEach((line) => {
-      const isListItem =
-        line.trim().startsWith("- ") || line.trim().startsWith("* ");
-      const isOrderedListItem = /^\d+\.\s/.test(line.trim());
-
-      if ((isListItem || isOrderedListItem) && !inList) {
-        listType = isOrderedListItem ? "ol" : "ul";
-        inList = true;
-        html += `<${listType} class="list-disc pl-5 space-y-1">`;
-      } else if (!isListItem && !isOrderedListItem && inList) {
-        inList = false;
-        html += `</${listType}>`;
-      }
-      html += formatLine(line);
-    });
-
-    if (inList) {
-      html += `</${listType}>`;
-    }
-
-    return { __html: html };
-  };
-
-  return (
-    <div
-      className="prose prose-sm dark:prose-invert"
-      dangerouslySetInnerHTML={createMarkup()}
-    />
-  );
-};
+// Markdown rendering moved to a reusable MarkdownModal component.
 
 type FinancialsProps = {
   incomeSettings: IncomeSettings;
@@ -677,6 +611,7 @@ export function Financials({
   // Unified AI states
   const [aiGoal, setAiGoal] = useState<string>("");
   const [aiResult, setAiResult] = useState<string | null>(null);
+  const [aiModalOpen, setAiModalOpen] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
 
@@ -841,6 +776,7 @@ export function Financials({
           ? result.tips
           : "No advice generated.";
       setAiResult(content || "No advice generated.");
+      setAiModalOpen(true);
     } else {
       setAiError(result.error!);
     }
@@ -1149,11 +1085,21 @@ export function Financials({
             {aiResult && (
               <Alert>
                 <Sparkles className="h-4 w-4" />
-                <AlertTitle>AI Advice</AlertTitle>
+                <AlertTitle>AI Advice Ready</AlertTitle>
                 <AlertDescription>
-                  <MarkdownRenderer content={aiResult} />
+                  Formatted markdown generated. Open the modal to view, copy or
+                  select the content.
                 </AlertDescription>
-                <CopyButton text={aiResult} />
+                <div className="mt-2 flex gap-2">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setAiModalOpen(true)}
+                  >
+                    Open Formatted Output
+                  </Button>
+                  <CopyButton text={aiResult} />
+                </div>
               </Alert>
             )}
           </CardContent>
@@ -1167,6 +1113,13 @@ export function Financials({
             </Button>
           </CardFooter>
         </Card>
+        <MarkdownModal
+          open={aiModalOpen && !!aiResult}
+          onOpenChange={setAiModalOpen}
+          title="AI Financial Advice"
+          description="Formatted Markdown output from the AI financial assistant."
+          content={aiResult || ""}
+        />
       </div>
     </div>
   );

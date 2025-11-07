@@ -1060,6 +1060,52 @@ Ao criar ou modificar uma feature, SEMPRE verificar:
 - [ ] Notificações → toast ao desbloquear achievement (próximo passo)
 - [ ] Migração → mapear badges/points antigos para novo sistema (próximo passo)
 
+### Integração: Saída de I.A. em Markdown (v1.2.1)
+
+Todas as I.A.s das features DEVEM retornar texto com formatação Markdown. A UI deve exibir a resposta em uma modal dedicada com renderização Markdown, permitindo seleção e um botão de copiar-tudo.
+
+Padrão implementado:
+
+- Componente: `src/features/shared/MarkdownModal.tsx`
+
+  - Props: `open`, `onOpenChange`, `title?`, `description?`, `content`
+  - Renderização: `react-markdown` + `remark-gfm` (sem HTML bruto)
+  - Ações: botão de cópia (clipboard) no header
+  - Acessível: conteúdo selecionável, rolagem interna, atalho de fechar padrão do Dialog
+
+- Dependências:
+  - `react-markdown`
+  - `remark-gfm`
+
+Como usar (exemplo):
+
+```tsx
+// 1) Estado local na feature
+const [aiResult, setAiResult] = useState<string | null>(null);
+const [aiModalOpen, setAiModalOpen] = useState(false);
+
+// 2) Após obter a resposta da IA
+setAiResult(markdownText);
+setAiModalOpen(true); // abre modal automaticamente
+
+// 3) Renderizar a modal
+<MarkdownModal
+  open={aiModalOpen && !!aiResult}
+  onOpenChange={setAiModalOpen}
+  title="AI Assistant Result"
+  description="Formatted Markdown output"
+  content={aiResult || ""}
+/>;
+```
+
+Regras:
+
+- ✅ Sempre abrir a modal automaticamente quando a IA retornar conteúdo
+- ✅ Manter um botão secundário (quando fizer sentido) para reabrir a modal
+- ✅ O botão de copiar deve copiar TODO o markdown puro (não HTML)
+- ✅ Todo texto visível ao usuário em inglês
+- ❌ Não renderizar HTML bruto vindo da IA (XSS)
+
 ### Exemplo: Integração da Feature "Tasks"
 
 **1. Criar tipos** (`src/lib/types.ts`)
