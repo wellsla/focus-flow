@@ -15,7 +15,6 @@ import {
   LineChart,
   GitMerge,
   Home,
-  ChevronsLeft,
   Timer,
   BookOpen,
   Trophy,
@@ -106,7 +105,6 @@ export default function FeaturesShell({
   }, []);
 
   const pathname = usePathname();
-  const user = null as null;
   const [isCollapsed, setIsCollapsed] = useLocalStorage(
     "sidebarCollapsed",
     false

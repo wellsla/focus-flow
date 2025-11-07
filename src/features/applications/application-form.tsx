@@ -39,9 +39,9 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
-import { ApplicationComments } from "../../../../features/applications/application-comments";
+import { ApplicationComments } from "./application-comments";
 import { Separator } from "@/components/ui/separator";
-import { DeepApplicationWizard } from "../../../../features/applications/deep-application-wizard";
+import { DeepApplicationWizard } from "./deep-application-wizard";
 import { Badge } from "@/components/ui/badge";
 
 const formSchema = z.object({

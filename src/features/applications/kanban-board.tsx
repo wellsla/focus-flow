@@ -7,7 +7,7 @@ import { FormDialog } from "@/components/form-dialog";
 import { ApplicationSummary } from "./application-summary";
 import { KanbanColumn } from "./kanban-column";
 import { ApplicationForm } from "./application-form";
-import { HistoryDialog } from "../../../../features/history-dialog";
+import { HistoryDialog } from "../history-dialog";
 import { parseISO } from "date-fns";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";

@@ -41,7 +41,7 @@ export const config = {
     "/auth/callback",
     "/auth/profile",
     "/auth/access-token",
-    // Protected app routes
+    // Protected app routes - ALL features require authentication
     "/home/:path*",
     "/dashboard/:path*",
     "/profile/:path*",
@@ -49,9 +49,15 @@ export const config = {
     "/applications/:path*",
     "/finances/:path*",
     "/goals/:path*",
-    "/routine/:path*",
-    "/roadmap/:path*",
+    "/journal/:path*",
     "/performance/:path*",
+    "/pomodoro/:path*",
+    "/reminders/:path*",
+    "/rewards/:path*",
+    "/roadmap/:path*",
+    "/routine/:path*",
+    "/routines/:path*",
+    "/tasks/:path*",
     "/time-management/:path*",
   ],
 };

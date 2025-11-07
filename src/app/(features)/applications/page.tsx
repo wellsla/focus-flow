@@ -1,6 +1,6 @@
 "use client";
 
-import { KanbanBoard } from "./components/kanban-board";
+import { KanbanBoard } from "../../../features/applications/kanban-board";
 import { Skeleton } from "@/components/ui/skeleton";
 import useLocalStorage from "@/hooks/use-local-storage";
 import { DailyLog, JobApplication } from "@/lib/types";
