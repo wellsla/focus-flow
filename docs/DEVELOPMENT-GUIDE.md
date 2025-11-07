@@ -4,7 +4,7 @@
 
 **Última Atualização**: 7 de novembro de 2025  
 **Status do Projeto**: ✅ Build limpo (26 páginas, 0 erros)  
-**Versão**: 1.0.2
+**Versão**: 1.0.3
 
 ---
 
@@ -1670,6 +1670,29 @@ npm run build -- --analyze # (se configurado)
 ---
 
 ## 📝 Notas de Versão
+
+### v1.0.3 (7 Nov 2025)
+
+**Build**: ✅ 26 páginas, 0 erros
+
+**Fixes**:
+
+- ✅ Fixed routines disappearing immediately when clicked
+- ✅ RoutineChecklist now properly filters completed routines
+- ✅ Completed routines no longer shown until due again
+
+**Changes**:
+
+- Improved routine visibility logic in RoutineChecklist
+- Routines now disappear after completion (correct behavior)
+- Better UX: completed routines removed from list until next due date
+- Prevents accidental re-completion of same routine
+
+**Technical**:
+
+- Added `getTodayCheckmark()` filter in activeRoutines calculation
+- Routines with `done: true` checkmark are hidden from display
+- Maintains clean "to-do" list showing only pending routines
 
 ### v1.0.2 (7 Nov 2025)
 

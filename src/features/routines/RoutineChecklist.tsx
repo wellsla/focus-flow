@@ -99,9 +99,15 @@ export function RoutineChecklist({
     }
   };
 
-  // Show ALL active routines (allow unchecking completed ones)
+  // Filter to only show active routines that haven't been completed today
+  // This ensures completed routines disappear from the list until they're due again
   const activeRoutines = routines
     .filter((r) => r.active)
+    .filter((r) => {
+      const todayCheckmark = getTodayCheckmark(r.id, checkmarks);
+      // Show routine if it hasn't been checked today OR if it was checked but not marked as done
+      return !todayCheckmark || !todayCheckmark.done;
+    })
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
   const displayRoutines = limit
