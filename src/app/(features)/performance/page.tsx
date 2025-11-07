@@ -23,6 +23,7 @@ import {
   Line,
 } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
+import { OverallPerformanceGoal } from "@/features/performance/OverallPerformanceGoal";
 
 const getEntryDateString = (raw: any) => {
   if (!raw) return "";
@@ -146,6 +147,7 @@ export default function PerformancePage() {
 
   return (
     <div className="space-y-8">
+      <OverallPerformanceGoal />
       <div>
         <h1 className="text-2xl font-bold font-headline tracking-tight">
           Performance Analytics

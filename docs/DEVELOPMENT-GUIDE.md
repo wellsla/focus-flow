@@ -1802,6 +1802,29 @@ npm run build -- --analyze # (se configurado)
 
 ## 📝 Notas de Versão
 
+### v1.2.1 (7 Nov 2025)
+
+**Build**: ✅ 0 erros
+
+**Performance Meta Goal**:
+
+- Adicionado util `src/lib/performance-metrics.ts` calculando score unificado (0–100) baseado em:
+  - Tasks concluídas (proporção status `done`)
+  - Rotinas (média diária de completion via `dailyLogs`)
+  - Candidaturas (status ponderado: Offer/Interviewing > Applied, Rejected=0)
+  - Finanças (meses com net ≥ 0)
+  - Disciplina de tempo (menos horas em time sinks = melhor)
+- Níveis de excelência:
+  - Very bad: 0 – 50%
+  - Bad: 50.1 – 70%
+  - Regular: 70.1 – 80%
+  - Good: 80.1 – 90%
+  - Great: 90.1 – 95%
+  - Excellent: 95.1 – 100%
+- Sugestão dinâmica: acima de 95% recomenda aumentar carga (novas rotinas / tarefas mais difíceis)
+- UI: `OverallPerformanceGoal` exibido no topo da página `/performance`.
+- Hook inicial simples substituído por computação direta + listener de `storage-update`.
+
 ### v1.2.0 (7 Nov 2025)
 
 **Build**: ✅ 0 erros
