@@ -89,6 +89,7 @@ export function RoutineChecklist({
     if (selectedRoutine) {
       onToggleCheck(selectedRoutine.id, true, reflection);
       setSelectedRoutine(null);
+      setReflectionDialogOpen(false);
     }
   };
 

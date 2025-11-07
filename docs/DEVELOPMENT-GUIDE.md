@@ -2,9 +2,9 @@
 
 > **📌 IMPORTANTE**: Este documento DEVE ser consultado antes de iniciar qualquer alteração e atualizado após cada mudança significativa no projeto.
 
-**Última Atualização**: 6 de novembro de 2025  
+**Última Atualização**: 7 de novembro de 2025  
 **Status do Projeto**: ✅ Build limpo (26 páginas, 0 erros)  
-**Versão**: 1.0.0
+**Versão**: 1.0.1
 
 ---
 
@@ -755,6 +755,153 @@ export default function InteractivePage() {
 }
 ```
 
+### 5. Dialog State Management (Reflection Pattern)
+
+**Problema**: Dialog fecha mas estado do checkbox não atualiza
+
+**Causa**: Estado não propagado corretamente após dialog fechar
+
+```typescript
+// ❌ ERRADO: Dialog fecha mas não atualiza parent
+const handleReflectionComplete = (reflection: RoutineReflection) => {
+  onToggleCheck(selectedRoutine.id, true, reflection);
+  setSelectedRoutine(null);
+  // ❌ Dialog fecha automaticamente, mas estado pode não ter sincronizado
+};
+
+// ✅ CORRETO: Garantir fechamento explícito
+const handleReflectionComplete = (reflection: RoutineReflection) => {
+  if (selectedRoutine) {
+    onToggleCheck(selectedRoutine.id, true, reflection);
+    setSelectedRoutine(null);
+    setReflectionDialogOpen(false); // ✅ Fechar explicitamente
+  }
+};
+```
+
+**Best Practice para Dialog Forms**:
+
+```typescript
+const handleSubmit = async (data: FormData) => {
+  setIsSubmitting(true);
+
+  try {
+    // 1. Process data
+    const result = processData(data);
+
+    // 2. Call completion handler
+    onComplete(result);
+
+    // 3. Reset form for next use
+    form.reset();
+
+    // 4. Close dialog
+    onOpenChange(false);
+  } catch (error) {
+    // Handle error
+  } finally {
+    // 5. Always reset submitting state
+    setIsSubmitting(false);
+  }
+};
+```
+
+---
+
+## 🎨 Layout & Navigation Patterns
+
+### Sidebar/Header Pattern (ShadCN Standard)
+
+**Estrutura Recomendada**:
+
+```
+┌─────────────────────────────────────────────────┐
+│ Header (h-14 lg:h-[60px])                      │
+│ ┌─────┬──────────┬────────────────────┬──────┐│
+│ │Menu │  Logo    │  Content Area      │Avatar││
+│ │Btn  │          │                    │      ││
+│ └─────┴──────────┴────────────────────┴──────┘│
+├─────────┬───────────────────────────────────────┤
+│         │                                       │
+│ Sidebar │           Main Content                │
+│         │                                       │
+│  Nav    │                                       │
+│ Items   │                                       │
+│         │                                       │
+└─────────┴───────────────────────────────────────┘
+```
+
+**Implementação (FeaturesShell.tsx)**:
+
+```typescript
+// ✅ CORRETO: Toggle no header, não no sidebar
+<header className="flex h-14 items-center gap-4 border-b bg-card px-4">
+  {/* Mobile menu (Sheet) */}
+  <Sheet>
+    <SheetTrigger asChild>
+      <Button variant="outline" size="icon" className="md:hidden">
+        <Menu className="h-5 w-5" />
+      </Button>
+    </SheetTrigger>
+    <SheetContent side="left">{sidebarContent}</SheetContent>
+  </Sheet>
+
+  {/* Desktop sidebar toggle */}
+  <Button
+    variant="ghost"
+    size="icon"
+    className="hidden md:flex"
+    onClick={() => setIsCollapsed(!isCollapsed)}
+  >
+    <Menu className="h-5 w-5" />
+  </Button>
+
+  {/* Header content */}
+  <div className="flex-1">...</div>
+</header>;
+
+// ❌ ERRADO: Toggle dentro do sidebar
+<div className="sidebar">
+  <nav>...</nav>
+  <div className="mt-auto">
+    {" "}
+    {/* ❌ Não colocar toggle aqui */}
+    <Button onClick={() => setIsCollapsed(!isCollapsed)}>Toggle</Button>
+  </div>
+</div>;
+```
+
+**Grid Layout com Sidebar Colapsável**:
+
+```typescript
+// ✅ Usar grid com transição suave
+<div
+  className={cn(
+    "grid min-h-screen w-full transition-[grid-template-columns] duration-300",
+    isCollapsed ? "md:grid-cols-[80px_1fr]" : "md:grid-cols-[280px_1fr]"
+  )}
+>
+  {/* Sidebar */}
+  <div className="hidden md:block border-r bg-card">...</div>
+
+  {/* Main area */}
+  <div className="flex flex-col">
+    <header>...</header>
+    <main>...</main>
+  </div>
+</div>
+```
+
+**Regras de Navegação**:
+
+1. ✅ Toggle sempre no header (desktop) ou Sheet (mobile)
+2. ✅ Usar `TooltipProvider` para labels quando colapsado
+3. ✅ Persistir estado colapsado no localStorage
+4. ✅ Transição suave com `transition-[grid-template-columns]`
+5. ✅ Mobile: Sheet com trigger no header
+6. ❌ Nunca colocar toggle no rodapé do sidebar
+7. ❌ Nunca usar position: fixed para sidebar (usar grid)
+
 ---
 
 ## 🔍 Integração Entre Features
@@ -1159,6 +1306,54 @@ const archivedData = compressOldData(history);
 setStorageItem("archive", archivedData);
 ```
 
+### 8. Dialog não fecha após submit (Routine Reflection)
+
+**Problema**: Reflection dialog completa mas checkbox não atualiza
+
+**Causa**: Estado do dialog não sincronizado corretamente
+
+```typescript
+// ❌ ERRADO: Dialog fecha mas estado pode não ter propagado
+const handleReflectionComplete = (reflection: RoutineReflection) => {
+  onToggleCheck(selectedRoutine.id, true, reflection);
+  setSelectedRoutine(null);
+  // Dialog fecha mas callback pode não ter completado
+};
+
+// ✅ CORRETO: Gerenciar estado explicitamente
+const handleReflectionComplete = (reflection: RoutineReflection) => {
+  if (selectedRoutine) {
+    // 1. Update parent state
+    onToggleCheck(selectedRoutine.id, true, reflection);
+    // 2. Clear local selection
+    setSelectedRoutine(null);
+    // 3. Explicitly close dialog
+    setReflectionDialogOpen(false);
+  }
+};
+
+// No Dialog Component:
+const handleSubmit = async (data: FormData) => {
+  setIsSubmitting(true);
+  try {
+    const result = processData(data);
+    onComplete(result); // Call parent handler
+    form.reset(); // Reset form for next use
+    onOpenChange(false); // Close dialog
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+```
+
+**Checklist de Debug para Dialogs**:
+
+- [ ] Parent state atualiza ANTES de fechar dialog?
+- [ ] Form.reset() é chamado após submit?
+- [ ] onOpenChange(false) é chamado explicitamente?
+- [ ] isSubmitting tem finally block para sempre resetar?
+- [ ] Callback de parent é async-safe?
+
 ---
 
 ## ✅ Checklist de Qualidade
@@ -1423,6 +1618,23 @@ npm run build -- --analyze # (se configurado)
 
 ## 📝 Notas de Versão
 
+### v1.0.1 (7 Nov 2025)
+
+**Build**: ✅ 26 páginas, 0 erros
+
+**Fixes**:
+
+- ✅ Fixed routines checkbox not marking items as complete
+- ✅ Fixed reflection dialog state management
+- ✅ Moved sidebar toggle to header (ShadCN pattern)
+- ✅ Improved dialog close behavior with form reset
+
+**Changes**:
+
+- Sidebar toggle button now in header (standard pattern)
+- Reflection dialog properly resets form after submission
+- Better state management in RoutineChecklist component
+
 ### v1.0.0 (6 Nov 2025)
 
 **Build**: ✅ 26 páginas, 0 erros
@@ -1469,5 +1681,5 @@ Para dúvidas ou problemas:
 
 > Lembre-se: Este documento é uma fonte viva de conhecimento. **SEMPRE atualize após mudanças significativas!**
 
-**Última revisão**: 6 de novembro de 2025  
+**Última revisão**: 7 de novembro de 2025  
 **Próxima revisão**: Após próxima feature/fix importante

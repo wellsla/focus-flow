@@ -131,21 +131,30 @@ export function RoutineReflectionDialog({
   const handleSubmit = async (data: any) => {
     setIsSubmitting(true);
 
-    // Convert form data to reflection format
-    const questions: Record<string, string> = {};
-    Object.entries(data).forEach(([key, value]) => {
-      questions[key] = String(value);
-    });
+    try {
+      // Convert form data to reflection format
+      const questions: Record<string, string> = {};
+      Object.entries(data).forEach(([key, value]) => {
+        questions[key] = String(value);
+      });
 
-    const reflection: RoutineReflection = {
-      routineId,
-      completedAt: new Date().toISOString(),
-      questions,
-    };
+      const reflection: RoutineReflection = {
+        routineId,
+        completedAt: new Date().toISOString(),
+        questions,
+      };
 
-    onComplete(reflection);
-    setIsSubmitting(false);
-    onOpenChange(false);
+      // Call the completion handler
+      onComplete(reflection);
+
+      // Reset form for next use
+      form.reset();
+
+      // Close dialog
+      onOpenChange(false);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Render Study Questions

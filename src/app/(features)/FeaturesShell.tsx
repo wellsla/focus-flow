@@ -193,7 +193,7 @@ export default function FeaturesShell({
       )}
     >
       <div className="hidden border-r bg-card md:block">
-        <div className="flex h-full max-h-screen flex-col gap-2 relative">
+        <div className="flex h-full max-h-screen flex-col gap-2">
           <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
             <Link
               href="/home"
@@ -205,25 +205,11 @@ export default function FeaturesShell({
           <TooltipProvider>
             <div className="flex-1 mt-4 overflow-y-auto">{sidebarContent}</div>
           </TooltipProvider>
-          <div className="mt-auto p-4 border-t">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="w-full justify-center"
-              onClick={() => setIsCollapsed(!isCollapsed)}
-            >
-              <ChevronsLeft
-                className={cn(
-                  "h-4 w-4 transition-transform",
-                  isCollapsed && "rotate-180"
-                )}
-              />
-            </Button>
-          </div>
         </div>
       </div>
       <div className="flex flex-col">
         <header className="flex h-14 items-center gap-4 border-b bg-card px-4 lg:h-[60px] lg:px-6">
+          {/* Mobile menu */}
           <Sheet>
             <SheetTrigger asChild>
               <Button
@@ -246,6 +232,18 @@ export default function FeaturesShell({
               </TooltipProvider>
             </SheetContent>
           </Sheet>
+
+          {/* Desktop sidebar toggle */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="shrink-0 hidden md:flex"
+            onClick={() => setIsCollapsed(!isCollapsed)}
+          >
+            <Menu className="h-5 w-5" />
+            <span className="sr-only">Toggle sidebar</span>
+          </Button>
+
           <div className="w-full flex-1 flex items-center justify-between">
             {process.env.NEXT_PUBLIC_ENABLE_MOTIVATIONAL_HEADER !== "false" ? (
               <MotivationalHeader />
