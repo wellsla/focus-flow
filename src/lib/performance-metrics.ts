@@ -1,4 +1,4 @@
-import { getStorageItem } from "@/lib/storage";
+import { getStorageItem, setStorageItem } from "@/lib/storage";
 import type {
   Task,
   FinancialLog,
@@ -55,13 +55,13 @@ function levelFromScore(pct: number): ExcellenceLevel {
   return "excellent";
 }
 
-function computeTaskScore(tasks: Task[]): number {
+export function computeTaskScore(tasks: Task[]): number {
   if (!tasks?.length) return 0;
   const done = tasks.filter((t) => t.status === "done").length;
   return (done / tasks.length) * 100;
 }
 
-function computeRoutineScore(): number {
+export function computeRoutineScore(): number {
   // dailyLogs: { date: yyyy-MM-dd, tasks: [{ status, count }] }
   const dailyLogs = getStorageItem<any[]>("dailyLogs") ?? [];
   if (!dailyLogs.length) return 0;
@@ -83,7 +83,7 @@ function computeRoutineScore(): number {
   return acc / days;
 }
 
-function computeApplicationsScore(apps: JobApplication[]): number {
+export function computeApplicationsScore(apps: JobApplication[]): number {
   if (!apps?.length) return 0;
   // Heuristic: higher status => better. Map to 0..1 and average.
   const weight: Record<JobApplication["status"], number> = {
@@ -98,14 +98,16 @@ function computeApplicationsScore(apps: JobApplication[]): number {
   return clamp(avg * 100);
 }
 
-function computeFinanceScore(logs: FinancialLog[]): number {
+export function computeFinanceScore(logs: FinancialLog[]): number {
   if (!logs?.length) return 0;
   // Net >= 0 considered good; proportion of months with non-negative net.
   const nonNegative = logs.filter((l) => (l.net ?? 0) >= 0).length;
   return (nonNegative / logs.length) * 100;
 }
 
-function computeTimeDisciplineScore(entries: TimeTrackingEntry[]): number {
+export function computeTimeDisciplineScore(
+  entries: TimeTrackingEntry[]
+): number {
   if (!entries?.length) return 100; // assume disciplined if no sinks logged
   // Less hours => better. Map 0h => 100, 4h+ => ~0 (clamped)
   const totalHours = entries.reduce((s, e) => s + (e.hours ?? 0), 0);
@@ -113,6 +115,75 @@ function computeTimeDisciplineScore(entries: TimeTrackingEntry[]): number {
     totalHours / Math.max(1, new Set(entries.map((e) => e.date)).size);
   const score = 100 - dailyAvg * 25; // 0h=100, 1h=75, 2h=50, 3h=25, 4h=0
   return clamp(score);
+}
+
+export type DomainScores = {
+  tasks: number;
+  routines: number;
+  applications: number;
+  finances: number;
+  time: number;
+};
+
+export interface PerformanceHistoryEntry {
+  date: string; // YYYY-MM-DD
+  scorePct: number;
+  domains: DomainScores;
+  totalGems?: number; // snapshot of current gem balance
+}
+
+const HISTORY_KEY = "performanceHistory";
+
+export function computeDomainScores(): DomainScores {
+  const tasks = getStorageItem<Task[]>("tasks") ?? [];
+  const timeEntries =
+    getStorageItem<TimeTrackingEntry[]>("timeTrackingEntries") ?? [];
+  const financialLogs = getStorageItem<FinancialLog[]>("financialLogs") ?? [];
+  const apps = getStorageItem<JobApplication[]>("jobApplications") ?? [];
+
+  return {
+    tasks: computeTaskScore(tasks),
+    routines: computeRoutineScore(),
+    applications: computeApplicationsScore(apps),
+    finances: computeFinanceScore(financialLogs),
+    time: computeTimeDisciplineScore(timeEntries),
+  };
+}
+
+export function getPerformanceHistory(): PerformanceHistoryEntry[] {
+  return getStorageItem<PerformanceHistoryEntry[]>(HISTORY_KEY) ?? [];
+}
+
+export function savePerformanceHistory(
+  entries: PerformanceHistoryEntry[]
+): void {
+  setStorageItem(HISTORY_KEY, entries);
+}
+
+export function recordPerformanceSnapshot(
+  dateISO: string
+): PerformanceHistoryEntry {
+  const domains = computeDomainScores();
+  const overall = computeOverallPerformance();
+  const rewards = getStorageItem<{ gems?: number }>("rewards");
+  const totalGems = rewards?.gems ?? undefined;
+
+  const entry: PerformanceHistoryEntry = {
+    date: dateISO,
+    scorePct: overall.scorePct,
+    domains,
+    totalGems,
+  };
+
+  const history = getPerformanceHistory();
+  const idx = history.findIndex((h) => h.date === dateISO);
+  if (idx >= 0) {
+    history[idx] = entry;
+  } else {
+    history.push(entry);
+  }
+  savePerformanceHistory(history);
+  return entry;
 }
 
 export function computeOverallPerformance(): OverallPerformanceSnapshot {

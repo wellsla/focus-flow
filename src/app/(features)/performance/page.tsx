@@ -24,6 +24,10 @@ import {
 } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
 import { OverallPerformanceGoal } from "@/features/performance/OverallPerformanceGoal";
+import { DomainBreakdown } from "@/features/performance/DomainBreakdown";
+import { PerformanceTrend } from "@/features/performance/PerformanceTrend";
+import { GemCorrelation } from "@/features/performance/GemCorrelation";
+import { RecentAchievements } from "@/features/performance/RecentAchievements";
 
 const getEntryDateString = (raw: any) => {
   if (!raw) return "";
@@ -285,6 +289,10 @@ export default function PerformancePage() {
             <Bar dataKey="value" name="Hours" fill="hsl(var(--chart-2))" />
           </BarChart>
         </ChartCard>
+        <DomainBreakdown />
+        <PerformanceTrend />
+        <GemCorrelation />
+        <RecentAchievements />
       </div>
     </div>
   );

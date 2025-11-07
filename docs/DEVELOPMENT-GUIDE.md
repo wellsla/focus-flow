@@ -4,7 +4,7 @@
 
 **Última Atualização**: 7 de novembro de 2025  
 **Status do Projeto**: ✅ Build limpo (0 erros)  
-**Versão**: 1.2.0
+**Versão**: 1.2.2
 
 ---
 
@@ -500,7 +500,7 @@ storage.ts (setStorageItem)
     ↓
 localStorage.setItem("focus-flow:v1:key", JSON.stringify(data))
     ↓
-Custom Event Dispatch (storage-update)
+Custom Event Dispatch (local-storage)
     ↓
 Outros Componentes Re-render (se subscribed)
 ```
@@ -1802,6 +1802,36 @@ npm run build -- --analyze # (se configurado)
 
 ## 📝 Notas de Versão
 
+### v1.2.2 (7 Nov 2025)
+
+**Build**: ✅ 0 erros
+
+**Performance Analysis Expansion**:
+
+- Added daily performance history snapshots (stored under `performanceHistory`).
+- New domain score exports in `src/lib/performance-metrics.ts` (`computeDomainScores`, individual domain functions).
+- Added components:
+  - `DomainBreakdown` (bar chart of per-domain scores)
+  - `PerformanceTrend` (30-day line chart of overall score)
+  - `GemCorrelation` (scatter chart relating score vs gem balance)
+  - `RecentAchievements` (latest 5 achievements + gem balance)
+- Updated event listeners to use `local-storage` custom event for consistency.
+- Hook `usePerformanceMetrics` now records a daily snapshot if missing.
+- Added `usePerformanceHistory` for reactive access to stored trend data.
+- Integrated new charts into `/performance` page beneath existing analytics.
+
+**Integration Notes**:
+
+- Gem balance correlated with performance to surface motivational feedback loops.
+- Achievements surfaced in performance to reinforce progress contextually.
+- Domain breakdown enables targeted improvement (weakest domain now visible).
+
+**Next Ideas**:
+
+- Annotate trend points with achievement unlock markers.
+- Add moving average line (7-day smoothing).
+- Add percentile ranking (local-only heuristic) for gamified benchmarking.
+
 ### v1.2.1 (7 Nov 2025)
 
 **Build**: ✅ 0 erros
@@ -1823,7 +1853,7 @@ npm run build -- --analyze # (se configurado)
   - Excellent: 95.1 – 100%
 - Sugestão dinâmica: acima de 95% recomenda aumentar carga (novas rotinas / tarefas mais difíceis)
 - UI: `OverallPerformanceGoal` exibido no topo da página `/performance`.
-- Hook inicial simples substituído por computação direta + listener de `storage-update`.
+- Hook inicial simples substituído por computação direta + listener de `local-storage`.
 
 ### v1.2.0 (7 Nov 2025)
 

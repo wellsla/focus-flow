@@ -58,9 +58,9 @@ export function OverallPerformanceGoal() {
 
   useEffect(() => {
     const handler = () => setScore(computeOverallPerformance());
-    window.addEventListener("storage-update", handler as EventListener);
+    window.addEventListener("local-storage", handler as EventListener);
     return () =>
-      window.removeEventListener("storage-update", handler as EventListener);
+      window.removeEventListener("local-storage", handler as EventListener);
   }, []);
 
   const pct = Math.round(score.scorePct);
