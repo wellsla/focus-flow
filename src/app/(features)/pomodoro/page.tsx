@@ -28,6 +28,7 @@ import { PomodoroTimer } from "@/features/pomodoro/PomodoroTimer";
 import { PomodoroControls } from "@/features/pomodoro/PomodoroControls";
 import { CategorySelectorDialog } from "@/features/pomodoro/category-selector-dialog";
 import { ProductivityValidationDialog } from "@/features/pomodoro/productivity-validation-dialog";
+import { PomodoroTimeDistribution } from "@/features/pomodoro/pomodoro-time-distribution";
 import { loadPomodoroSessions } from "@/lib/storage";
 import { useState, useEffect, useRef } from "react";
 import type { PomodoroSession, PomodoroCategory } from "@/lib/types";
@@ -276,6 +277,9 @@ export default function PomodoroPage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Time Distribution */}
+          <PomodoroTimeDistribution />
         </div>
       </div>
 
