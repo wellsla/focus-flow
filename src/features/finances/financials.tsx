@@ -42,7 +42,7 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
@@ -135,7 +135,7 @@ const FinancialItemForm = ({
     },
   });
 
-  const type = form.watch("type");
+  const type = useWatch({ control: form.control, name: "type" });
 
   useEffect(() => {
     form.reset({
@@ -419,7 +419,7 @@ const IncomeForm = ({
     },
   });
 
-  const status = form.watch("status");
+  const status = useWatch({ control: form.control, name: "status" });
 
   useEffect(() => {
     form.reset({
