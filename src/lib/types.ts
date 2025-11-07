@@ -31,6 +31,40 @@ export type ApplicationComment = {
   createdAt: string; // ISO timestamp
 };
 
+// Deep Application Workflow - 6-step process
+export type DeepApplicationWorkflow = {
+  step1_found: {
+    jobUrl: string;
+    foundDate: string;
+    source: string; // LinkedIn, Indeed, etc
+  };
+  step2_readDescription: {
+    completed: boolean;
+    keyRequirements: string;
+    dealbreakers?: string;
+    notes: string;
+  };
+  step3_companyResearch: {
+    completed: boolean;
+    whatTheyDo: string;
+    whyThisRole: string;
+  };
+  step4_writeInformation: {
+    completed: boolean;
+    whyGoodFit: string;
+  };
+  step5_apply: {
+    completed: boolean;
+    appliedDate?: string;
+  };
+  step6_contact: {
+    completed: boolean;
+    contactedPerson?: string;
+    contactMethod?: "LinkedIn" | "Email" | "Phone" | "Other";
+    followUpPlan?: string;
+  };
+};
+
 export type JobApplication = {
   id: string;
   company: string;
@@ -41,6 +75,8 @@ export type JobApplication = {
   priority: ApplicationPriority;
   description?: string;
   comments?: ApplicationComment[];
+  deepWorkflow?: DeepApplicationWorkflow;
+  applicationDepthScore?: number; // 0-100 based on completed steps
 };
 
 export type EmploymentStatus = "Unemployed" | "Benefited" | "Employed";
@@ -225,14 +261,37 @@ export interface RoutineItem {
   frequency: Frequency;
   active: boolean; // permitir ocultar temporariamente
   order?: number;
+  routineType?: "study" | "code" | "job-search" | "finances" | "general"; // For reflection questions
 }
+
+// Routine Reflection - Questions answered when completing routine
+export type RoutineReflection = {
+  routineId: string;
+  completedAt: string; // ISO timestamp
+  questions: {
+    [key: string]: string; // question key -> answer
+  };
+};
 
 export interface Checkmark {
   id: string;
   routineId: string;
   dateISO: string; // yyyy-mm-dd
   done: boolean;
+  reflection?: RoutineReflection; // Added reflection data
 }
+
+// Pomodoro Activity Categories
+export type PomodoroCategory =
+  | "deep-learning" // Study focused
+  | "active-coding" // Intentional coding
+  | "job-search" // Job hunting
+  | "tutorial-following" // Semi-productive
+  | "social-media" // Time wasted
+  | "streaming" // Time wasted
+  | "other";
+
+export type PomodoroCategoryType = "productive" | "semi-productive" | "wasted";
 
 export interface PomodoroSettings {
   workMin: number; // default 25
@@ -250,6 +309,8 @@ export interface PomodoroSession {
   endedAt?: string;
   kind: "work" | "break" | "long-break";
   completed: boolean;
+  category?: PomodoroCategory; // Activity category
+  wasTrulyProductive?: boolean; // User validation after session
 }
 
 export interface JournalEntry {

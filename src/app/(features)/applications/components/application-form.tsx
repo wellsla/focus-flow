@@ -41,6 +41,8 @@ import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 import { ApplicationComments } from "./application-comments";
 import { Separator } from "@/components/ui/separator";
+import { DeepApplicationWizard } from "./deep-application-wizard";
+import { Badge } from "@/components/ui/badge";
 
 const formSchema = z.object({
   role: z.string().min(2, { message: "Role must be at least 2 characters." }),
@@ -361,6 +363,43 @@ export function ApplicationForm({
             </Button>
           )}
         </div>
+
+        {/* Deep Application Workflow - Only show for existing applications */}
+        {application && (
+          <>
+            <Separator className="my-6" />
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold">Application Quality</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Follow the 6-step deep application process
+                  </p>
+                </div>
+                {application.applicationDepthScore !== undefined && (
+                  <Badge
+                    variant={
+                      application.applicationDepthScore >= 80
+                        ? "default"
+                        : application.applicationDepthScore >= 50
+                        ? "secondary"
+                        : "outline"
+                    }
+                    className="text-lg px-3 py-1"
+                  >
+                    {application.applicationDepthScore}/100
+                  </Badge>
+                )}
+              </div>
+              <DeepApplicationWizard
+                application={application}
+                onUpdate={(updated) => {
+                  onSubmitSuccess(updated);
+                }}
+              />
+            </div>
+          </>
+        )}
 
         {/* Comments Timeline Section - Only show for existing applications */}
         {application && (
