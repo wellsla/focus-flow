@@ -2,8 +2,7 @@
 "use no memo";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm, type UseFormReturn } from "react-hook-form";
 import * as z from "zod";
 import {
   Dialog,
@@ -101,8 +100,15 @@ export function RoutineReflectionDialog({
     }
   };
 
-  const form = useForm<any>({
-    resolver: (zodResolver as any)((getSchema as any)()),
+  // Dynamic schema selection (each returns a ZodObject). Keep runtime schema but normalize RHF typing
+  const activeSchema = getSchema();
+  type RoutineFormValues = {
+    q1?: string;
+    q2?: string;
+    q3?: string;
+    q4?: string;
+  };
+  const form: UseFormReturn<RoutineFormValues> = useForm<RoutineFormValues>({
     defaultValues: {},
   });
 
@@ -138,15 +144,33 @@ export function RoutineReflectionDialog({
     }
   };
 
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (data: RoutineFormValues) => {
     setIsSubmitting(true);
 
     try {
+      // Runtime validation using active schema to keep strictness without complex generics
+      const parsed = activeSchema.safeParse(data);
+      if (!parsed.success) {
+        const fieldErrors = parsed.error.formErrors.fieldErrors;
+        Object.entries(fieldErrors).forEach(([key, messages]) => {
+          if (messages && messages.length) {
+            form.setError(key as keyof RoutineFormValues, {
+              type: "manual",
+              message: messages[0],
+            });
+          }
+        });
+        return; // abort submit on validation error
+      }
       // Convert form data to reflection format
       const questions: Record<string, string> = {};
-      Object.entries(data).forEach(([key, value]) => {
-        questions[key] = String(value);
-      });
+      const keys = ["q1", "q2", "q3", "q4"] as const;
+      for (const key of keys) {
+        const value = data[key];
+        if (value != null) {
+          questions[key] = String(value);
+        }
+      }
 
       const reflection: RoutineReflection = {
         routineId,

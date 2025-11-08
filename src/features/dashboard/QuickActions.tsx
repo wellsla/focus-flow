@@ -51,11 +51,7 @@ export function QuickActions() {
             <CalendarCheck className="mr-2 h-4 w-4" /> Today’s Routines
           </Link>
         </Button>
-        <Button asChild variant="outline" size="sm">
-          <Link href="/performance">
-            <Gauge className="mr-2 h-4 w-4" /> Performance
-          </Link>
-        </Button>
+        {/* Performance feature removed */}
       </CardContent>
     </Card>
   );

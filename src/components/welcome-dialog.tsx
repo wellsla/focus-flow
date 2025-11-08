@@ -100,11 +100,10 @@ export function WelcomeDialog() {
               </p>
               <ul className="text-sm text-muted-foreground mt-2 space-y-1 ml-4">
                 <li>• 20 default routines organized by category</li>
-                <li>• 6 reminders throughout the day</li>
                 <li>• ADHD-optimized settings</li>
               </ul>
               <p className="text-sm text-muted-foreground mt-2">
-                Customize everything in Routines, Reminders, and Settings pages.
+                Customize everything in Routines and Settings pages.
               </p>
             </div>
 
