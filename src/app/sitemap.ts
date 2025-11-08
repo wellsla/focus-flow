@@ -1,8 +1,11 @@
 import { MetadataRoute } from "next";
 
 export default function sitemap(): MetadataRoute.Sitemap {
+  // Prefer APP_BASE_URL (used by Auth0 SDK) then AUTH0_BASE_URL, then a safe default.
   const baseUrl =
-    process.env.AUTH0_BASE_URL || "https://focus-flow-theta-flax.vercel.app";
+    process.env.APP_BASE_URL ||
+    process.env.AUTH0_BASE_URL ||
+    "https://ws-focus-flow.vercel.app";
 
   return [
     {

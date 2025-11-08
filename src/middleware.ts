@@ -39,8 +39,7 @@ export const config = {
     "/auth/login",
     "/auth/logout",
     "/auth/callback",
-    "/auth/profile",
-    "/auth/access-token",
+    // (no profile/access-token route in App Router SDK)
     // Protected app routes - ALL features require authentication
     "/home/:path*",
     "/dashboard/:path*",
