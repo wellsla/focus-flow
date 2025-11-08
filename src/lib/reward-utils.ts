@@ -55,6 +55,7 @@ export function initializeRewardState(): RewardState {
     points: 0,
     streakDays: 0,
     lastCheckDate: "",
+    badges: [],
   };
 }
 

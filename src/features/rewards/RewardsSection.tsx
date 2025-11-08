@@ -2,7 +2,8 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Trophy, Flame, Gem } from "lucide-react";
-import { useRewardSystem } from "@/hooks/use-reward-system";
+import { useRewardState } from "@/hooks/use-rewards-db";
+import { useAchievements } from "@/hooks/use-achievements-db";
 import { DEFAULT_ACHIEVEMENTS } from "@/lib/initial-achievements";
 
 interface RewardsSectionProps {
@@ -11,7 +12,9 @@ interface RewardsSectionProps {
 
 export function RewardsSection({ variant = "full" }: RewardsSectionProps) {
   // New rewards system (gems + achievements)
-  const { rewardState, gems, achievements } = useRewardSystem();
+  const { state } = useRewardState();
+  const { achievements } = useAchievements();
+  const gems = state?.gems ?? 0;
   const unlockedAchievements = achievements.filter(
     (a) => a.isUnlocked && !a.isRevoked
   );
@@ -46,14 +49,14 @@ export function RewardsSection({ variant = "full" }: RewardsSectionProps) {
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold">
-                  {rewardState.streakDays}
+                  {state?.streakDays ?? 0}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {rewardState.streakDays === 0
+                  {(state?.streakDays ?? 0) === 0
                     ? "Complete 5+ rotinas hoje para começar"
-                    : rewardState.streakDays === 1
+                    : (state?.streakDays ?? 0) === 1
                     ? "Great! Come back tomorrow"
-                    : `${rewardState.streakDays} dias seguidos!`}
+                    : `${state?.streakDays} dias seguidos!`}
                 </p>
               </CardContent>
             </Card>
@@ -96,7 +99,7 @@ export function RewardsSection({ variant = "full" }: RewardsSectionProps) {
               <div className="flex items-center gap-2">
                 <Flame className="h-5 w-5 text-orange-500" />
                 <span className="font-medium">
-                  {rewardState.streakDays} dias seguidos
+                  {state?.streakDays ?? 0} dias seguidos
                 </span>
               </div>
             </div>

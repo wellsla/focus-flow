@@ -37,8 +37,6 @@ import Logo from "@/components/logo";
 import { cn } from "@/lib/utils";
 import { MotivationalHeader } from "../../features/motivational-header";
 import useLocalStorage from "@/hooks/use-local-storage";
-import useDataLogger from "@/hooks/use-data-logger";
-import { useSeedInitialization } from "@/hooks/use-seed-initialization";
 import {
   Tooltip,
   TooltipContent,
@@ -46,7 +44,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { CommandPalette } from "@/components/command-palette";
-import { ReminderManager } from "@/features/reminders/ReminderManager";
 import { WelcomeDialog } from "@/components/welcome-dialog";
 import { GemBalance } from "@/features/shared/GemBalance";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -73,7 +70,6 @@ const navItems: (NavItem | NavGroup)[] = [
     items: [
       { href: "/achievements", icon: Trophy, label: "Achievements" },
       { href: "/rewards", icon: Gift, label: "Rewards" },
-      { href: "/reminders", icon: Bell, label: "Reminders" },
     ],
   },
   {
@@ -99,10 +95,6 @@ export default function FeaturesShell({
 }: {
   children: React.ReactNode;
 }) {
-  // Record a daily snapshot of key data so users can view progress over time
-  useDataLogger();
-  // Initialize default data on first app run
-  useSeedInitialization();
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     const id = setTimeout(() => setMounted(true), 0);
@@ -118,6 +110,27 @@ export default function FeaturesShell({
     "focusMode",
     false
   );
+  const [focusDefault] = useLocalStorage<boolean>("focusModeDefault", false);
+
+  // Apply default focus mode on mount if configured
+  useEffect(() => {
+    if (focusDefault && !focusMode) {
+      setFocusMode(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusDefault]);
+
+  // Hotkey: Shift+F toggles focus mode
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.key === "F" || e.key === "f") && e.shiftKey) {
+        e.preventDefault();
+        setFocusMode(!focusMode);
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [focusMode, setFocusMode]);
 
   const NavLink = ({ href, icon: Icon, label }: NavItem) => (
     <Tooltip>
@@ -262,13 +275,14 @@ export default function FeaturesShell({
           </Button>
 
           <div className="w-full flex-1 flex items-center justify-between">
-            {process.env.NEXT_PUBLIC_ENABLE_MOTIVATIONAL_HEADER !== "false" ? (
+            {process.env.NEXT_PUBLIC_ENABLE_MOTIVATIONAL_HEADER !== "false" &&
+            !focusMode ? (
               <MotivationalHeader />
             ) : (
               <div />
             )}
             <div className="hidden md:flex items-center gap-2 mr-3">
-              <GemBalance />
+              {!focusMode && <GemBalance />}
               <ThemeToggle />
               <Button
                 variant={focusMode ? "secondary" : "outline"}
@@ -340,7 +354,6 @@ export default function FeaturesShell({
         </main>
       </div>
       <CommandPalette />
-      <ReminderManager />
       <WelcomeDialog />
     </div>
   );

@@ -20,19 +20,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookOpen, Download, Calendar } from "lucide-react";
 import { QuickEntry } from "@/features/journal/QuickEntry";
 import { JournalList } from "@/features/journal/JournalList";
-import { useLocalStorageState } from "@/hooks/use-local-storage-state";
+import {
+  useJournalEntries,
+  useUpsertJournalEntry,
+  useDeleteJournalEntry,
+} from "@/hooks/use-journal-db";
 import type { JournalEntry } from "@/lib/types";
 import { format, startOfDay } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { exportJournalToPDF } from "@/lib/export-pdf";
-import { pointsForJournal, getEncouragementMessage } from "@/lib/reward-engine";
-import { loadRewards, saveRewards } from "@/lib/storage";
 
 export default function JournalPage() {
-  const [entries, setEntries] = useLocalStorageState<JournalEntry[]>(
-    "journal-entries",
-    []
-  );
+  const { entries, isLoading } = useJournalEntries();
+  const upsertEntry = useUpsertJournalEntry();
+  const deleteEntry = useDeleteJournalEntry();
+
   const { toast } = useToast();
   const [isExporting, setIsExporting] = useState(false);
   const [editingEntry, setEditingEntry] = useState<JournalEntry | null>(null);
@@ -49,69 +51,45 @@ export default function JournalPage() {
   /**
    * Handle new entry submission
    */
-  const handleSubmit = (entryData: Omit<JournalEntry, "id" | "dateISO">) => {
-    if (editingEntry) {
-      // Update existing
-      const updated: JournalEntry = {
-        ...editingEntry,
-        ...entryData,
-      };
-      setEntries(entries.map((e) => (e.id === updated.id ? updated : e)));
-      toast({
-        title: "Registro atualizado",
-        description: "Seu diário foi atualizado com sucesso.",
-      });
-      setEditingEntry(null);
-    } else if (todayEntry) {
-      // Update today's entry
-      const updated: JournalEntry = {
-        ...todayEntry,
-        ...entryData,
-      };
-      setEntries(entries.map((e) => (e.id === updated.id ? updated : e)));
-      toast({
-        title: "Registro atualizado",
-        description: "Seu registro de hoje foi atualizado.",
-      });
-    } else {
-      // Create new entry for today
-      const newEntry: JournalEntry = {
-        id: `journal-${Date.now()}`,
-        dateISO: todayISO,
-        ...entryData,
-      };
-      setEntries([...entries, newEntry]);
+  const handleSubmit = async (
+    entryData: Omit<JournalEntry, "id" | "dateISO">
+  ) => {
+    try {
+      const dateISO = editingEntry ? editingEntry.dateISO : todayISO;
 
-      // Award points
-      const rewards = loadRewards();
-      const points = pointsForJournal();
-      rewards.points += points;
-      saveRewards(rewards);
+      await upsertEntry.mutateAsync({
+        dateISO,
+        ...entryData,
+      });
 
       toast({
         title: "Registro salvo! 🎉",
-        description: `${getEncouragementMessage(
-          "journal"
-        )} (+${points} pontos)`,
+        description: editingEntry
+          ? "Entrada atualizada com sucesso"
+          : "Nova entrada criada com sucesso",
       });
+
+      setEditingEntry(null);
+    } catch (error) {
+      console.error("Failed to save journal entry:", error);
     }
   };
 
   /**
    * Handle entry deletion
    */
-  const handleDelete = (id: string) => {
-    const entry = entries.find((e) => e.id === id);
-    setEntries(entries.filter((e) => e.id !== id));
-    toast({
-      title: "Registro excluído",
-      description: `Registro de ${
-        entry ? format(new Date(entry.dateISO), "dd/MM/yyyy") : ""
-      } foi removido.`,
-      variant: "destructive",
-    });
-    if (editingEntry?.id === id) {
-      setEditingEntry(null);
+  const handleDelete = async (id: string) => {
+    try {
+      const entry = entries.find((e) => e.id === id);
+      if (!entry) return;
+
+      await deleteEntry.mutateAsync({ dateISO: entry.dateISO });
+
+      if (editingEntry?.id === id) {
+        setEditingEntry(null);
+      }
+    } catch (error) {
+      console.error("Failed to delete journal entry:", error);
     }
   };
 
@@ -194,18 +172,6 @@ export default function JournalPage() {
             <div className="text-2xl font-bold">{entriesThisMonth}</div>
             <p className="text-xs text-muted-foreground">
               Registros em {format(new Date(), "MMMM")}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pontos</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">+{pointsForJournal()}</div>
-            <p className="text-xs text-muted-foreground">
-              Por cada registro completo
             </p>
           </CardContent>
         </Card>

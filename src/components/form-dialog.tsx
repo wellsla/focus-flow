@@ -42,14 +42,19 @@ export function FormDialog({
 
   const closeDialog = () => setIsOpen(false);
 
-  const getOriginalProp = (propName: string) => {
-    return isValidElement(children)
-      ? (children.props as any)[propName]
+  const getOriginalProp = (
+    propName: string
+  ): ((data: unknown) => void) | undefined => {
+    if (!isValidElement(children)) return undefined;
+    const props = children.props as Record<string, unknown>;
+    const val = props[propName];
+    return typeof val === "function"
+      ? (val as (data: unknown) => void)
       : undefined;
   };
 
-  const wrapCallback = (originalHandler?: (data: any) => void) => {
-    return (data: any) => {
+  const wrapCallback = (originalHandler?: (data: unknown) => void) => {
+    return (data: unknown) => {
       if (originalHandler) originalHandler(data);
       closeDialog();
     };
@@ -57,16 +62,19 @@ export function FormDialog({
 
   // Inject success handlers that auto-close the dialog
   const enhancedChildren = isValidElement(children)
-    ? cloneElement(children as ReactElement<any>, {
-        ...(children.props as any),
-        onSubmit: wrapCallback(getOriginalProp("onSubmit")),
-        onSubmitSuccess: wrapCallback(getOriginalProp("onSubmitSuccess")),
-        onGoalSubmit: wrapCallback(getOriginalProp("onGoalSubmit")),
-        onTaskSubmit: wrapCallback(getOriginalProp("onTaskSubmit")),
-        onDelete: wrapCallback(getOriginalProp("onDelete")),
-        onGoalDelete: wrapCallback(getOriginalProp("onGoalDelete")),
-        onTaskDelete: wrapCallback(getOriginalProp("onTaskDelete")),
-      })
+    ? cloneElement(
+        children as ReactElement,
+        {
+          ...(children.props as Record<string, unknown>),
+          onSubmit: wrapCallback(getOriginalProp("onSubmit")),
+          onSubmitSuccess: wrapCallback(getOriginalProp("onSubmitSuccess")),
+          onGoalSubmit: wrapCallback(getOriginalProp("onGoalSubmit")),
+          onTaskSubmit: wrapCallback(getOriginalProp("onTaskSubmit")),
+          onDelete: wrapCallback(getOriginalProp("onDelete")),
+          onGoalDelete: wrapCallback(getOriginalProp("onGoalDelete")),
+          onTaskDelete: wrapCallback(getOriginalProp("onTaskDelete")),
+        } as Record<string, unknown>
+      )
     : children;
 
   return (

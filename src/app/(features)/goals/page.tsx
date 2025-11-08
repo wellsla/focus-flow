@@ -20,7 +20,6 @@ import {
 import {
   PlusCircle,
   Target,
-  History,
   Loader2,
   ChevronDown,
   ChevronUp,
@@ -58,8 +57,13 @@ import {
 } from "@/components/ui/select";
 import { FormDialog } from "@/components/form-dialog";
 import useLocalStorage from "@/hooks/use-local-storage";
+import {
+  useGoals,
+  useCreateGoal,
+  useUpdateGoal,
+  useDeleteGoal,
+} from "@/hooks/use-goals-db";
 import { Skeleton } from "@/components/ui/skeleton";
-import { HistoryDialog } from "../../../features/history-dialog";
 import {
   goals as initialGoals,
   dailyLogs as initialDailyLogs,
@@ -76,26 +80,7 @@ const statusConfig: Record<GoalStatus, { label: string; color: string }> = {
   Achieved: { label: "Achieved", color: "bg-green-200 text-green-800" },
 };
 
-const renderGoalLog = (log: DailyLog) => (
-  <div className="space-y-4">
-    {log.goals.length > 0 ? (
-      log.goals.map((goalLog) => (
-        <Card key={goalLog.status}>
-          <CardHeader className="p-4">
-            <CardTitle className="text-base flex justify-between items-center">
-              <span>{goalLog.status}</span>
-              <Badge variant="secondary">{goalLog.count}</Badge>
-            </CardTitle>
-          </CardHeader>
-        </Card>
-      ))
-    ) : (
-      <p className="text-muted-foreground text-center">
-        No goal data logged for this day.
-      </p>
-    )}
-  </div>
-);
+// legacy history UI removed - centralized at /feedback
 
 const GoalCard = ({
   goal,
@@ -259,8 +244,10 @@ const GoalForm = ({
       const newGoal: Goal = {
         id:
           goal?.id ||
-          (typeof crypto !== "undefined" && "randomUUID" in crypto
-            ? (crypto as any).randomUUID()
+          (typeof crypto !== "undefined" &&
+          typeof (crypto as { randomUUID?: () => string }).randomUUID ===
+            "function"
+            ? (crypto as { randomUUID: () => string }).randomUUID()
             : new Date().toISOString()),
         title: values.title,
         description: values.description,
@@ -498,10 +485,11 @@ const GoalForm = ({
 };
 
 export default function GoalsPage() {
-  const [goals, setGoals, loadingGoals] = useLocalStorage<Goal[]>(
-    "goals",
-    initialGoals
-  );
+  const { goals, isLoading: loadingGoals } = useGoals();
+  const createGoal = useCreateGoal();
+  const updateGoal = useUpdateGoal();
+  const deleteGoal = useDeleteGoal();
+
   const [dailyLogs, setDailyLogs, loadingLogs] = useLocalStorage<DailyLog[]>(
     "dailyLogs",
     initialDailyLogs
@@ -515,29 +503,30 @@ export default function GoalsPage() {
     setIsFormOpen(true);
   };
 
-  const handleGoalSubmit = (goal: Goal) => {
-    setGoals((prev) => {
-      const exists = prev.some((g) => g.id === goal.id);
-      return exists
-        ? prev.map((g) => (g.id === goal.id ? goal : g))
-        : [...prev, goal];
-    });
-    setIsFormOpen(false);
-    setSelectedGoal(null);
-    toast({
-      title: "Goal Saved",
-      description: `Your goal "${goal.title}" has been saved.`,
-    });
+  const handleGoalSubmit = async (goal: Goal) => {
+    try {
+      const exists = goals.some((g) => g.id === goal.id);
+
+      if (exists) {
+        const { id, ...updateData } = goal;
+        await updateGoal.mutateAsync({ id, ...updateData });
+      } else {
+        await createGoal.mutateAsync(goal);
+      }
+
+      setIsFormOpen(false);
+      setSelectedGoal(null);
+    } catch (error) {
+      console.error("Failed to save goal:", error);
+    }
   };
 
-  const handleGoalDelete = (goalId: string) => {
-    const goalToDelete = goals.find((g) => g.id === goalId);
-    setGoals((prev) => prev.filter((g) => g.id !== goalId));
-    toast({
-      title: "Goal Deleted",
-      variant: "destructive",
-      description: `Goal "${goalToDelete?.title}" has been removed.`,
-    });
+  const handleGoalDelete = async (goalId: string) => {
+    try {
+      await deleteGoal.mutateAsync({ id: goalId });
+    } catch (error) {
+      console.error("Failed to delete goal:", error);
+    }
   };
 
   const loading = loadingGoals || loadingLogs;
@@ -586,18 +575,6 @@ export default function GoalsPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <HistoryDialog
-            triggerButton={
-              <Button variant="outline">
-                <History className="mr-2 h-4 w-4" /> View History
-              </Button>
-            }
-            title="Daily Goal Summary"
-            description="Review your goal status counts for any given day in the past."
-            logs={dailyLogs}
-            getLogDate={(log) => parseISO(log.date)}
-            renderLog={renderGoalLog}
-          />
           <FormDialog
             isOpen={isFormOpen}
             setIsOpen={setIsFormOpen}

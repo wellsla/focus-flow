@@ -2,14 +2,12 @@
 
 import { KanbanBoard } from "../../../features/applications/kanban-board";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useApplications } from "@/hooks/use-applications-db";
 import useLocalStorage from "@/hooks/use-local-storage";
-import { DailyLog, JobApplication } from "@/lib/types";
+import { DailyLog } from "@/lib/types";
 
 export default function ApplicationsPage() {
-  const [applications, __, loadingApps] = useLocalStorage<JobApplication[]>(
-    "jobApplications",
-    []
-  );
+  const { applications, isLoading: loadingApps } = useApplications();
   const [dailyLogs, setDailyLogs, loadingLogs] = useLocalStorage<DailyLog[]>(
     "dailyLogs",
     []
@@ -46,11 +44,5 @@ export default function ApplicationsPage() {
     );
   }
 
-  return (
-    <KanbanBoard
-      dailyLogs={dailyLogs}
-      applications={applications}
-      setApplications={__}
-    />
-  );
+  return <KanbanBoard dailyLogs={dailyLogs} applications={applications} />;
 }

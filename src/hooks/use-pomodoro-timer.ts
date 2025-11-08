@@ -12,17 +12,17 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useNow } from "./use-now";
 import { useNotifications } from "./use-notifications";
 import { useSound } from "./use-sound";
-import { useRewardSystem } from "./use-reward-system";
+import { useRewardEconomy } from "./use-reward-economy";
+import {
+  usePomodoroSettings,
+  useCreatePomodoroSession,
+  useUpdatePomodoroSession,
+} from "./use-pomodoro-db";
 import type {
   PomodoroSettings,
   PomodoroSession,
   PomodoroCategory,
 } from "@/lib/types";
-import {
-  loadPomodoroSettings,
-  appendPomodoroSession,
-  loadPomodoroSessions,
-} from "@/lib/storage";
 import {
   getPomodoroState,
   setPomodoroState,
@@ -51,14 +51,17 @@ interface UsePomodoroTimerReturn {
  * Custom hook for pomodoro timer with cycle management
  */
 export function usePomodoroTimer(): UsePomodoroTimerReturn {
-  const [settings] = useState<PomodoroSettings>(loadPomodoroSettings);
+  const { settings } = usePomodoroSettings();
+  const createSession = useCreatePomodoroSession();
+  const updateSession = useUpdatePomodoroSession();
+
   const [timerState, setTimerState] = useState<PomodoroTimerState>(() =>
     getPomodoroState(settings)
   );
 
   const { notify } = useNotifications();
   const { play } = useSound();
-  const { grantPomodoroGems } = useRewardSystem();
+  const { grantPomodoroGems } = useRewardEconomy();
   const now = useNow(1000); // Update every second
   const completionHandledRef = useRef<string | null>(null);
 
@@ -108,7 +111,7 @@ export function usePomodoroTimer(): UsePomodoroTimerReturn {
     const sett = settingsRef.current;
     const { state: currentState, currentCycle, sessionId } = state;
 
-    // Save completed session
+    // Save completed session to database
     if (sessionId) {
       const session: PomodoroSession = {
         id: sessionId,
@@ -116,8 +119,9 @@ export function usePomodoroTimer(): UsePomodoroTimerReturn {
         endedAt: new Date().toISOString(),
         kind: currentState as "work" | "break" | "long-break",
         completed: true,
+        category: state.category,
       };
-      appendPomodoroSession(session);
+      createSession.mutate(session);
     }
 
     // Alert user
@@ -140,11 +144,8 @@ export function usePomodoroTimer(): UsePomodoroTimerReturn {
     // Reward gems for productive work session
     if (currentState === "work") {
       // Grant gems for finishing a work session
-      try {
-        grantPomodoroGems();
-      } catch (e) {
-        // no-op
-      }
+      // Grant gems (fire and forget)
+      void grantPomodoroGems();
 
       // Transition to break state
       const isLongBreak = currentCycle % sett.cyclesUntilLong === 0;
@@ -172,7 +173,7 @@ export function usePomodoroTimer(): UsePomodoroTimerReturn {
         sessionId: null,
       });
     }
-  }, [notify, play, grantPomodoroGems]);
+  }, [notify, play, grantPomodoroGems, createSession]);
 
   // Calculate remaining time dynamically (no setState needed)
   const actualRemainingSeconds = (() => {
@@ -244,6 +245,7 @@ export function usePomodoroTimer(): UsePomodoroTimerReturn {
   const pause = useCallback(() => {
     if (timerState.state === "idle" || timerState.state === "paused") return;
 
+    // Save incomplete session to database
     if (timerState.sessionId) {
       const session: PomodoroSession = {
         id: timerState.sessionId,
@@ -251,15 +253,16 @@ export function usePomodoroTimer(): UsePomodoroTimerReturn {
         endedAt: new Date().toISOString(),
         kind: timerState.state as "work" | "break" | "long-break",
         completed: false,
+        category: timerState.category,
       };
-      appendPomodoroSession(session);
+      createSession.mutate(session);
     }
 
     setTimerState((prev) => ({
       ...prev,
       state: "paused",
     }));
-  }, [timerState]);
+  }, [timerState, createSession]);
 
   const resume = useCallback(() => {
     if (timerState.state !== "paused") return;
@@ -297,30 +300,15 @@ export function usePomodoroTimer(): UsePomodoroTimerReturn {
 
   const validateProductivity = useCallback(
     (wasTrulyProductive: boolean) => {
-      // Find the most recent work session and update it
+      // Update the most recent work session in the database
       if (timerState.sessionId) {
-        const sessions = loadPomodoroSessions();
-        const sessionIndex = sessions.findIndex(
-          (s) => s.id === timerState.sessionId
-        );
-
-        if (sessionIndex !== -1) {
-          sessions[sessionIndex] = {
-            ...sessions[sessionIndex],
-            wasTrulyProductive,
-          };
-
-          // Save updated sessions
-          if (typeof window !== "undefined") {
-            localStorage.setItem(
-              "focus-flow:v1:pomodoro-sessions",
-              JSON.stringify(sessions)
-            );
-          }
-        }
+        updateSession.mutate({
+          id: timerState.sessionId,
+          wasTrulyProductive,
+        });
       }
     },
-    [timerState.sessionId]
+    [timerState.sessionId, updateSession]
   );
 
   const progress =
@@ -347,3 +335,6 @@ export function usePomodoroTimer(): UsePomodoroTimerReturn {
     validateProductivity,
   };
 }
+
+// Re-export pomodoro state type for components importing from this hook
+export type { PomodoroState } from "@/lib/pomodoro-store";

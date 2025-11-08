@@ -23,13 +23,12 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { usePomodoroTimer } from "@/hooks/use-pomodoro-timer";
-import { usePomodoroRewards } from "@/hooks/use-pomodoro-rewards";
+import { usePomodoroSessions } from "@/hooks/use-pomodoro-db";
 import { PomodoroTimer } from "@/features/pomodoro/PomodoroTimer";
 import { PomodoroControls } from "@/features/pomodoro/PomodoroControls";
 import { CategorySelectorDialog } from "@/features/pomodoro/category-selector-dialog";
 import { ProductivityValidationDialog } from "@/features/pomodoro/productivity-validation-dialog";
 import { PomodoroTimeDistribution } from "@/features/pomodoro/pomodoro-time-distribution";
-import { loadPomodoroSessions } from "@/lib/storage";
 import { useState, useEffect, useRef } from "react";
 import type { PomodoroSession, PomodoroCategory } from "@/lib/types";
 import { format, parseISO } from "date-fns";
@@ -38,36 +37,19 @@ import { Clock, TrendingUp, Flame } from "lucide-react";
 
 export default function PomodoroPage() {
   const timer = usePomodoroTimer();
+  const { sessions: allSessions, isLoading } = usePomodoroSessions();
 
-  // Integrate with rewards system
-  usePomodoroRewards();
-  const [sessions, setSessions] = useState<PomodoroSession[]>([]);
   const [showCategoryDialog, setShowCategoryDialog] = useState(false);
   const [showValidationDialog, setShowValidationDialog] = useState(false);
   const [lastCompletedCategory, setLastCompletedCategory] =
     useState<PomodoroCategory | null>(null);
   const previousStateRef = useRef(timer.state);
 
-  // Load sessions on mount and when timer completes
+  // Get last 10 sessions
+  const sessions = allSessions.slice(-10).reverse();
+
+  // Show productivity validation dialog when work session completes
   useEffect(() => {
-    const loadSessions = () => {
-      const allSessions = loadPomodoroSessions();
-      // Get last 10 sessions
-      setSessions(allSessions.slice(-10).reverse());
-    };
-
-    loadSessions();
-
-    // Reload when timer state changes (after completion)
-    if (
-      timer.state === "idle" ||
-      timer.state === "break" ||
-      timer.state === "long-break"
-    ) {
-      loadSessions();
-    }
-
-    // Show productivity validation dialog when work session completes
     if (
       previousStateRef.current === "work" &&
       (timer.state === "break" || timer.state === "long-break")

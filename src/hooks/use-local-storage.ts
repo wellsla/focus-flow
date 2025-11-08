@@ -58,7 +58,10 @@ function useLocalStorage<T>(
       const onLocalStorage = (ev: Event) => {
         // Support CustomEvent with { detail: { key } } to force notify on same-tab writes
         const ce = ev as CustomEvent<{ key?: string } | undefined>;
-        const targetKey = (ce?.detail as any)?.key;
+        const targetKey =
+          ce?.detail && typeof ce.detail === "object"
+            ? ce.detail.key
+            : undefined;
         if (!targetKey || targetKey === key) {
           const next = window.localStorage.getItem(key);
           rawCacheRef.current = next;

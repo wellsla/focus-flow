@@ -1,12 +1,12 @@
 "use client";
 
-import { useRewardSystem } from "@/hooks/use-reward-system";
+import { useAchievements } from "@/hooks/use-achievements-db";
 import { AchievementCard } from "./AchievementCard";
 import { Input } from "@/components/ui/input";
 import { useState, useMemo } from "react";
 
 export function AchievementGallery() {
-  const { achievements } = useRewardSystem();
+  const { achievements } = useAchievements();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<string>("all");
 

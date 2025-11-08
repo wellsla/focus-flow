@@ -2,14 +2,17 @@
 
 import { Gem } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { useRewardSystem } from "@/hooks/use-reward-system";
+import { useRewardState } from "@/hooks/use-rewards-db";
 
 interface GemBalanceProps {
   className?: string;
 }
 
 export function GemBalance({ className }: GemBalanceProps) {
-  const { gems, totalEarned, totalSpent } = useRewardSystem();
+  const { state } = useRewardState();
+  const gems = state?.gems ?? 0;
+  const totalEarned = state?.totalGemsEarned ?? 0;
+  const totalSpent = state?.totalGemsSpent ?? 0;
 
   return (
     <div className={className}>

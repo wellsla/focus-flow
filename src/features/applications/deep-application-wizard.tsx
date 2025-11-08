@@ -130,15 +130,22 @@ export function DeepApplicationWizard({
     }
   );
 
-  const form1 = useForm({
+  type Step1Values = z.infer<typeof step1Schema>;
+  type Step2Values = z.infer<typeof step2Schema>;
+  type Step3Values = z.infer<typeof step3Schema>;
+  type Step4Values = z.infer<typeof step4Schema>;
+  type Step5Values = z.infer<typeof step5Schema>;
+  type Step6Values = z.infer<typeof step6Schema>;
+
+  const form1 = useForm<Step1Values>({
     resolver: zodResolver(step1Schema),
     defaultValues: {
       jobUrl: workflow.step1_found.jobUrl,
-      source: workflow.step1_found.source as any,
+      source: workflow.step1_found.source as Step1Values["source"],
     },
   });
 
-  const form2 = useForm({
+  const form2 = useForm<Step2Values>({
     resolver: zodResolver(step2Schema),
     defaultValues: {
       keyRequirements: workflow.step2_readDescription.keyRequirements,
@@ -147,7 +154,7 @@ export function DeepApplicationWizard({
     },
   });
 
-  const form3 = useForm({
+  const form3 = useForm<Step3Values>({
     resolver: zodResolver(step3Schema),
     defaultValues: {
       whatTheyDo: workflow.step3_companyResearch.whatTheyDo,
@@ -155,14 +162,14 @@ export function DeepApplicationWizard({
     },
   });
 
-  const form4 = useForm({
+  const form4 = useForm<Step4Values>({
     resolver: zodResolver(step4Schema),
     defaultValues: {
       whyGoodFit: workflow.step4_writeInformation.whyGoodFit,
     },
   });
 
-  const form5 = useForm({
+  const form5 = useForm<Step5Values>({
     resolver: zodResolver(step5Schema),
     defaultValues: {
       appliedDate: workflow.step5_apply.appliedDate
@@ -171,7 +178,7 @@ export function DeepApplicationWizard({
     },
   });
 
-  const form6 = useForm({
+  const form6 = useForm<Step6Values>({
     resolver: zodResolver(step6Schema),
     defaultValues: {
       contactedPerson: workflow.step6_contact.contactedPerson || "",

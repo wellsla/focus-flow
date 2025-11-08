@@ -114,19 +114,22 @@ const ChartTooltipContent = forwardRef<
   HTMLDivElement,
   ComponentProps<"div"> & {
     active?: boolean;
-    payload?: any[];
-    label?: any;
+    payload?: unknown[];
+    label?: unknown;
     hideLabel?: boolean;
     hideIndicator?: boolean;
     indicator?: "line" | "dot" | "dashed";
-    labelFormatter?: (value: any, payload: any[]) => React.ReactNode;
+    labelFormatter?: (
+      value: React.ReactNode,
+      payload: unknown[]
+    ) => React.ReactNode;
     labelClassName?: string;
     formatter?: (
-      value: any,
-      name: any,
-      item: any,
+      value: number | string,
+      name: string | number,
+      item: unknown,
       index: number,
-      payload: any
+      payload: unknown
     ) => React.ReactNode;
     color?: string;
     nameKey?: string;
@@ -158,9 +161,22 @@ const ChartTooltipContent = forwardRef<
         return null;
       }
 
-      const [item] = payload;
-      const key = `${labelKey || item.dataKey || item.name || "value"}`;
-      const itemConfig = getPayloadConfigFromPayload(config, item, key);
+      const [first] = payload;
+      const firstObj =
+        first && typeof first === "object"
+          ? (first as Record<string, unknown>)
+          : undefined;
+      const key = `${
+        labelKey ||
+        (firstObj?.dataKey as string | undefined) ||
+        (firstObj?.name as string | undefined) ||
+        "value"
+      }`;
+      const itemConfig = getPayloadConfigFromPayload(
+        config,
+        firstObj ?? first,
+        key
+      );
       const value =
         !labelKey && typeof label === "string"
           ? config[label as keyof typeof config]?.label || label
@@ -197,21 +213,38 @@ const ChartTooltipContent = forwardRef<
       >
         {!nestLabel ? tooltipLabel : null}
         <div className="grid gap-1.5">
-          {payload.map((item: any, index: number) => {
-            const key = `${nameKey || item.name || item.dataKey || "value"}`;
-            const itemConfig = getPayloadConfigFromPayload(config, item, key);
-            const indicatorColor = color || item.payload.fill || item.color;
+          {payload.map((item, index: number) => {
+            const obj = item as Record<string, unknown>;
+            const key = `${
+              nameKey ||
+              (obj.name as string | undefined) ||
+              (obj.dataKey as string | undefined) ||
+              "value"
+            }`;
+            const itemConfig = getPayloadConfigFromPayload(config, obj, key);
+            const indicatorColor =
+              color ||
+              (obj.payload && typeof obj.payload === "object"
+                ? (obj.payload as Record<string, unknown>).fill
+                : undefined) ||
+              (obj.color as string | undefined);
 
             return (
               <div
-                key={item.dataKey}
+                key={String(obj.dataKey || index)}
                 className={cn(
                   "flex w-full flex-wrap items-stretch gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5 [&>svg]:text-muted-foreground",
                   indicator === "dot" && "items-center"
                 )}
               >
-                {formatter && item?.value !== undefined && item.name ? (
-                  formatter(item.value, item.name, item, index, item.payload)
+                {formatter && obj?.value !== undefined && obj.name ? (
+                  formatter(
+                    obj.value as number | string,
+                    obj.name as string | number,
+                    obj,
+                    index,
+                    obj.payload as unknown
+                  )
                 ) : (
                   <>
                     {itemConfig?.icon ? (
@@ -247,12 +280,14 @@ const ChartTooltipContent = forwardRef<
                       <div className="grid gap-1.5">
                         {nestLabel ? tooltipLabel : null}
                         <span className="text-muted-foreground">
-                          {itemConfig?.label || item.name}
+                          {itemConfig?.label || (obj.name as React.ReactNode)}
                         </span>
                       </div>
-                      {item.value && (
+                      {obj.value !== undefined && obj.value !== null && (
                         <span className="font-mono font-medium tabular-nums text-foreground">
-                          {item.value.toLocaleString()}
+                          {typeof obj.value === "number"
+                            ? obj.value.toLocaleString()
+                            : String(obj.value)}
                         </span>
                       )}
                     </div>
@@ -273,7 +308,7 @@ const ChartLegend = RechartsPrimitive.Legend;
 const ChartLegendContent = forwardRef<
   HTMLDivElement,
   ComponentProps<"div"> & {
-    payload?: any[];
+    payload?: unknown[];
     verticalAlign?: "top" | "bottom";
     hideIcon?: boolean;
     nameKey?: string;
@@ -298,13 +333,16 @@ const ChartLegendContent = forwardRef<
           className
         )}
       >
-        {payload.map((item: any) => {
-          const key = `${nameKey || item.dataKey || "value"}`;
-          const itemConfig = getPayloadConfigFromPayload(config, item, key);
+        {payload.map((item) => {
+          const obj = item as Record<string, unknown>;
+          const key = `${
+            nameKey || (obj.dataKey as string | undefined) || "value"
+          }`;
+          const itemConfig = getPayloadConfigFromPayload(config, obj, key);
 
           return (
             <div
-              key={item.value}
+              key={String(obj.value)}
               className={cn(
                 "flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground"
               )}
@@ -315,7 +353,7 @@ const ChartLegendContent = forwardRef<
                 <div
                   className="h-2 w-2 shrink-0 rounded-[2px]"
                   style={{
-                    backgroundColor: item.color,
+                    backgroundColor: String(obj.color || "hsl(var(--muted))"),
                   }}
                 />
               )}

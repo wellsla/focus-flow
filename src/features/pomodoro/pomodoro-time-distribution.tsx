@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { loadPomodoroSessions } from "@/lib/storage";
+import { usePomodoroSessions } from "@/hooks/use-pomodoro-db";
 import type { PomodoroSession, PomodoroCategory } from "@/lib/types";
 import {
   Brain,
@@ -51,12 +51,28 @@ interface CategoryStats {
 }
 
 export function PomodoroTimeDistribution() {
-  const sessions = loadPomodoroSessions();
+  const { sessions, isLoading } = usePomodoroSessions();
 
   // Filter completed work sessions with category
   const workSessions = sessions.filter(
     (s) => s.kind === "work" && s.completed && s.category
   );
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Time Distribution</CardTitle>
+          <CardDescription>Track where your focus time goes</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground text-center py-4">
+            Loading sessions...
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (workSessions.length === 0) {
     return (

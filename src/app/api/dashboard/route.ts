@@ -31,8 +31,12 @@ export async function GET() {
         { status: 502 }
       );
     }
-  } catch (e: any) {
-    const aborted = e?.name === "AbortError";
+  } catch (e: unknown) {
+    const aborted =
+      e &&
+      typeof e === "object" &&
+      "name" in e &&
+      (e as { name?: unknown }).name === "AbortError";
     return NextResponse.json(
       {
         ok: false,

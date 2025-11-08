@@ -1,7 +1,6 @@
 "use client";
 import { useState } from "react";
 import { ApplicationStatusChart } from "../../../features/application-status-chart";
-import { HistoryDialog } from "../../../features/history-dialog";
 import { RecentApplications } from "../../../features/recent-applications";
 import {
   Card,
@@ -10,19 +9,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { CalendarCheck, PlusCircle, ListChecks } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { PlusCircle, ListChecks } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { format } from "date-fns";
 import { PomodoroWidget } from "@/features/pomodoro/PomodoroWidget";
-import { MiniPerformanceSummary } from "@/features/dashboard/MiniPerformanceSummary";
-import { FeatureProgressOverview } from "@/features/dashboard/FeatureProgressOverview";
 import { QuickActions } from "@/features/dashboard/QuickActions";
 import { RecentAchievementsCompact } from "@/features/rewards/RecentAchievementsCompact";
 import { RoutineChecklist } from "@/features/routines/RoutineChecklist";
-import { useRoutinesWithChecks } from "@/hooks/use-routines";
+import { useRoutinesWithChecks } from "@/hooks/use-routines-db";
 import { RewardsSection } from "@/features/rewards/RewardsSection";
 import {
   JobApplication,
@@ -40,13 +36,23 @@ import { DashboardCardForm } from "../../../features/dashboard-card-form";
 import { DynamicDashboardCard } from "../../../features/dynamic-dashboard-card";
 import { BenefitsCountdownCard } from "../../../features/benefits-countdown-card";
 import {
-  defaultDashboardCards as initialDashboardCards,
-  defaultIncomeSettings as initialIncomeSettings,
-  defaultTasks as initialTasks,
-  defaultTimeTrackingEntries as initialTimeEntries,
-  defaultGoals as initialGoals,
-} from "@/lib/initial-data";
+  useDashboardCards,
+  useCreateDashboardCard,
+  useUpdateDashboardCard,
+  useDeleteDashboardCard,
+} from "@/hooks/use-dashboard-db";
 import { Skeleton } from "@/components/ui/skeleton";
+
+// Default values for localStorage-based state
+const initialTasks: Task[] = [];
+const initialTimeEntries: TimeTrackingEntry[] = [];
+const initialGoals: Goal[] = [];
+const initialIncomeSettings: IncomeSettings = {
+  status: "Unemployed",
+  amount: 0,
+  frequency: "monthly",
+  currency: "R$",
+};
 
 export default function DashboardPage() {
   const [jobApplications, _, loadingApps] = useLocalStorage<JobApplication[]>(
@@ -61,9 +67,14 @@ export default function DashboardPage() {
     "goals",
     initialGoals
   );
-  const [dashboardCards, setDashboardCards, loadingCards] = useLocalStorage<
-    DashboardCard[]
-  >("dashboardCards", initialDashboardCards);
+
+  // Database hooks for dashboard cards
+  const { cards: dashboardCards, isLoading: loadingCards } =
+    useDashboardCards();
+  const createCard = useCreateDashboardCard();
+  const updateCard = useUpdateDashboardCard();
+  const deleteCard = useDeleteDashboardCard();
+
   const [timeTrackingEntries, ____, loadingTime] = useLocalStorage<
     TimeTrackingEntry[]
   >("timeTrackingEntries", initialTimeEntries);
@@ -74,7 +85,12 @@ export default function DashboardPage() {
     useLocalStorage<IncomeSettings>("incomeSettings", initialIncomeSettings);
   const [dailyLogs] = useLocalStorage<DailyLog[]>("dailyLogs", []);
 
-  const { routines, checkmarks, toggleCheck } = useRoutinesWithChecks();
+  const {
+    routines,
+    checkmarks,
+    toggleCheck,
+    isLoading: loadingRoutines,
+  } = useRoutinesWithChecks();
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedCard, setSelectedCard] = useState<DashboardCard | null>(null);
@@ -106,16 +122,36 @@ export default function DashboardPage() {
     };
 
     if (selectedCard) {
-      setDashboardCards((prev) =>
-        prev.map((c) => (c.id === selectedCard.id ? fullCardData : c))
-      );
+      // Update existing card
+      updateCard.mutateAsync({
+        id: selectedCard.id,
+        title: fullCardData.title,
+        subtext: fullCardData.subtext,
+        icon: fullCardData.icon,
+        visualization: fullCardData.visualization,
+        config: fullCardData.config,
+        position: dashboardCards.findIndex((c) => c.id === selectedCard.id),
+      });
     } else {
-      setDashboardCards((prev) => [...prev, fullCardData]);
+      // Create new card
+      createCard.mutateAsync({
+        title: fullCardData.title,
+        subtext: fullCardData.subtext,
+        icon: fullCardData.icon,
+        visualization: fullCardData.visualization,
+        config: fullCardData.config,
+        position: dashboardCards.length,
+      });
     }
+
+    setIsFormOpen(false);
+    setSelectedCard(null);
   }
 
   function handleCardDelete(cardId: string) {
-    setDashboardCards((prev) => prev.filter((c) => c.id !== cardId));
+    deleteCard.mutateAsync({ id: cardId });
+    setIsFormOpen(false);
+    setSelectedCard(null);
   }
 
   function handleCardSelect(card: DashboardCard) {
@@ -130,7 +166,8 @@ export default function DashboardPage() {
     loadingCards ||
     loadingTime ||
     loadingFinancials ||
-    loadingIncome;
+    loadingIncome ||
+    loadingRoutines;
 
   if (isLoading) {
     return (
@@ -167,8 +204,7 @@ export default function DashboardPage() {
   return (
     <div className="grid auto-rows-max items-start gap-6 md:gap-8 lg:col-span-2">
       {/* Top summary strip */}
-      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
-        <MiniPerformanceSummary />
+      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
         <QuickActions />
         <RecentAchievementsCompact />
         <Card className="hidden xl:block">
@@ -208,45 +244,7 @@ export default function DashboardPage() {
             onClick={() => handleCardSelect(card)}
           />
         ))}
-        <HistoryDialog
-          title="Progress History"
-          description="Daily snapshots of applications, goals, and tasks."
-          logs={dailyLogs}
-          getLogDate={(log) => new Date(log.date)}
-          renderLog={(log) => (
-            <div className="grid gap-2 text-sm">
-              <div>
-                <span className="font-medium">Applications:</span>
-                <span className="ml-2 text-muted-foreground">
-                  {log.applications
-                    .map((s) => `${s.status}: ${s.count}`)
-                    .join(", ")}
-                </span>
-              </div>
-              <div>
-                <span className="font-medium">Goals:</span>
-                <span className="ml-2 text-muted-foreground">
-                  {log.goals.map((s) => `${s.status}: ${s.count}`).join(", ")}
-                </span>
-              </div>
-              <div>
-                <span className="font-medium">Tasks:</span>
-                <span className="ml-2 text-muted-foreground">
-                  {log.tasks.map((s) => `${s.status}: ${s.count}`).join(", ")}
-                </span>
-              </div>
-            </div>
-          )}
-          triggerButton={
-            <Button
-              variant="outline"
-              className="h-full flex flex-col justify-center items-center py-4"
-            >
-              <CalendarCheck className="h-6 w-6" />
-              <span className="text-xs mt-2">History</span>
-            </Button>
-          }
-        />
+        {/* History dialog removed; centralized at /feedback */}
         <FormDialog
           isOpen={isFormOpen}
           setIsOpen={setIsFormOpen}
@@ -320,7 +318,6 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
           <RewardsSection variant="compact" />
-          <FeatureProgressOverview />
         </div>
       </div>
     </div>

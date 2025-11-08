@@ -19,7 +19,7 @@ import {
   RoadmapNodeStatus,
 } from "@/lib/types";
 import { RoutinePeriod } from "@/lib/schedule";
-import { PlusCircle, Tag, Clock, CircleDot, Bell, History } from "lucide-react";
+import { PlusCircle, Tag, Clock, CircleDot, Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -70,7 +70,6 @@ import {
   LegacyTaskStatus,
 } from "@/lib/legacy-data";
 import { Skeleton } from "@/components/ui/skeleton";
-import { HistoryDialog } from "../../../features/history-dialog";
 
 const priorityColors: Record<Priority, string> = {
   low: "text-blue-500",
@@ -86,29 +85,7 @@ const statusConfig: Record<LegacyTaskStatus, { label: string; color: string }> =
     skipped: { label: "Skipped", color: "bg-stone-200 text-stone-800" },
   };
 
-const renderTaskLog = (log: DailyLog) => (
-  <div className="space-y-4">
-    {log.tasks.length > 0 ? (
-      log.tasks.map((taskLog) => (
-        <Card key={taskLog.status}>
-          <CardHeader className="p-4">
-            <CardTitle className="text-base flex justify-between items-center">
-              <span>
-                {statusConfig[taskLog.status as LegacyTaskStatus]?.label ||
-                  taskLog.status}
-              </span>
-              <Badge variant="secondary">{taskLog.count}</Badge>
-            </CardTitle>
-          </CardHeader>
-        </Card>
-      ))
-    ) : (
-      <p className="text-muted-foreground text-center">
-        No task data logged for this day.
-      </p>
-    )}
-  </div>
-);
+// legacy history UI removed - centralized at /feedback
 
 const isTimeInRange = (
   startTime: string,
@@ -804,18 +781,6 @@ function RoutinePageContent() {
           </p>
         </div>
         <div className="flex gap-2">
-          <HistoryDialog
-            triggerButton={
-              <Button variant="outline">
-                <History className="mr-2 h-4 w-4" /> View History
-              </Button>
-            }
-            title="Daily Task Summary"
-            description="Review your task status counts for any given day in the past."
-            logs={dailyLogs}
-            getLogDate={(log) => parseISO(log.date)}
-            renderLog={renderTaskLog}
-          />
           <FormDialog
             isOpen={isFormOpen}
             setIsOpen={setIsFormOpen}

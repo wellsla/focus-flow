@@ -1,13 +1,14 @@
 "use client";
 
-import { useRewardSystem } from "@/hooks/use-reward-system";
+import { useRewards, usePurchaseReward } from "@/hooks/use-rewards-db";
 import { RewardCard } from "@/features/rewards/RewardCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 
 export default function RewardsPage() {
-  const { rewards, buyReward, updateProgress } = useRewardSystem();
+  const { rewards } = useRewards();
+  const purchase = usePurchaseReward();
   const conditionalRewards = rewards.filter((r) => r.type === "conditional");
   const purchasableRewards = rewards.filter((r) => r.type === "purchasable");
 
@@ -57,7 +58,13 @@ export default function RewardsPage() {
             <CardContent>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {purchasableRewards.map((r) => (
-                  <RewardCard key={r.id} reward={r} onBuy={buyReward} />
+                  <RewardCard
+                    key={r.id}
+                    reward={r}
+                    onBuy={(id) =>
+                      purchase.mutateAsync({ id, gemCost: r.gemCost })
+                    }
+                  />
                 ))}
                 {purchasableRewards.length === 0 && (
                   <p className="text-sm text-muted-foreground col-span-full">

@@ -501,7 +501,14 @@ export default function TimeManagementPage() {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ value }: any) => `${value.toFixed(1)}h`}
+                    label={(args: unknown) => {
+                      const v =
+                        args && typeof args === "object" && "value" in args
+                          ? (args as { value?: unknown }).value
+                          : undefined;
+                      const num = typeof v === "number" ? v : Number(v);
+                      return `${isNaN(num) ? 0 : num.toFixed(1)}h`;
+                    }}
                     outerRadius={80}
                     fill="hsl(var(--primary))"
                     dataKey="value"

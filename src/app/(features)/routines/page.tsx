@@ -20,7 +20,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PlusCircle, CalendarCheck, ListChecks } from "lucide-react";
 import { RoutineChecklist } from "@/features/routines/RoutineChecklist";
 import { RoutineForm } from "@/features/routines/RoutineForm";
-import { useRoutinesWithChecks } from "@/hooks/use-routines";
+import { useRoutinesWithChecks } from "@/hooks/use-routines-db";
 import { FormDialog } from "@/components/form-dialog";
 import type { RoutineItem, Frequency, RoutineCategory } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
@@ -43,8 +43,15 @@ function groupByCategory(
 }
 
 export default function RoutinesPage() {
-  const { routines, setRoutines, checkmarks, toggleCheck } =
-    useRoutinesWithChecks();
+  const {
+    routines,
+    checkmarks,
+    toggleCheck,
+    createRoutine,
+    updateRoutine,
+    deleteRoutine,
+    isLoading,
+  } = useRoutinesWithChecks();
   const { toast } = useToast();
 
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -81,7 +88,7 @@ export default function RoutinesPage() {
   /**
    * Handle form submission for create/update
    */
-  const handleSubmit = (data: {
+  const handleSubmit = async (data: {
     title: string;
     category: RoutineCategory;
     frequency: Frequency;
@@ -89,48 +96,43 @@ export default function RoutinesPage() {
     requiresReflection: boolean;
     active: boolean;
   }) => {
-    if (selectedRoutine) {
-      // Update existing
-      const updated: RoutineItem = {
-        ...selectedRoutine,
-        ...data,
-      };
-      setRoutines(routines.map((r) => (r.id === updated.id ? updated : r)));
-      toast({
-        title: "Routine updated",
-        description: `"${data.title}" was successfully updated.`,
-      });
-    } else {
-      // Create new
-      const maxOrder = Math.max(0, ...routines.map((r) => r.order ?? 0));
-      const newRoutine: RoutineItem = {
-        id: `routine-${Date.now()}`,
-        ...data,
-        order: maxOrder + 1,
-      };
-      setRoutines([...routines, newRoutine]);
-      toast({
-        title: "Routine created",
-        description: `"${data.title}" was added to your routines.`,
-      });
+    try {
+      if (selectedRoutine) {
+        // Update existing
+        await updateRoutine.mutateAsync({
+          id: selectedRoutine.id,
+          ...data,
+          order: selectedRoutine.order ?? 0,
+        });
+      } else {
+        // Create new - calculate next order
+        const maxOrder = Math.max(0, ...routines.map((r) => r.order ?? 0));
+        await createRoutine.mutateAsync({
+          ...data,
+          order: maxOrder + 1,
+        });
+      }
+      setIsFormOpen(false);
+      setSelectedRoutine(null);
+    } catch (error) {
+      // Error handling is done in the mutation hooks
+      console.error("Failed to save routine:", error);
     }
-    setIsFormOpen(false);
-    setSelectedRoutine(null);
   };
 
   /**
    * Handle routine deletion
    */
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (selectedRoutine) {
-      setRoutines(routines.filter((r) => r.id !== selectedRoutine.id));
-      toast({
-        title: "Routine deleted",
-        description: `"${selectedRoutine.title}" was removed.`,
-        variant: "destructive",
-      });
-      setIsFormOpen(false);
-      setSelectedRoutine(null);
+      try {
+        await deleteRoutine.mutateAsync({ id: selectedRoutine.id });
+        setIsFormOpen(false);
+        setSelectedRoutine(null);
+      } catch (error) {
+        // Error handling is done in the mutation hook
+        console.error("Failed to delete routine:", error);
+      }
     }
   };
 
@@ -144,6 +146,17 @@ export default function RoutinesPage() {
 
   const grouped = groupByCategory(activeRoutines);
   const categories = Object.keys(grouped) as RoutineCategory[];
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-center items-center py-12">
+          <p className="text-muted-foreground">Loading routines...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

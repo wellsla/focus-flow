@@ -10,18 +10,14 @@ import {
   Briefcase,
   CalendarCheck,
   Target,
-  Flame,
   Trophy,
-  Gauge,
   CheckCircle2,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { motivationalPhrases } from "@/lib/motivational-phrases";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRewardSystem } from "@/hooks/use-reward-system";
-import { usePerformanceMetrics } from "@/hooks/use-performance-metrics";
-import { computeDomainScores } from "@/lib/performance-metrics";
+import { useAchievements } from "@/hooks/use-achievements-db";
 import useLocalStorage from "@/hooks/use-local-storage";
 import { Badge } from "@/components/ui/badge";
 import type { Task } from "@/lib/types";
@@ -68,8 +64,7 @@ export default function HomeClient({ userName }: { userName: string }) {
     return () => clearTimeout(id);
   }, []);
 
-  const { achievements } = useRewardSystem();
-  const performance = usePerformanceMetrics();
+  const { achievements } = useAchievements();
   const [tasks] = useLocalStorage<Task[]>("tasks", []);
   const highPriority = tasks
     .filter((t: Task) => t.priority === "high" && t.status !== "done")
@@ -77,15 +72,6 @@ export default function HomeClient({ userName }: { userName: string }) {
   const unlocked = achievements.filter(
     (a) => a.isUnlocked && !a.isRevoked
   ).length;
-  const scores = computeDomainScores();
-  const domainEntries = [
-    { label: "Tasks", value: scores.tasks },
-    { label: "Routines", value: scores.routines },
-    { label: "Applications", value: scores.applications },
-    { label: "Finances", value: scores.finances },
-    { label: "Time", value: scores.time },
-  ].sort((a, b) => a.value - b.value);
-  const weakest = domainEntries[0];
 
   return (
     <div className="flex flex-col items-center justify-start py-12 text-center">
@@ -135,50 +121,23 @@ export default function HomeClient({ userName }: { userName: string }) {
           />
         </div>
 
-        {/* Today Focus & Snapshot */}
-        <div className="mt-10 grid gap-6 md:grid-cols-2">
+        {/* Achievements Card */}
+        <div className="mt-10">
           <Card className="bg-card/50">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Flame className="h-5 w-5 text-accent" /> Today Focus
+                <CheckCircle2 className="h-5 w-5 text-primary" /> Achievements
               </CardTitle>
-              <CardDescription>Lowest domain needs attention</CardDescription>
+              <CardDescription>Your unlocked achievements</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-2 text-left text-sm">
-              <p>
-                <span className="font-medium">{weakest.label}</span> is
-                currently your weakest area ({Math.round(weakest.value)}%).
-              </p>
-              <p>
-                Action: schedule one deliberate block to improve{" "}
-                {weakest.label.toLowerCase()} right now.
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Improving the weakest domain boosts overall consistency.
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="bg-card/50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Gauge className="h-5 w-5 text-primary" /> Performance Snapshot
-              </CardTitle>
-              <CardDescription>Unified score & achievements</CardDescription>
-            </CardHeader>
-            <CardContent className="grid grid-cols-2 gap-4 text-sm">
+            <CardContent className="text-left text-sm">
               <div className="space-y-1">
-                <div className="text-muted-foreground">Overall</div>
-                <div className="text-2xl font-bold">
-                  {Math.round(performance.scorePct)}%
-                </div>
-              </div>
-              <div className="space-y-1">
-                <div className="text-muted-foreground">Achievements</div>
+                <div className="text-muted-foreground">Unlocked</div>
                 <div className="text-2xl font-bold">{unlocked}</div>
-              </div>
-              <div className="col-span-2 text-xs text-muted-foreground">
-                Keep pushing above {performance.scorePct > 90 ? "90%" : "80%"}{" "}
-                to unlock harder challenges.
+                <p className="text-xs text-muted-foreground mt-2">
+                  Keep completing tasks and routines to unlock more
+                  achievements!
+                </p>
               </div>
             </CardContent>
           </Card>

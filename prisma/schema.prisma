@@ -1,0 +1,471 @@
+// Prisma Schema for Focus Flow Application
+// Compatible with Vercel Postgres
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  // Using Prisma Accelerate pooled URL for Prisma Client
+  url       = env("STORAGE_PRISMA_DATABASE_URL")
+  // Direct Postgres URL for migrations and long-running operations
+  directUrl = env("STORAGE_DATABASE_URL")
+}
+
+// ============================================================================
+// User & Authentication
+// ============================================================================
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Profile
+  profile UserProfile?
+
+  // Relations to all user data
+  tasks              Task[]
+  routines           RoutineItem[]
+  checkmarks         Checkmark[]
+  applications       JobApplication[]
+  financialAccounts  FinancialAccount[]
+  financialLogs      FinancialLog[]
+  timeTrackingEntries TimeTrackingEntry[]
+  goals              Goal[]
+  roadmapNodes       RoadmapNode[]
+  pomodoroSessions   PomodoroSession[]
+  journalEntries     JournalEntry[]
+  focusBlocks        FocusBlock[]
+  achievements       Achievement[]
+  rewards            Reward[]
+  rewardState        RewardState?
+  flashReminders     FlashReminder[]
+  dashboardCards     DashboardCard[]
+  dailyLogs          DailyLog[]
+  incomeSettings     IncomeSettings?
+  appSettings        AppSettings?
+  pomodoroSettings   PomodoroSettings?
+
+  @@index([email])
+}
+
+model UserProfile {
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title      String?
+  education  String?
+  experience String[] // Array of experience items
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+// ============================================================================
+// Tasks (One-time todos)
+// ============================================================================
+
+model Task {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title         String
+  description   String?
+  status        String   // "todo" | "in-progress" | "done" | "cancelled"
+  priority      String   // "low" | "medium" | "high"
+  dueDate       DateTime?
+  completedDate DateTime?
+  tags          String[] // Array of tags
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId, status])
+  @@index([userId, dueDate])
+}
+
+// ============================================================================
+// Routines (Recurring habits)
+// ============================================================================
+
+model RoutineItem {
+  id                  String      @id @default(cuid())
+  userId              String
+  user                User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category            String      // "Morning" | "During the Day" | "Evening" | etc
+  title               String
+  frequency           String      // "daily" | "weekly" | "monthly" | "every3days"
+  active              Boolean     @default(true)
+  order               Int?
+  routineType         String?     // "study" | "code" | "job-search" | "finances" | "general"
+  requiresReflection  Boolean     @default(false)
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+  checkmarks          Checkmark[]
+
+  @@index([userId, active])
+  @@index([userId, category])
+}
+
+model Checkmark {
+  id         String       @id @default(cuid())
+  userId     String
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  routineId  String
+  routine    RoutineItem  @relation(fields: [routineId], references: [id], onDelete: Cascade)
+  dateISO    String       // YYYY-MM-DD
+  done       Boolean      @default(false)
+  reflection Json?        // RoutineReflection data
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  @@unique([routineId, dateISO])
+  @@index([userId, dateISO])
+}
+
+// ============================================================================
+// Job Applications
+// ============================================================================
+
+model JobApplication {
+  id                     String   @id @default(cuid())
+  userId                 String
+  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company                String
+  role                   String
+  dateApplied            DateTime
+  status                 String   // "Applied" | "Interviewing" | "Offer" | "Rejected" | "Wishlist"
+  url                    String
+  priority               String   // "High" | "Common" | "Uninterested"
+  description            String?
+  comments               Json[]   // Array of ApplicationComment
+  deepWorkflow           Json?    // DeepApplicationWorkflow
+  applicationDepthScore  Int?     // 0-100
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@index([userId, status])
+  @@index([userId, dateApplied])
+}
+
+// ============================================================================
+// Finances
+// ============================================================================
+
+model FinancialAccount {
+  id       String   @id @default(cuid())
+  userId   String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name     String
+  type     String   // "expense" | "debt" | "income"
+  amount   Float
+  currency String   // "R$" | "$" | "€"
+  date     DateTime?
+  lastPaid DateTime?
+  category String?  // ExpenseCategory
+  priority String?  // ExpensePriority
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, type])
+}
+
+model FinancialLog {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date          DateTime // YYYY-MM-DD
+  totalIncome   Float
+  totalExpenses Float
+  totalDebt     Float
+  net           Float
+  currency      String
+  createdAt     DateTime @default(now())
+
+  @@unique([userId, date])
+  @@index([userId, date])
+}
+
+model IncomeSettings {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status          String   // "Unemployed" | "Benefited" | "Employed"
+  amount          Float
+  frequency       String   // "annually" | "monthly" | "hourly" | "daily"
+  currency        String
+  benefitsEndDate DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// ============================================================================
+// Time Tracking
+// ============================================================================
+
+model TimeTrackingEntry {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  activityType String   // "game" | "app"
+  name         String
+  date         DateTime
+  hours        Float
+  startTime    String?  // HH:mm
+  endTime      String?  // HH:mm
+  createdAt    DateTime @default(now())
+
+  @@index([userId, date])
+  @@index([userId, activityType])
+}
+
+// ============================================================================
+// Goals
+// ============================================================================
+
+model Goal {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  description String
+  timeframe   String   // "Short-Term" | "Mid-Term" | "Long-Term"
+  status      String   // "Not Started" | "In Progress" | "Achieved"
+  targetDate  DateTime?
+  goalType    String   // "Goal" | "Anti-Goal"
+  actionSteps String[] // AI-generated micro-actions
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId, status])
+  @@index([userId, timeframe])
+}
+
+// ============================================================================
+// Roadmap
+// ============================================================================
+
+model RoadmapNode {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  status    String   // "done" | "in_progress" | "todo" | "skipped" | "parallel"
+  parentId  String?
+  children  Json[]   // Nested structure
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// ============================================================================
+// Pomodoro
+// ============================================================================
+
+model PomodoroSession {
+  id                 String   @id @default(cuid())
+  userId             String
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  startedAt          DateTime
+  endedAt            DateTime?
+  kind               String   // "work" | "break" | "long-break"
+  completed          Boolean  @default(false)
+  category           String?  // PomodoroCategory
+  wasTrulyProductive Boolean?
+  createdAt          DateTime @default(now())
+
+  @@index([userId, startedAt])
+}
+
+model PomodoroSettings {
+  id                   String   @id @default(cuid())
+  userId               String   @unique
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workMin              Int      @default(25)
+  breakMin             Int      @default(5)
+  longBreakMin         Int      @default(15)
+  cyclesUntilLong      Int      @default(4)
+  sound                Boolean  @default(true)
+  desktopNotifications Boolean  @default(true)
+  vibration            Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+// ============================================================================
+// Journal
+// ============================================================================
+
+model JournalEntry {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dateISO   String   // YYYY-MM-DD
+  mood      String?  // "low" | "ok" | "high"
+  lines     String[] // 3 lines array
+  tags      String[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, dateISO])
+  @@index([userId, dateISO])
+}
+
+// ============================================================================
+// Focus Blocks
+// ============================================================================
+
+model FocusBlock {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  startedAt       DateTime
+  endedAt         DateTime?
+  plannedMin      Int
+  whitelistRoutes String[]
+  strict          Boolean  @default(false)
+  completed       Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
+  @@index([userId, startedAt])
+}
+
+// ============================================================================
+// Achievements & Rewards
+// ============================================================================
+
+model Achievement {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  description String
+  category    String   // "routines" | "study" | "career" | "finance" | "consistency" | "milestone"
+  icon        String
+  gemReward   Int
+  unlockedAt  DateTime?
+  revokedAt   DateTime?
+  isUnlocked  Boolean  @default(false)
+  isRevoked   Boolean  @default(false)
+  condition   Json     // Achievement condition
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId, isUnlocked])
+  @@index([userId, category])
+}
+
+model Reward {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title          String
+  description    String
+  type           String   // "conditional" | "purchasable"
+  icon           String
+  category       String   // "food" | "entertainment" | "break" | "luxury" | "custom"
+  conditions     Json[]   // RewardCondition[]
+  isUnlocked     Boolean  @default(false)
+  resetFrequency String?  // "daily" | "weekly" | "monthly" | "one-time"
+  gemCost        Int?
+  isPurchased    Boolean  @default(false)
+  purchasedAt    DateTime?
+  isOneTime      Boolean  @default(false)
+  lastResetAt    DateTime?
+  timesUsed      Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([userId, type])
+  @@index([userId, isUnlocked])
+}
+
+model RewardState {
+  id                     String   @id @default(cuid())
+  userId                 String   @unique
+  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gems                   Int      @default(0)
+  totalGemsEarned        Int      @default(0)
+  totalGemsSpent         Int      @default(0)
+  points                 Int      @default(0)
+  streakDays             Int      @default(0)
+  lastCheckDate          DateTime?
+  unlockedAchievementIds String[]
+  purchasedRewardIds     String[]
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}
+
+// ============================================================================
+// Reminders
+// ============================================================================
+
+model FlashReminder {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  text         String
+  trigger      String   // "app-open" | "pomodoro-start" | "time"
+  timeOfDay    String?  // "09:00"
+  enabled      Boolean  @default(true)
+  allowInFocus Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([userId, enabled])
+}
+
+// ============================================================================
+// Dashboard
+// ============================================================================
+
+model DashboardCard {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title         String
+  subtext       String
+  icon          String
+  visualization String   // "default" | "warning" | "critical"
+  config        Json     // DashboardCardConfig
+  position      Int      @default(0)
+  isVisible     Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId, isVisible])
+}
+
+// ============================================================================
+// Daily Logs (Performance tracking)
+// ============================================================================
+
+model DailyLog {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date         DateTime // YYYY-MM-DD
+  applications Json[]   // DailyApplicationLog[]
+  goals        Json[]   // DailyGoalLog[]
+  tasks        Json[]   // DailyTaskLog[]
+  createdAt    DateTime @default(now())
+
+  @@unique([userId, date])
+  @@index([userId, date])
+}
+
+// ============================================================================
+// App Settings
+// ============================================================================
+
+model AppSettings {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  timeTracking Json     // { gameHours: number }
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}

@@ -18,7 +18,17 @@ interface RewardCardProps {
 }
 
 export function RewardCard({ reward, onBuy }: RewardCardProps) {
-  const Icon = (Lucide as any)[reward.icon] || Lucide.Gift;
+  const Icon = (() => {
+    const mod: Record<string, unknown> = Lucide as unknown as Record<
+      string,
+      unknown
+    >;
+    const candidate = mod[reward.icon];
+    if (candidate && typeof candidate === "function") {
+      return candidate as React.ComponentType<{ className?: string }>;
+    }
+    return Lucide.Gift;
+  })();
 
   const isConditional = reward.type === "conditional";
   const isUnlocked = reward.isUnlocked;

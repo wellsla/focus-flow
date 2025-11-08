@@ -18,7 +18,14 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PlusCircle, CheckCircle2, Circle, AlertCircle } from "lucide-react";
-import { useTasks } from "@/hooks/use-tasks";
+// Switched from localStorage hook to tRPC-powered database hook
+import {
+  useTasks as useTasksDb,
+  useCreateTask,
+  useUpdateTask,
+  useDeleteTask,
+  useBulkUpdateTaskStatus,
+} from "@/hooks/use-tasks-db";
 import { FormDialog } from "@/components/form-dialog";
 import type { Task, Priority, TaskStatus } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
@@ -27,16 +34,12 @@ import { TaskForm } from "../../../features/tasks/TaskForm";
 import { TaskList } from "../../../features/tasks/TaskList";
 
 export default function TasksPage() {
-  const {
-    tasks,
-    addTask,
-    updateTask,
-    deleteTask,
-    toggleTaskStatus,
-    getTasksByStatus,
-    getOverdueTasks,
-    getTasksDueToday,
-  } = useTasks();
+  // Load tasks from backend
+  const { tasks, isLoading, refetch } = useTasksDb();
+  const createTask = useCreateTask();
+  const updateTaskMutation = useUpdateTask();
+  const deleteTaskMutation = useDeleteTask();
+  const bulkStatusMutation = useBulkUpdateTaskStatus();
 
   const { toast } = useToast();
 
@@ -44,41 +47,61 @@ export default function TasksPage() {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
   // Stats
-  const todoTasks = getTasksByStatus("todo");
-  const inProgressTasks = getTasksByStatus("in-progress");
-  const doneTasks = getTasksByStatus("done");
-  const overdueTasks = getOverdueTasks();
-  const dueTodayTasks = getTasksDueToday();
+  const todoTasks = tasks.filter((t: Task) => t.status === "todo");
+  const inProgressTasks = tasks.filter((t: Task) => t.status === "in-progress");
+  const doneTasks = tasks.filter((t: Task) => t.status === "done");
+  const overdueTasks = tasks.filter((t: Task) => {
+    if (!t.dueDate) return false;
+    const today = new Date().toISOString().split("T")[0];
+    return t.status !== "done" && t.status !== "cancelled" && t.dueDate < today;
+  });
+  const dueTodayTasks = tasks.filter((t: Task) => {
+    if (!t.dueDate) return false;
+    const today = new Date().toISOString().split("T")[0];
+    return (
+      t.status !== "done" && t.status !== "cancelled" && t.dueDate === today
+    );
+  });
 
   /**
    * Handle form submission for create/update
    */
-  const handleSubmit = (data: Omit<Task, "id" | "createdAt">) => {
-    if (selectedTask) {
-      // Update existing
-      updateTask(selectedTask.id, data);
+  const handleSubmit = async (data: Omit<Task, "id" | "createdAt">) => {
+    try {
+      if (selectedTask) {
+        await updateTaskMutation.mutateAsync({ id: selectedTask.id, ...data });
+        toast({
+          title: "Task updated",
+          description: `"${data.title}" was successfully updated.`,
+        });
+      } else {
+        await createTask.mutateAsync({ ...data });
+        toast({
+          title: "Task created",
+          description: `"${data.title}" was added to your tasks.`,
+        });
+      }
+      setIsFormOpen(false);
+      setSelectedTask(null);
+    } catch (e: unknown) {
       toast({
-        title: "Task updated",
-        description: `"${data.title}" was successfully updated.`,
-      });
-    } else {
-      // Create new
-      addTask(data);
-      toast({
-        title: "Task created",
-        description: `"${data.title}" was added to your tasks.`,
+        variant: "destructive",
+        title: "Operation failed",
+        description:
+          e && typeof e === "object" && "message" in e
+            ? String((e as { message?: unknown }).message)
+            : "Please try again",
       });
     }
-    setIsFormOpen(false);
-    setSelectedTask(null);
   };
 
   /**
    * Handle task deletion
    */
-  const handleDelete = () => {
-    if (selectedTask) {
-      deleteTask(selectedTask.id);
+  const handleDelete = async () => {
+    if (!selectedTask) return;
+    try {
+      await deleteTaskMutation.mutateAsync({ id: selectedTask.id });
       toast({
         title: "Task deleted",
         description: `"${selectedTask.title}" was removed.`,
@@ -86,6 +109,15 @@ export default function TasksPage() {
       });
       setIsFormOpen(false);
       setSelectedTask(null);
+    } catch (e: unknown) {
+      toast({
+        variant: "destructive",
+        title: "Delete failed",
+        description:
+          e && typeof e === "object" && "message" in e
+            ? String((e as { message?: unknown }).message)
+            : "Please try again",
+      });
     }
   };
 
@@ -100,12 +132,30 @@ export default function TasksPage() {
   /**
    * Handle quick status toggle
    */
-  const handleToggle = (task: Task) => {
-    toggleTaskStatus(task.id);
+  const handleToggle = async (task: Task) => {
+    try {
+      await updateTaskMutation.mutateAsync({
+        id: task.id,
+        status: task.status === "done" ? "todo" : "done",
+        completedDate:
+          task.status === "done"
+            ? undefined
+            : new Date().toISOString().split("T")[0],
+      });
+    } catch (e: unknown) {
+      toast({
+        variant: "destructive",
+        title: "Status toggle failed",
+        description:
+          e && typeof e === "object" && "message" in e
+            ? String((e as { message?: unknown }).message)
+            : "Please try again",
+      });
+    }
   };
 
   const activeTasks = tasks.filter(
-    (t) => t.status !== "done" && t.status !== "cancelled"
+    (t: Task) => t.status !== "done" && t.status !== "cancelled"
   );
 
   return (
@@ -151,6 +201,11 @@ export default function TasksPage() {
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-4">
+        {isLoading && (
+          <div className="col-span-4 text-sm text-muted-foreground">
+            Loading tasks from database...
+          </div>
+        )}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Tasks</CardTitle>

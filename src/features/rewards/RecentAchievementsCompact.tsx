@@ -8,11 +8,11 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useRewardSystem } from "@/hooks/use-reward-system";
+import { useAchievements } from "@/hooks/use-achievements-db";
 import { parseISO, format } from "date-fns";
 
 export function RecentAchievementsCompact() {
-  const { achievements } = useRewardSystem();
+  const { achievements } = useAchievements();
   const recent = achievements
     .filter((a) => a.isUnlocked && !a.isRevoked && a.unlockedAt)
     .sort(

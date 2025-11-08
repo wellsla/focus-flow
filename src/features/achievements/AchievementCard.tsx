@@ -10,7 +10,13 @@ interface AchievementCardProps {
 }
 
 export function AchievementCard({ achievement }: AchievementCardProps) {
-  const Icon = (Lucide as any)[achievement.icon] || Lucide.Award;
+  const Icon = (() => {
+    const mod = Lucide as unknown as Record<string, unknown>;
+    const c = mod[achievement.icon];
+    return typeof c === "function"
+      ? (c as React.ComponentType<{ className?: string }>)
+      : Lucide.Award;
+  })();
   const unlocked = achievement.isUnlocked && !achievement.isRevoked;
   const revoked = achievement.isRevoked;
 

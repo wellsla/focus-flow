@@ -13,12 +13,17 @@ import {
   FinancialLog,
   Currency,
 } from "@/lib/types";
-import useLocalStorage from "@/hooks/use-local-storage";
+import {
+  useFinancialAccounts,
+  useIncomeSettings,
+  useFinancialLogs,
+  useCreateFinancialLog,
+} from "@/hooks/use-finances-db";
+import { useDashboardCards } from "@/hooks/use-dashboard-db";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useEffect } from "react";
 import { format, parseISO, startOfMonth } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { History } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -73,77 +78,27 @@ const getMonthlyIncome = (
   return recurringIncome + oneTimeThisMonth;
 };
 
-const FinancialHistoryDialog = ({ logs }: { logs: FinancialLog[] }) => {
-  const sortedLogs = [...logs].sort(
-    (a, b) => parseISO(b.date).getTime() - parseISO(a.date).getTime()
-  );
-
-  return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="outline">
-          <History className="mr-2 h-4 w-4" /> View History
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-3xl">
-        <DialogHeader>
-          <DialogTitle>Monthly Financial History</DialogTitle>
-          <DialogDescription>
-            A log of your financial snapshots over time.
-          </DialogDescription>
-        </DialogHeader>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Month</TableHead>
-              <TableHead>Income</TableHead>
-              <TableHead>Expenses</TableHead>
-              <TableHead>Net</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {sortedLogs.map((log) => (
-              <TableRow key={log.date}>
-                <TableCell>{format(parseISO(log.date), "MMM yyyy")}</TableCell>
-                <TableCell>
-                  {log.currency} {log.totalIncome.toFixed(2)}
-                </TableCell>
-                <TableCell>
-                  {log.currency} {log.totalExpenses.toFixed(2)}
-                </TableCell>
-                <TableCell
-                  className={log.net >= 0 ? "text-green-600" : "text-red-600"}
-                >
-                  {log.currency} {log.net.toFixed(2)}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </DialogContent>
-    </Dialog>
-  );
-};
-
 export default function FinancesPage() {
-  const [financialAccounts, setFinancialAccounts, loadingAccounts] =
-    useLocalStorage<FinancialAccount[]>("financialAccounts", []);
-  const [incomeSettings, setIncomeSettings, loadingIncome] =
-    useLocalStorage<IncomeSettings>("incomeSettings", initialIncomeSettings);
-  const [dashboardCards, setDashboardCards] = useLocalStorage<DashboardCard[]>(
-    "dashboardCards",
-    initialDashboardCards
+  const { accounts: financialAccounts, isLoading: loadingAccounts } =
+    useFinancialAccounts();
+  const { settings: incomeSettings, isLoading: loadingIncome } =
+    useIncomeSettings();
+  const { cards: dashboardCards, isLoading: loadingCards } =
+    useDashboardCards();
+  const { logs: financialLogs, isLoading: loadingLogs } = useFinancialLogs();
+  const createLog = useCreateFinancialLog();
+
+  const isLoading =
+    loadingAccounts || loadingIncome || loadingLogs || loadingCards;
+
+  const debts = financialAccounts.filter(
+    (acc: FinancialAccount) => acc.type === "debt"
   );
-  const [financialLogs, setFinancialLogs, loadingLogs] = useLocalStorage<
-    FinancialLog[]
-  >("financialLogs", []);
-
-  const isLoading = loadingAccounts || loadingIncome || loadingLogs;
-
-  const debts = financialAccounts.filter((acc) => acc.type === "debt");
-  const expenses = financialAccounts.filter((acc) => acc.type === "expense");
+  const expenses = financialAccounts.filter(
+    (acc: FinancialAccount) => acc.type === "expense"
+  );
   const oneTimeIncomes = financialAccounts.filter(
-    (acc) => acc.type === "income"
+    (acc: FinancialAccount) => acc.type === "income"
   );
 
   // CRITICAL FIX: Monthly log creation and update must be idempotent
@@ -159,14 +114,14 @@ export default function FinancesPage() {
     const totalIncome = getMonthlyIncome(incomeSettings, oneTimeIncomes);
 
     const totalExpenses = expenses.reduce(
-      (sum, item) =>
+      (sum: number, item: FinancialAccount) =>
         sum +
         convertCurrency(item.amount, item.currency, incomeSettings.currency),
       0
     );
 
     const totalDebt = debts.reduce(
-      (sum, item) =>
+      (sum: number, item: FinancialAccount) =>
         sum +
         convertCurrency(item.amount, item.currency, incomeSettings.currency),
       0
@@ -190,31 +145,26 @@ export default function FinancesPage() {
       return;
     }
 
-    setFinancialLogs((prevLogs) => {
-      const idx = prevLogs.findIndex(
-        (log) => format(parseISO(log.date), "yyyy-MM") === currentMonth
-      );
+    // Check if log exists for current month
+    const existingLog = financialLogs.find(
+      (log: FinancialLog) =>
+        format(parseISO(log.date), "yyyy-MM") === currentMonth
+    );
 
-      if (idx === -1) {
-        // No log for this month, add it
-        lastProcessedRef.current = logSnapshot;
-        return [...prevLogs, newLog];
-      }
-
-      // Update existing log if data changed
-      const existing = prevLogs[idx];
-      const existingSnapshot = JSON.stringify(existing);
-
-      if (existingSnapshot !== logSnapshot) {
-        const copy = [...prevLogs];
-        copy[idx] = newLog;
-        lastProcessedRef.current = logSnapshot;
-        return copy;
-      }
-
+    if (!existingLog) {
+      // No log for this month, create it
       lastProcessedRef.current = logSnapshot;
-      return prevLogs;
-    });
+      createLog.mutate(newLog);
+    } else {
+      // Update existing log if data changed
+      const existingSnapshot = JSON.stringify(existingLog);
+      if (existingSnapshot !== logSnapshot) {
+        lastProcessedRef.current = logSnapshot;
+        createLog.mutate(newLog);
+      } else {
+        lastProcessedRef.current = logSnapshot;
+      }
+    }
   }, [
     isLoading,
     financialAccounts,
@@ -222,56 +172,12 @@ export default function FinancesPage() {
     debts,
     expenses,
     oneTimeIncomes,
-    setFinancialLogs,
+    financialLogs,
+    createLog,
   ]);
 
-  const handleDataUpdate = (
-    updatedAccounts: FinancialAccount[],
-    newIncomeSettings?: IncomeSettings
-  ) => {
-    setFinancialAccounts(updatedAccounts);
-    if (newIncomeSettings) {
-      setIncomeSettings(newIncomeSettings);
-
-      const benefitsCardId = "special-benefits-countdown";
-      const existingCardIndex = dashboardCards.findIndex(
-        (c) => c.id === benefitsCardId
-      );
-
-      if (
-        newIncomeSettings.status === "Benefited" &&
-        newIncomeSettings.benefitsEndDate
-      ) {
-        const newCard: DashboardCard = {
-          id: benefitsCardId,
-          title: "Benefits Countdown",
-          subtext: "Days left until benefits end.",
-          icon: "CalendarCheck",
-          visualization: "default", // Will be determined dynamically on the dashboard
-          config: {
-            feature: "finances",
-            metric: "special",
-            specialCard: "benefits-countdown",
-          },
-          value: "", // Will be calculated on dashboard
-        };
-
-        if (existingCardIndex > -1) {
-          const updatedCards = [...dashboardCards];
-          updatedCards[existingCardIndex] = newCard;
-          setDashboardCards(updatedCards);
-        } else {
-          setDashboardCards([...dashboardCards, newCard]);
-        }
-      } else {
-        if (existingCardIndex > -1) {
-          setDashboardCards(
-            dashboardCards.filter((c) => c.id !== benefitsCardId)
-          );
-        }
-      }
-    }
-  };
+  // Note: Financials component uses database hooks directly now
+  // No need for handleDataUpdate callback
 
   if (isLoading) {
     return (
@@ -310,7 +216,7 @@ export default function FinancesPage() {
             get AI-powered reality checks.
           </p>
         </div>
-        <FinancialHistoryDialog logs={financialLogs} />
+        {/* History view removed in favor of centralized /feedback */}
       </div>
       <FinancialAlerts
         incomeSettings={incomeSettings}
@@ -318,7 +224,6 @@ export default function FinancesPage() {
       />
       <Financials
         incomeSettings={incomeSettings}
-        onDataUpdate={handleDataUpdate}
         financialAccounts={financialAccounts}
       />
     </div>

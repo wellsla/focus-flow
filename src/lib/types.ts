@@ -426,6 +426,8 @@ export interface RewardState {
   points: number; // +1 micro-tarefa/cheque; +5 sessão pomodoro completa; streaks
   streakDays: number; // dias seguidos com pelo menos N checks
   lastCheckDate?: string; // para calcular streak
+  // Lightweight badge system (client-side achievements)
+  badges: string[];
 
   // Achievement tracking
   achievements: Achievement[];

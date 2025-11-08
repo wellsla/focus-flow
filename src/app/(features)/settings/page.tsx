@@ -14,7 +14,10 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { loadPomodoroSettings, savePomodoroSettings } from "@/lib/storage";
+import {
+  usePomodoroSettings,
+  useUpsertPomodoroSettings,
+} from "@/hooks/use-pomodoro-db";
 import type { PomodoroSettings } from "@/lib/types";
 import {
   Select,
@@ -24,28 +27,40 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Timer, Accessibility, Bell, Palette, Info } from "lucide-react";
+import { useTheme } from "@/components/theme-provider";
+import useLocalStorage from "@/hooks/use-local-storage";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function SettingsPage() {
-  const [pomodoroSettings, setPomodoroSettings] =
-    useState<PomodoroSettings>(loadPomodoroSettings);
+  const { theme, setTheme } = useTheme();
+  const queryClient = useQueryClient();
+  const { settings: pomodoroSettings, isLoading } = usePomodoroSettings();
+  const upsertSettings = useUpsertPomodoroSettings();
   const [reducedMotion, setReducedMotion] = useState(
     window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+  const [focusModeDefault, setFocusModeDefault] = useLocalStorage<boolean>(
+    "focusModeDefault",
+    false
   );
   const { toast } = useToast();
 
   const handlePomodoroSave = () => {
-    savePomodoroSettings(pomodoroSettings);
-    toast({
-      title: "Settings Saved",
-      description: "Pomodoro settings have been updated.",
-    });
+    upsertSettings.mutate(pomodoroSettings);
   };
 
   const handlePomodoroChange = (
     key: keyof PomodoroSettings,
     value: number | boolean
   ) => {
-    setPomodoroSettings((prev) => ({ ...prev, [key]: value }));
+    // Optimistically update the query cache
+    queryClient.setQueryData(
+      [["pomodoro", "settings", "get"]],
+      (old: PomodoroSettings | undefined) => ({
+        ...(old || pomodoroSettings),
+        [key]: value,
+      })
+    );
   };
 
   const handleReducedMotionToggle = (checked: boolean) => {
@@ -332,17 +347,7 @@ export default function SettingsPage() {
                 <Switch id="reminders-enabled" defaultChecked />
               </div>
 
-              <div className="rounded-lg border p-4">
-                <p className="text-sm text-muted-foreground">
-                  Configure individual reminders on the{" "}
-                  <a
-                    href="/reminders"
-                    className="text-primary underline hover:no-underline"
-                  >
-                    Reminders page
-                  </a>
-                </p>
-              </div>
+              {/* Reminders page removed from application */}
             </CardContent>
           </Card>
         </TabsContent>
@@ -359,7 +364,10 @@ export default function SettingsPage() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="theme">Theme</Label>
-                <Select defaultValue="system">
+                <Select
+                  value={theme}
+                  onValueChange={(v) => setTheme(v as typeof theme)}
+                >
                   <SelectTrigger id="theme">
                     <SelectValue />
                   </SelectTrigger>
@@ -372,6 +380,22 @@ export default function SettingsPage() {
                 <p className="text-sm text-muted-foreground">
                   Choose between light, dark or automatic theme
                 </p>
+              </div>
+
+              <div className="flex items-center justify-between rounded-lg border p-4">
+                <div className="space-y-0.5">
+                  <Label htmlFor="focus-default" className="text-base">
+                    Enable Focus Mode by default
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Reduces visual noise across the app on load
+                  </p>
+                </div>
+                <Switch
+                  id="focus-default"
+                  checked={focusModeDefault}
+                  onCheckedChange={(checked) => setFocusModeDefault(checked)}
+                />
               </div>
 
               <div className="space-y-2">

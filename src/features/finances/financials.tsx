@@ -27,6 +27,12 @@ import {
   ExpensePriority,
 } from "@/lib/types";
 import {
+  useCreateFinancialAccount,
+  useUpdateFinancialAccount,
+  useDeleteFinancialAccount,
+  useUpsertIncomeSettings,
+} from "@/hooks/use-finances-db";
+import {
   fetchFinancialSuggestions,
   fetchInvestmentTips,
 } from "../../app/(features)/finances/actions";
@@ -78,10 +84,6 @@ import { MarkdownModal } from "@/features/shared/MarkdownModal";
 type FinancialsProps = {
   incomeSettings: IncomeSettings;
   financialAccounts: FinancialAccount[];
-  onDataUpdate: (
-    accounts: FinancialAccount[],
-    newIncome?: IncomeSettings
-  ) => void;
 };
 
 const financialItemFormSchema = z.object({
@@ -158,8 +160,10 @@ const FinancialItemForm = ({
       ...values,
       id:
         item?.id ||
-        (typeof crypto !== "undefined" && "randomUUID" in crypto
-          ? (crypto as any).randomUUID()
+        (typeof crypto !== "undefined" &&
+        typeof (crypto as { randomUUID?: () => string }).randomUUID ===
+          "function"
+          ? (crypto as { randomUUID: () => string }).randomUUID()
           : new Date().toISOString()),
       amount,
       type: values.type,
@@ -606,8 +610,13 @@ const CopyButton = ({ text }: { text: string }) => {
 export function Financials({
   incomeSettings,
   financialAccounts,
-  onDataUpdate,
 }: FinancialsProps) {
+  // Database mutation hooks
+  const createAccount = useCreateFinancialAccount();
+  const updateAccount = useUpdateFinancialAccount();
+  const deleteAccount = useDeleteFinancialAccount();
+  const upsertIncomeSettings = useUpsertIncomeSettings();
+
   // Unified AI states
   const [aiGoal, setAiGoal] = useState<string>("");
   const [aiResult, setAiResult] = useState<string | null>(null);
@@ -704,37 +713,41 @@ export function Financials({
     setIsFinancialItemFormOpen(true);
   }
 
-  function handleFinancialItemFormSubmit(item: FinancialAccount) {
+  async function handleFinancialItemFormSubmit(item: FinancialAccount) {
     const exists = financialAccounts.some((acc) => acc.id === item.id);
-    const updatedAccounts = exists
-      ? financialAccounts.map((acc) => (acc.id === item.id ? item : acc))
-      : [...financialAccounts, item];
-    onDataUpdate(updatedAccounts, incomeSettings);
-    setIsFinancialItemFormOpen(false);
-    setSelectedItem(null);
-    toast({
-      title: exists ? "Item Updated" : "Item Added",
-      description: `Financial item "${item.name}" has been saved.`,
-    });
+
+    try {
+      if (exists) {
+        await updateAccount.mutateAsync(item);
+      } else {
+        await createAccount.mutateAsync(item);
+      }
+
+      setIsFinancialItemFormOpen(false);
+      setSelectedItem(null);
+    } catch (error) {
+      // Error toast is handled by the mutation hooks
+      console.error("Failed to save financial item:", error);
+    }
   }
 
-  function handleIncomeFormSubmit(data: IncomeSettings) {
-    onDataUpdate(financialAccounts, data);
-    setIsIncomeFormOpen(false);
-    toast({
-      title: "Income Settings Updated",
-      description: "Your income information has been saved.",
-    });
+  async function handleIncomeFormSubmit(data: IncomeSettings) {
+    try {
+      await upsertIncomeSettings.mutateAsync(data);
+      setIsIncomeFormOpen(false);
+    } catch (error) {
+      // Error toast is handled by the mutation hook
+      console.error("Failed to save income settings:", error);
+    }
   }
 
-  function handleDelete(id: string) {
-    const updatedAccounts = financialAccounts.filter((acc) => acc.id !== id);
-    onDataUpdate(updatedAccounts, incomeSettings);
-    toast({
-      title: "Item Deleted",
-      variant: "destructive",
-      description: `Financial item has been removed.`,
-    });
+  async function handleDelete(id: string) {
+    try {
+      await deleteAccount.mutateAsync({ id });
+    } catch (error) {
+      // Error toast is handled by the mutation hook
+      console.error("Failed to delete financial item:", error);
+    }
   }
 
   const handleGetAIAdvice = async () => {
@@ -783,15 +796,18 @@ export function Financials({
     setAiLoading(false);
   };
 
-  const togglePaidStatus = (item: FinancialAccount, isPaid: boolean) => {
+  const togglePaidStatus = async (item: FinancialAccount, isPaid: boolean) => {
     const updatedItem = {
       ...item,
       lastPaid: isPaid ? format(new Date(), "yyyy-MM-dd") : undefined,
     };
-    const updatedAccounts = financialAccounts.map((acc) =>
-      acc.id === item.id ? updatedItem : acc
-    );
-    onDataUpdate(updatedAccounts, incomeSettings);
+
+    try {
+      await updateAccount.mutateAsync(updatedItem);
+    } catch (error) {
+      // Error toast is handled by the mutation hook
+      console.error("Failed to update paid status:", error);
+    }
   };
 
   return (

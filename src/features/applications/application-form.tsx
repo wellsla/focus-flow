@@ -114,8 +114,10 @@ export function ApplicationForm({
   const handleAddComment = (text: string) => {
     const newComment: ApplicationComment = {
       id:
-        typeof crypto !== "undefined" && "randomUUID" in crypto
-          ? (crypto as any).randomUUID()
+        typeof crypto !== "undefined" &&
+        typeof (crypto as { randomUUID?: () => string }).randomUUID ===
+          "function"
+          ? (crypto as { randomUUID: () => string }).randomUUID()
           : new Date().toISOString(),
       text,
       createdAt: new Date().toISOString(),
@@ -161,8 +163,10 @@ export function ApplicationForm({
       ...values,
       id:
         application?.id ||
-        (typeof crypto !== "undefined" && "randomUUID" in crypto
-          ? (crypto as any).randomUUID()
+        (typeof crypto !== "undefined" &&
+        typeof (crypto as { randomUUID?: () => string }).randomUUID ===
+          "function"
+          ? (crypto as { randomUUID: () => string }).randomUUID()
           : new Date().toISOString()),
       dateApplied: format(values.dateApplied, "yyyy-MM-dd"),
       comments: comments,

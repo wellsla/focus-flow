@@ -4,7 +4,7 @@
 
 **Última Atualização**: 7 de novembro de 2025  
 **Status do Projeto**: ✅ Build limpo (0 erros)  
-**Versão**: 1.2.4
+**Versão**: 1.2.5
 
 ---
 
@@ -21,14 +21,15 @@
 - **Análise de Tempo**: Pomodoro e gestão de tempo
 - **Roadmap Profissional**: Planejamento de carreira e metas
 - **Performance**: Dashboards de progresso e conquistas
+- **Feedback Centralizado**: Consolidação de registros com filtros, exportação XLSX e feedback por IA (Markdown)
 
 ### Filosofia de Design
 
-1. **Privacy-First**: Dados armazenados localmente (localStorage)
-2. **Offline-First**: Funciona completamente sem internet
+1. **Database-First**: Dados armazenados em Vercel Postgres com Prisma ORM
+2. **Type-Safe API**: tRPC para comunicação client-server totalmente tipada
 3. **ADHD-Friendly**: Interface clara, CTAs únicos, feedback imediato
 4. **Type-Safe**: TypeScript estrito, zero uso de `any`
-5. **Local-First**: Estado gerenciado pelo cliente, sem backend obrigatório
+5. **Server State**: React Query para gerenciamento de cache e sincronização
 6. **English-Only UI**: Todo conteúdo visível ao usuário DEVE estar em inglês
 
 ---
@@ -42,6 +43,10 @@
 | **Next.js**           | 15.5.6  | Framework React com App Router      |
 | **React**             | 19.2.0  | UI Library + React Compiler         |
 | **TypeScript**        | 5.9.3   | Type safety (modo strict)           |
+| **Prisma**            | 6.19.0  | ORM para Postgres                   |
+| **tRPC**              | 10.45.2 | Type-safe API client/server         |
+| **React Query**       | 4.36.1  | Server state management             |
+| **Vercel Postgres**   | Latest  | Managed PostgreSQL database         |
 | **Tailwind CSS**      | 3.4.15  | Utility-first styling               |
 | **ShadCN UI**         | Latest  | Component library                   |
 | **Radix UI**          | Various | Accessible primitives               |
@@ -50,7 +55,7 @@
 | **zod**               | 3.24.1  | Schema validation                   |
 | **Recharts**          | 3.3.0   | Data visualization                  |
 | **pdf-lib**           | 1.17.1  | PDF generation                      |
-| **Auth0** (opcional)  | 4.11.1  | Authentication (futuro)             |
+| **Auth0**             | 4.11.1  | Authentication (enabled)            |
 | **Genkit** (opcional) | 1.22.0  | AI features (sugestões financeiras) |
 
 ### Configurações Críticas
@@ -84,6 +89,22 @@ experimental: {
 ```
 focus-flow/
 ├── src/
+│   ├── server/                       # Backend tRPC API
+│   │   ├── db.ts                    # Prisma client singleton
+│   │   ├── context.ts               # tRPC request context
+│   │   ├── trpc.ts                  # tRPC initialization
+│   │   └── routers/                 # API routers
+│   │       ├── index.ts             # Main app router
+│   │       ├── task.ts              # Tasks CRUD
+│   │       ├── routine.ts           # Routines & checkmarks
+│   │       ├── application.ts       # Job applications
+│   │       ├── finance.ts           # Financial tracking
+│   │       ├── goal.ts              # Goals
+│   │       ├── activity.ts          # Pomodoro, time tracking, journal
+│   │       ├── feedback.ts          # 🔹 Feedback (agregação + geração AI)
+│   │       ├── gamification.ts      # Achievements, rewards
+│   │       └── dashboard.ts         # Dashboard, settings
+│   │
 │   ├── app/                          # Next.js App Router
 │   │   ├── (features)/               # Rotas agrupadas
 │   │   │   ├── layout.tsx           # Layout compartilhado
@@ -91,19 +112,22 @@ focus-flow/
 │   │   │   ├── dashboard/           # Dashboard principal
 │   │   │   ├── finances/            # Gestão financeira
 │   │   │   ├── goals/               # Metas e objetivos
+│   │   │   ├── feedback/            # 🔹 Feedback centralizado (/feedback)
 │   │   │   ├── home/                # Página inicial
 │   │   │   ├── performance/         # Análise de performance
 │   │   │   ├── profile/             # Perfil do usuário
 │   │   │   ├── roadmap/             # Roadmap profissional
 │   │   │   ├── routine/             # Rotinas diárias (LEGACY)
 │   │   │   ├── settings/            # Configurações
-│   │   │   ├── tasks/               # Tarefas one-time (NOVO)
+│   │   │   ├── tasks/               # ✅ Tarefas (migrado para DB)
 │   │   │   ├── time-management/     # Gestão de tempo
 │   │   │   ├── rewards/             # Rewards (condicionais e compráveis)
 │   │   │   └── achievements/        # Achievements (vitalícios)
 │   │   ├── api/                     # API routes
+│   │   │   └── trpc/[trpc]/        # tRPC API handler
 │   │   ├── globals.css              # Estilos globais + CSS vars
 │   │   ├── layout.tsx               # Root layout
+│   │   ├── providers.tsx            # React Query + tRPC providers
 │   │   └── page.tsx                 # Landing page
 │   │
 │   ├── components/                   # Componentes reutilizáveis
@@ -131,17 +155,20 @@ focus-flow/
 │   │
 │   ├── hooks/                        # Custom React hooks
 │   │   ├── use-data-logger.ts       # Logging de ações
-│   │   ├── use-local-storage.ts     # Persistência local
-│   │   ├── use-reward-system.ts     # Hook do sistema de rewards/achievements
-│   │   ├── use-mobile.tsx           # Detecção mobile
+│   │   ├── use-local-storage.ts     # Persistência local (LEGACY - migrando)
+│   │   ├── use-tasks-db.ts          # ✅ Tasks com tRPC (migrado)
+│   │   ├── (REMOVIDO) use-reward-system.ts     # Legacy localStorage reward system (substituído por rewardState via tRPC)
+│   │   ├── use-feedback.ts          # 🔹 Hooks: registros + geração de feedback
+│   │   ├── (REMOVIDO) use-mobile.tsx           # Hook de breakpoint não utilizado (remoção para reduzir superfície)
 │   │   └── use-toast.ts             # Notificações
 │   │
 │   ├── lib/                          # Utilities e tipos
 │   │   ├── types.ts                 # ✅ Tipos modernos (Task, RoutineItem)
+│   │   ├── trpc.ts                  # ✅ tRPC client configuration
 │   │   ├── legacy-data.ts           # ✅ Tipos legacy (LegacyTask)
 │   │   ├── data.ts                  # ⚠️ DEPRECATED - usar legacy-data.ts
 │   │   ├── schedule.ts              # Scheduling utilities
-│   │   ├── storage.ts               # localStorage wrapper
+│   │   ├── storage.ts               # localStorage wrapper (LEGACY)
 │   │   ├── utils.ts                 # Utility functions
 │   │   ├── motivational-phrases.ts  # Frases motivacionais
 │   │   └── placeholder-images.ts    # Imagens placeholder
@@ -155,14 +182,22 @@ focus-flow/
 │   │   └── flows/
 │   │       ├── financial-suggestions.ts
 │   │       ├── personalized-investment-tips.ts
+│   │       └── feedback-insights.ts  # 🔹 Geração de feedback em Markdown (persona “chefe sábio”)
 │   │       └── extract-bank-statement-flow.ts
 │   │
 │   └── middleware.ts                 # Next.js middleware
 │
 ├── docs/                             # Documentação do projeto
-│   └── DEVELOPMENT-GUIDE.md         # 👈 VOCÊ ESTÁ AQUI
+│   ├── DEVELOPMENT-GUIDE.md         # 👈 VOCÊ ESTÁ AQUI
+│   ├── BACKEND-MIGRATION.md         # ✅ Guia de migração para backend
+│   └── EXTERNAL-SETUP.md            # ✅ Setup Vercel Postgres
+│
+├── prisma/                           # Prisma ORM
+│   ├── schema.prisma                # Database schema
+│   └── migrations/                  # Migration history
 │
 ├── package.json                      # Dependências e scripts
+├── prisma.config.ts                  # Prisma configuration
 ├── tsconfig.json                     # TypeScript config
 ├── tailwind.config.ts                # Tailwind config
 ├── next.config.js                    # Next.js config
@@ -471,7 +506,102 @@ function processData(data: unknown) {
 
 ## 💾 Sistema de Persistência
 
-### Estratégia Local-First
+### Estratégia Database-First (NEW)
+
+**🎯 Estado Atual**: Migração concluída para Vercel Postgres + Prisma + Auth0 (100%)
+
+**Migrated for Database**:
+
+- ✅ **Tasks** (`/tasks`) - CRUD completo com tRPC
+
+  - Hook: `use-tasks-db.ts`
+  - Router: `src/server/routers/task.ts`
+  - Prisma Model: `Task`
+
+- ✅ **Routines** (`/routines`) - Dual-model com checkmarks diários
+
+  - Hook: `use-routines-db.ts`
+  - Router: `src/server/routers/routine.ts`
+  - Prisma Models: `RoutineItem`, `Checkmark`
+
+- ✅ **Applications** (`/applications`) - Job tracking com Kanban
+
+  - Hook: `use-applications-db.ts`
+  - Router: `src/server/routers/application.ts`
+  - Prisma Model: `JobApplication`
+
+- ✅ **Goals** (`/goals`) - Goals management
+
+  - Hook: `use-goals-db.ts`
+  - Router: `src/server/routers/goal.ts`
+  - Prisma Model: `Goal`
+
+- ✅ **Journal** (`/journal`) - Daily reflections com upsert
+
+  - Hook: `use-journal-db.ts`
+  - Router: `src/server/routers/activity.ts` (journalRouter)
+  - Prisma Model: `JournalEntry`
+
+- ✅ **Dashboard Cards** (`/dashboard`) - Custom dashboard cards
+
+  - Hook: `use-dashboard-db.ts`
+  - Router: `src/server/routers/dashboard.ts` (dashboardRouter.cards)
+  - Prisma Model: `DashboardCard`
+
+- ✅ **Achievements & Rewards** (`/achievements`, `/rewards`) - Gamification system
+  - Hooks: `use-achievements-db.ts`, `use-rewards-db.ts`, `use-reward-economy.ts`
+  - Router: `src/server/routers/gamification.ts` (achievementRouter, rewardRouter, rewardStateRouter)
+  - Prisma Models: `Achievement`, `Reward`, `RewardState`
+  - Economy hooks: `grantRoutineGems()`, `grantTaskGems()`, `grantPomodoroGems()`
+  - UI: Separate pages for achievements gallery and rewards shop
+
+**Pendente de Migração** (ainda usando localStorage):
+
+- ⏳ **Finances** (`/finances`) - BLOCKER: 1127-line child component
+- ⏳ **Pomodoro** (`/pomodoro`) - Complex real-time timer state
+
+### Arquitetura Backend
+
+```
+Component → tRPC Hook → API Route → tRPC Router → Prisma → Database
+   ↓                                                            ↓
+React Query Cache ←──────────────────────────────────────── Response
+```
+
+**Stack**:
+
+- **Database**: Vercel Postgres (managed PostgreSQL)
+- **ORM**: Prisma 6.19.0
+- **API**: tRPC 10.45.2 (type-safe)
+- **Cache**: React Query 4.36.1
+- **Auth**: Auth0 (session subject mapped to `ctx.userId`)
+
+### Environment Variables
+
+**Arquivo**: `.env` (NÃO commitar - está no .gitignore)
+
+```bash
+# Vercel Postgres / Prisma Accelerate
+STORAGE_PRISMA_DATABASE_URL="prisma+postgres://accelerate.prisma-data.net/?api_key=..."
+STORAGE_DATABASE_URL="postgres://..." # Direct connection for migrations
+STORAGE_POSTGRES_URL="postgres://..." # Optional alternative
+
+# Auth0
+AUTH0_SECRET="..."
+AUTH0_DOMAIN="wellsla.us.auth0.com"
+AUTH0_CLIENT_ID="..."
+AUTH0_CLIENT_SECRET="..."
+APP_BASE_URL="http://localhost:9002"
+
+# Gemini AI
+GEMINI_API_KEY="..."
+```
+
+**Setup**: Ver `docs/EXTERNAL-SETUP.md` para instruções completas
+
+### localStorage (LEGACY - Em Migração)
+
+**⚠️ DEPRECATED**: Sistema antigo ainda usado por features não migradas
 
 **Namespace**: `focus-flow:v1:` (todos os dados no localStorage)
 
@@ -491,7 +621,9 @@ const tasks = getStorageItem<Task[]>("tasks") ?? [];
 setStorageItem("tasks", updatedTasks);
 ```
 
-### Custom Hook: useLocalStorage
+### Custom Hook: useLocalStorage (LEGACY)
+
+**⚠️ DEPRECATED**: Use tRPC hooks para novas features
 
 **Arquivo**: `src/hooks/use-local-storage.ts`
 
@@ -517,7 +649,29 @@ function MyComponent() {
 - **Serialização**: Apenas tipos JSON-serializáveis
 - **Segurança**: Não armazenar dados sensíveis (tokens, senhas)
 
-### Fluxo de Dados
+### Fluxo de Dados (NEW - Database)
+
+```
+User Action
+    ↓
+React Component
+    ↓
+tRPC Hook (useTasks, useCreateTask, etc.)
+    ↓
+tRPC Client → API Route (/api/trpc/[trpc])
+    ↓
+tRPC Router (src/server/routers/task.ts)
+    ↓
+Prisma ORM
+    ↓
+Vercel Postgres Database
+    ↓
+Response → React Query Cache
+    ↓
+Component Re-render (automatic)
+```
+
+### Fluxo de Dados (LEGACY - localStorage)
 
 ```
 User Action
@@ -534,6 +688,736 @@ Custom Event Dispatch (local-storage)
     ↓
 Outros Componentes Re-render (se subscribed)
 ```
+
+---
+
+## 🔄 Padrão de Migração localStorage → Database
+
+### Migration Status
+
+#### Completed ✅
+
+- **Tasks** - Full CRUD with database
+- **Routines** - Routines + Checkmarks with date-based queries
+- **Applications** - Job applications with drag-and-drop Kanban
+- **Goals** - Goals management with action steps
+- **Journal** - Daily reflections with upsert pattern
+- **Dashboard Cards** - Custom dashboard cards with JSON config
+- **Achievements & Rewards** - Gamification system with gem economy
+- **Pomodoro** - Sessions + settings with client-side timer state
+- **Finances** - Financial accounts, logs, and income settings
+
+**Current Progress**: 9/9 features (100%) migrated to database ✅ COMPLETE
+
+### Pattern: Pomodoro (Migrado) ✅
+
+**Complexidade**: Real-time timer state + database persistence for sessions/settings
+
+**Strategy**: Keep timer state client-side (client-side timer ticks), persist completed/paused sessions to database
+
+**Database Hooks** (`src/hooks/use-pomodoro-db.ts`):
+
+```typescript
+// Query all sessions with date normalization
+export function usePomodoroSessions() {
+  const query = trpc.pomodoro.sessions.getAll.useQuery();
+  return {
+    sessions: query.data?.map(s => ({
+      ...s,
+      startedAt: s.startedAt.toISOString(),
+      endedAt: s.endedAt?.toISOString(),
+    })) ?? [],
+    isLoading: query.isLoading,
+    refetch: query.refetch,
+  };
+}
+
+// Create completed/paused session
+export function useCreatePomodoroSession() {
+  const utils = trpc.useUtils();
+  return trpc.pomodoro.sessions.create.useMutation({
+    onSuccess: () => utils.pomodoro.sessions.getAll.invalidate(),
+  });
+}
+
+// Update session (productivity validation)
+export function useUpdatePomodoroSession() {
+  const utils = trpc.useUtils();
+  return trpc.pomodoro.sessions.update.useMutation({
+    onSuccess: () => utils.pomodoro.sessions.getAll.invalidate(),
+  });
+}
+
+// Query settings with defaults
+export function usePomodoroSettings() {
+  const query = trpc.pomodoro.settings.get.useQuery();
+  const defaultSettings = { workMin: 25, breakMin: 5, ... };
+  return {
+    settings: query.data ?? defaultSettings,
+    isLoading: query.isLoading,
+    refetch: query.refetch,
+  };
+}
+
+// Upsert settings
+export function useUpsertPomodoroSettings() {
+  const utils = trpc.useUtils();
+  return trpc.pomodoro.settings.upsert.useMutation({
+    onSuccess: () => {
+      utils.pomodoro.settings.get.invalidate();
+      toast({ title: "Settings saved" });
+    },
+  });
+}
+```
+
+**Timer Hook** (`src/hooks/use-pomodoro-timer.ts`):
+
+```typescript
+export function usePomodoroTimer() {
+  const { settings } = usePomodoroSettings();
+  const createSession = useCreatePomodoroSession();
+  const updateSession = useUpdatePomodoroSession();
+
+  // Client-side timer state (not in DB)
+  const [timerState, setTimerState] = useState<PomodoroTimerState>(...);
+
+  const handleCompletion = () => {
+    // Persist completed session to DB
+    if (sessionId) {
+      createSession.mutate({
+        id: sessionId,
+        startedAt: state.startedAt,
+        endedAt: new Date().toISOString(),
+        kind: "work",
+        completed: true,
+        category: state.category,
+      });
+    }
+    // ... transition to next state
+  };
+
+  const validateProductivity = (wasTrulyProductive: boolean) => {
+    // Update session in DB
+    updateSession.mutate({ id: sessionId, wasTrulyProductive });
+  };
+
+  return { state, remainingSeconds, start, pause, validateProductivity };
+}
+```
+
+**Key Decisions**:
+
+- Timer state stays client-side (localStorage + in-memory) for real-time updates
+- Only completed/paused sessions are persisted to database
+- Settings are fetched from DB on mount, cached by React Query
+- Analytics components query sessions from database
+- Optimistic updates for settings using queryClient.setQueryData
+
+**Migrated Files**:
+
+- `src/hooks/use-pomodoro-db.ts` (NEW) - 5 database hooks
+- `src/hooks/use-pomodoro-timer.ts` - Refactored to use DB hooks
+- `src/app/(features)/settings/page.tsx` - Settings management with DB
+- `src/features/pomodoro/pomodoro-time-distribution.tsx` - Analytics with DB
+- `src/app/(features)/pomodoro/page.tsx` - Main page with DB sessions
+
+### Pattern: Finances (Migrado) ✅
+
+**Complexidade**: Multi-model with accounts, logs, and settings + large component refactoring
+
+**Strategy**: Create complete database hooks, refactor 1127-line component to use async mutations
+
+**Database Hooks** (`src/hooks/use-finances-db.ts`):
+
+```typescript
+// Query financial accounts with date normalization
+export function useFinancialAccounts() {
+  const query = trpc.finance.accounts.getAll.useQuery();
+  return {
+    accounts: (query.data ?? []).map((account) => ({
+      ...account,
+      date: account.date?.toISOString(),
+      lastPaid: account.lastPaid?.toISOString(),
+    })) as FinancialAccount[],
+    isLoading: query.isLoading,
+  };
+}
+
+// CRUD operations for accounts
+export function useCreateFinancialAccount() {
+  /* ... */
+}
+export function useUpdateFinancialAccount() {
+  /* ... */
+}
+export function useDeleteFinancialAccount() {
+  /* ... */
+}
+
+// Financial logs
+export function useFinancialLogs() {
+  /* ... */
+}
+export function useCreateFinancialLog() {
+  /* ... */
+}
+
+// Income settings with defaults
+export function useIncomeSettings() {
+  const query = trpc.finance.incomeSettings.get.useQuery();
+  const defaultSettings = {
+    status: "Unemployed",
+    amount: 0,
+    frequency: "monthly",
+    currency: "R$",
+  };
+  return {
+    settings: query.data
+      ? {
+          ...query.data,
+          benefitsEndDate: query.data.benefitsEndDate?.toISOString(),
+        }
+      : defaultSettings,
+    isLoading: query.isLoading,
+  };
+}
+
+export function useUpsertIncomeSettings() {
+  /* ... */
+}
+```
+
+**Component Refactoring** (`src/features/finances/financials.tsx`):
+
+```typescript
+export function Financials({
+  incomeSettings,
+  financialAccounts,
+}: FinancialsProps) {
+  // Database mutation hooks
+  const createAccount = useCreateFinancialAccount();
+  const updateAccount = useUpdateFinancialAccount();
+  const deleteAccount = useDeleteFinancialAccount();
+  const upsertIncomeSettings = useUpsertIncomeSettings();
+
+  // Replace synchronous handlers with async mutations
+  async function handleFinancialItemFormSubmit(item: FinancialAccount) {
+    const exists = financialAccounts.some((acc) => acc.id === item.id);
+
+    if (exists) {
+      await updateAccount.mutateAsync(item);
+    } else {
+      await createAccount.mutateAsync(item);
+    }
+
+    setIsFinancialItemFormOpen(false);
+  }
+
+  async function handleDelete(id: string) {
+    await deleteAccount.mutateAsync({ id });
+  }
+
+  async function togglePaidStatus(item: FinancialAccount, isPaid: boolean) {
+    const updatedItem = {
+      ...item,
+      lastPaid: isPaid ? format(new Date(), "yyyy-MM-dd") : undefined,
+    };
+    await updateAccount.mutateAsync(updatedItem);
+  }
+}
+```
+
+**Key Decisions**:
+
+- Removed `onDataUpdate` callback pattern in favor of direct mutations
+- All handlers converted to async/await pattern
+- Toast notifications handled by mutation hooks
+- Error handling with try/catch blocks
+- Financial logs creation triggered by useEffect with change detection
+- Dashboard cards integration already migrated (use-dashboard-db.ts)
+
+**Migrated Files**:
+
+- `src/hooks/use-finances-db.ts` (NEW) - 8 database hooks (187 lines)
+- `src/features/finances/financials.tsx` - Refactored to use DB mutations
+- `src/app/(features)/finances/page.tsx` - Updated to use DB hooks
+
+### Pattern: Tasks (Migrado) ✅
+
+**Antes (localStorage)**:
+
+```typescript
+// src/hooks/use-tasks.ts (DELETADO)
+export function useTasks() {
+  const [tasks, setTasks] = useLocalStorage<Task[]>("tasks", []);
+
+  const addTask = (task: Omit<Task, "id">) => {
+    const newTask = { ...task, id: `task-${Date.now()}` };
+    setTasks([...tasks, newTask]);
+  };
+
+  return { tasks, addTask, updateTask, deleteTask };
+}
+```
+
+**Depois (Database)**:
+
+```typescript
+// src/hooks/use-tasks-db.ts (NOVO)
+export function useTasks() {
+  const query = trpc.task.getAll.useQuery();
+  return {
+    tasks: query.data ?? [],
+    isLoading: query.isLoading,
+  };
+}
+
+export function useCreateTask() {
+  const utils = trpc.useUtils();
+  return trpc.task.create.useMutation({
+    onSuccess: () => utils.task.getAll.invalidate(),
+  });
+}
+```
+
+**Componente**:
+
+```typescript
+// ANTES
+const { tasks, addTask } = useTasks();
+
+// DEPOIS
+const { tasks, isLoading } = useTasks();
+const createTask = useCreateTask();
+
+// Async mutation
+await createTask.mutateAsync({ title: "New task", ... });
+```
+
+### Pattern: Routines (Migrado) ✅
+
+**Complexidade**: Dual-model (RoutineItem + Checkmark) com date-based queries
+
+**Antes (localStorage)**:
+
+```typescript
+// src/hooks/use-routines.ts (DELETADO)
+export function useRoutines() {
+  const [routines, setRoutines] = useLocalStorageState<RoutineItem[]>(
+    "routines",
+    []
+  );
+  return { routines, setRoutines };
+}
+
+export function useTodayCheckmarks() {
+  const today = format(new Date(), "yyyy-MM-dd");
+  const [checkmarks, setCheckmarks] = useState<Checkmark[]>([]);
+
+  useEffect(() => {
+    const checks = loadChecks(today); // Custom storage function
+    setCheckmarks(checks);
+  }, [today]);
+
+  return { checkmarks, toggleCheck };
+}
+```
+
+**Depois (Database)**:
+
+```typescript
+// src/hooks/use-routines-db.ts (NOVO)
+export function useRoutines() {
+  const query = trpc.routine.getAll.useQuery();
+  return {
+    routines:
+      query.data?.map((r) => ({
+        ...r,
+        category: r.category as RoutineCategory, // Type casting
+        frequency: r.frequency as Frequency,
+      })) ?? [],
+    isLoading: query.isLoading,
+  };
+}
+
+export function useTodayCheckmarks() {
+  const today = new Date().toISOString().split("T")[0];
+  const query = trpc.routine.getCheckmarks.useQuery({ dateISO: today });
+  return {
+    checkmarks: query.data ?? [],
+    isLoading: query.isLoading,
+  };
+}
+
+export function useToggleCheckmark() {
+  const utils = trpc.useUtils();
+  return trpc.routine.toggleCheckmark.useMutation({
+    onSuccess: () => {
+      utils.routine.getCheckmarks.invalidate();
+      toast({ title: "Routine completed! 🎉" });
+    },
+  });
+}
+
+// Convenience hook combining both
+export function useRoutinesWithChecks() {
+  const { routines, isLoading: routinesLoading } = useRoutines();
+  const { checkmarks, isLoading: checkmarksLoading } = useTodayCheckmarks();
+  const toggleCheckmark = useToggleCheckmark();
+
+  const toggleCheck = async (
+    routineId: string,
+    checked: boolean,
+    reflection?: any
+  ) => {
+    const today = new Date().toISOString().split("T")[0];
+    await toggleCheckmark.mutateAsync({
+      routineId,
+      dateISO: today,
+      done: checked,
+      reflection,
+    });
+  };
+
+  return {
+    routines,
+    checkmarks,
+    isLoading: routinesLoading || checkmarksLoading,
+    toggleCheck,
+  };
+}
+```
+
+**Router (dual-model)**:
+
+```typescript
+// src/server/routers/routine.ts
+export const routineRouter = router({
+  // RoutineItem CRUD
+  getAll: protectedProcedure.query(async ({ ctx }) => {
+    return ctx.prisma.routineItem.findMany({
+      where: { userId: ctx.userId },
+      include: { checkmarks: true },
+    });
+  }),
+
+  create: protectedProcedure
+    .input(
+      z.object({
+        title: z.string(),
+        category: z.string(),
+        frequency: z.enum(["daily", "weekly", "monthly", "every3days"]),
+        // ...
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      return ctx.prisma.routineItem.create({
+        data: { ...input, userId: ctx.userId! },
+      });
+    }),
+
+  // Checkmark operations (date-based)
+  getCheckmarks: protectedProcedure
+    .input(
+      z.object({
+        routineId: z.string().optional(),
+        dateISO: z.string().optional(), // YYYY-MM-DD
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      return ctx.prisma.checkmark.findMany({
+        where: {
+          userId: ctx.userId!,
+          ...(input.routineId && { routineId: input.routineId }),
+          ...(input.dateISO && { dateISO: input.dateISO }),
+        },
+      });
+    }),
+
+  toggleCheckmark: protectedProcedure
+    .input(
+      z.object({
+        routineId: z.string(),
+        dateISO: z.string(),
+        done: z.boolean(),
+        reflection: z.any().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      return ctx.prisma.checkmark.upsert({
+        where: {
+          routineId_dateISO: {
+            routineId: input.routineId,
+            dateISO: input.dateISO,
+          },
+        },
+        create: {
+          userId: ctx.userId!,
+          routineId: input.routineId,
+          dateISO: input.dateISO,
+          done: input.done,
+          reflection: input.reflection,
+        },
+        update: {
+          done: input.done,
+          reflection: input.reflection,
+        },
+      });
+    }),
+});
+```
+
+**Componente**:
+
+```typescript
+// ANTES
+const { routines, setRoutines, checkmarks, toggleCheck } =
+  useRoutinesWithChecks();
+
+// Synchronous operation
+toggleCheck(routineId, true);
+
+// DEPOIS
+const {
+  routines,
+  checkmarks,
+  toggleCheck,
+  createRoutine,
+  updateRoutine,
+  deleteRoutine,
+  isLoading,
+} = useRoutinesWithChecks();
+
+// Async mutation with loading state
+if (isLoading) return <div>Loading...</div>;
+
+await toggleCheck(routineId, true, reflection); // Now async
+```
+
+**Key Differences from Tasks**:
+
+- Dual-model structure (RoutineItem templates + Checkmark completions)
+- Date-based filtering (today's checkmarks only)
+- Upsert pattern (toggle creates or updates)
+- Type casting needed for Prisma string enums
+- Optional reflection data (Json field)
+
+### Pattern: Applications (Migrado) ✅
+
+**Complexidade**: Drag-and-drop with optimistic updates
+
+**Antes (localStorage)**:
+
+```typescript
+// src/app/(features)/applications/page.tsx
+const [applications, setApplications] = useLocalStorage<JobApplication[]>(
+  "jobApplications",
+  []
+);
+
+// KanbanColumn.tsx - Drag-and-drop
+const handleDrop = (e: DragEvent, newStatus: ApplicationStatus) => {
+  const applicationId = e.dataTransfer.getData("applicationId");
+  setApplications((prev) =>
+    prev.map((app) =>
+      app.id === applicationId ? { ...app, status: newStatus } : app
+    )
+  );
+};
+```
+
+**Depois (Database)**:
+
+```typescript
+// src/hooks/use-applications-db.ts
+export function useApplications() {
+  const query = trpc.application.getAll.useQuery();
+  return {
+    applications:
+      query.data?.map((app) => ({
+        ...app,
+        dateApplied: app.dateApplied?.toISOString().split("T")[0],
+      })) ?? [],
+    isLoading: query.isLoading,
+  };
+}
+
+export function useUpdateApplication() {
+  const utils = trpc.useUtils();
+  return trpc.application.update.useMutation({
+    onSuccess: () => {
+      utils.application.getAll.invalidate();
+      toast({ title: "Application updated" });
+    },
+  });
+}
+```
+
+**Componente com Async Drag-and-Drop**:
+
+```typescript
+// KanbanColumn.tsx
+const updateApplication = useUpdateApplication();
+
+const handleDrop = async (e: DragEvent, newStatus: ApplicationStatus) => {
+  e.preventDefault();
+  const applicationId = e.dataTransfer.getData("applicationId");
+  const application = applications.find((app) => app.id === applicationId);
+
+  if (application && application.status !== newStatus) {
+    try {
+      await updateApplication.mutateAsync({
+        id: applicationId,
+        status: newStatus,
+      });
+    } catch (error) {
+      console.error("Failed to update application status:", error);
+    }
+  }
+};
+```
+
+**Key Differences**:
+
+- Drag-and-drop requires async mutations
+- Optimistic UI updates handled by React Query cache
+- JSON fields (comments, deepWorkflow) need type casting
+- Date conversion for dateApplied field
+- Error handling for drag-and-drop failures
+
+### Pattern: Dashboard Cards (Migrado) ✅
+
+**Complexidade**: Simple CRUD with JSON config field
+
+**Antes (localStorage)**:
+
+```typescript
+// src/app/(features)/dashboard/page.tsx
+const [dashboardCards, setDashboardCards] = useLocalStorage<DashboardCard[]>(
+  "dashboardCards",
+  initialDashboardCards
+);
+
+// Synchronous CRUD
+function handleCardSubmit(cardData: Omit<DashboardCard, "id" | "value">) {
+  if (selectedCard) {
+    setDashboardCards((prev) =>
+      prev.map((c) => (c.id === selectedCard.id ? fullCardData : c))
+    );
+  } else {
+    setDashboardCards((prev) => [...prev, fullCardData]);
+  }
+}
+```
+
+**Depois (Database)**:
+
+```typescript
+// src/hooks/use-dashboard-db.ts
+export function useDashboardCards() {
+  const query = trpc.dashboard.cards.getAll.useQuery();
+  return {
+    cards: (query.data ?? []).map((card: any) => ({
+      ...card,
+      config: card.config as any,
+    })) as DashboardCard[],
+    isLoading: query.isLoading,
+  };
+}
+
+export function useUpdateDashboardCard() {
+  const utils = trpc.useUtils();
+  return trpc.dashboard.cards.update.useMutation({
+    onSuccess: () => {
+      utils.dashboard.cards.getAll.invalidate();
+    },
+  });
+}
+```
+
+**Componente**:
+
+```typescript
+// ANTES
+const [dashboardCards, setDashboardCards] = useLocalStorage<DashboardCard[]>(
+  "dashboardCards",
+  []
+);
+
+// Synchronous
+function handleCardSubmit(cardData: Omit<DashboardCard, "id" | "value">) {
+  setDashboardCards((prev) => [...prev, fullCardData]);
+}
+
+// DEPOIS
+const { cards: dashboardCards, isLoading } = useDashboardCards();
+const createCard = useCreateDashboardCard();
+const updateCard = useUpdateDashboardCard();
+const deleteCard = useDeleteDashboardCard();
+
+// Async with loading states
+async function handleCardSubmit(cardData: Omit<DashboardCard, "id" | "value">) {
+  if (selectedCard) {
+    await updateCard.mutateAsync({
+      id: selectedCard.id,
+      ...cardData,
+      position: dashboardCards.findIndex((c) => c.id === selectedCard.id),
+    });
+  } else {
+    await createCard.mutateAsync({
+      ...cardData,
+      position: dashboardCards.length,
+    });
+  }
+}
+```
+
+**Key Features**:
+
+- JSON config field stores DashboardCardConfig
+- Position-based ordering with reorder mutation
+- Simple CRUD pattern with toast notifications
+- Router already had complete nested structure (dashboardRouter.cards)
+- No complex child components (unlike Finances)
+
+### Checklist para Migração de Features
+
+1. ✅ **Criar tRPC Router** (`src/server/routers/[feature].ts`)
+
+   - Definir procedures: getAll, getById, create, update, delete
+   - Usar Zod para validação de inputs
+
+- Usar `ctx.userId` (via Auth0) em todas as queries/mutations protegidas
+
+2. ✅ **Criar Hooks tRPC** (`src/hooks/use-[feature]-db.ts`)
+
+   - `useFeaturesQuery` - para leitura
+   - `useCreateFeature` - para criação
+   - `useUpdateFeature` - para atualização
+   - `useDeleteFeature` - para deleção
+   - Adicionar invalidação de cache no `onSuccess`
+   - Adicionar toast notifications
+
+3. ✅ **Atualizar Componentes**
+
+   - Trocar hooks localStorage por hooks tRPC
+   - Adicionar `isLoading` states
+   - Converter operações síncronas em `async/await`
+   - Adicionar error handling com try/catch
+
+4. ✅ **Deletar Código Legacy**
+
+   - Remover hook `use-[feature].ts` antigo
+   - Limpar imports não utilizados
+   - Atualizar testes (se existirem)
+
+5. ✅ **Testar**
+   - CRUD completo no Prisma Studio
+   - Validações de formulário
+   - Estados de loading
+   - Error handling
+   - Cache invalidation
 
 ---
 
@@ -1085,7 +1969,7 @@ Ao criar ou modificar uma feature, SEMPRE verificar:
 - [ ] Notificações → toast ao desbloquear achievement (próximo passo)
 - [ ] Migração → mapear badges/points antigos para novo sistema (próximo passo)
 
-### Integração: Saída de I.A. em Markdown (v1.2.1)
+### Integração: Saída de I.A. em Markdown (v1.2.1+)
 
 Todas as I.A.s das features DEVEM retornar texto com formatação Markdown. A UI deve exibir a resposta em uma modal dedicada com renderização Markdown, permitindo seleção e um botão de copiar-tudo.
 
@@ -1122,6 +2006,44 @@ setAiModalOpen(true); // abre modal automaticamente
   content={aiResult || ""}
 />;
 ```
+
+---
+
+## 🧠 Feedback Centralizado (Novo)
+
+Rota: `/feedback`
+
+Objetivo: substituir e unificar todos os antigos “View History” espalhados pelas features.
+
+Funcionalidades:
+
+- Filtros: intervalo de datas + tipos (applications, goals, tasks, pomodoro, timeTracking, finance, journal)
+- Tabela consolidada ordenada por data (desc)
+- Exportação XLSX dos registros filtrados (lib: `xlsx`)
+- Geração de feedback em Markdown via Genkit + Gemini, com persona “cética e filosófica (chefe sábio)”
+  - Seções obrigatórias: “Visão Geral”, “Sinais Positivos”, “Alertas / Riscos”, “Recomendações Prioritárias (Top 5)”, “Métricas e Padrões”, “Perguntas para Reflexão”
+  - Linguagem: pt-BR por padrão; usar inglês apenas quando explicitamente necessário
+  - Regras: sem promessas, sem emojis, sem números fantasiosos (usar (~aprox) quando estimar)
+
+Arquitetura:
+
+- Router: `src/server/routers/feedback.ts`
+  - `getRecords(filters)`: agrega registros por usuário (Auth0 `ctx.userId`) de múltiplos modelos (applications, goals, tasks, pomodoro, timeTracking, finance, journal)
+  - `generate({ filters, focusIds? })`: gera markdown a partir dos registros filtrados, com opção de limitar por IDs
+- Hooks: `src/hooks/use-feedback.ts`
+- Página: `src/app/(features)/feedback/page.tsx`
+- Flow AI: `src/ai/flows/feedback-insights.ts`
+
+Notas de migração:
+
+- “View History” foi removido das páginas de Applications, Goals, Routine, Dashboard e Finances.
+- O componente genérico `src/features/history-dialog.tsx` foi descontinuado e não deve ser referenciado; a visualização agora é centralizada em `/feedback`.
+
+Extensão futura:
+
+- Adicionar filtros por palavra-chave e por status específicos de cada tipo
+- Exportação CSV/JSON além de XLSX
+- Botão “Copiar Markdown” no modal (usar `MarkdownModal` compartilhado)
 
 Regras:
 
@@ -1972,7 +2894,7 @@ npm run build -- --analyze # (se configurado)
 - ✅ Hook de Estado
 
   - `useRewardSystem()` para gerenciar gems, rewards e achievements
-  - Arquivo: `src/hooks/use-reward-system.ts`
+  - Arquivo removido: `src/hooks/use-reward-system.ts` (substituído pelo conjunto de hooks DB: `use-rewards-db.ts` + `use-reward-economy.ts`)
 
 - ✅ UI & Navegação
 
